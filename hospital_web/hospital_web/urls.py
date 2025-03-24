@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
+from django.contrib.auth.views import LoginView,LogoutView
 from hospitalManagement import views
 
 urlpatterns = [
@@ -25,4 +25,11 @@ urlpatterns = [
     path('adminclick', views.adminclick_view),
     path('doctorclick', views.doctorclick_view),
     path('patientclick', views.patientclick_view),
+    path('adminsignup', views.admin_signup_view),
+    path('patientsignup', views.patient_signup_view),
+    path('doctorsignup', views.doctor_signup_view,name='doctorsignup'),
+    path('adminlogin', LoginView.as_view(template_name='hospital/adminlogin.html')),
+    path('doctorlogin', LoginView.as_view(template_name='hospital/doctorlogin.html')),
+    path('patientlogin', LoginView.as_view(template_name='hospital/patientlogin.html')),
+    path('afterlogin', views.afterlogin_view,name='afterlogin'),
 ]
