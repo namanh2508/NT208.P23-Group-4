@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hospitalManagement', 
     'widget_tweaks',
+    'UserManagement',
+    'DiseaseManagement',
+    'rest_framework', 
 ]
 
 MIDDLEWARE = [
@@ -78,10 +81,10 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
-        'USER': 'root',      # Tên người dùng
-        'PASSWORD': 'root_pw',  # Mật khẩu
+        'USER': 'postgres',      # Tên người dùng
+        'PASSWORD': 'namanh2508',  # Mật khẩu
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }

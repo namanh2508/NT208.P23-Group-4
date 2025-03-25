@@ -1,0 +1,6 @@
+Nam Anh's log:
++ Thêm rest_framework vào setting
++ Thêm UserManagement App
++ pip install django-widget-tweaks để debug No module named 'widget_tweaks'
++ sửa passwork và username trong setting -> database
++ Thêm python -m pip install Pillow 
