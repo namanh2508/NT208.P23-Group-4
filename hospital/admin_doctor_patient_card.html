@@ -5,7 +5,7 @@
 <head>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <style>
-    .card {
+    /* .card {
       box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
       max-width: 300px;
       margin: auto;
@@ -48,15 +48,65 @@
 
     a {
       color: white;
-    }
+    }*/
+        body {
+          align-items: center;
+          font-family: Arial, sans-serif;
+      }
+        h4 {
+            font-size: 40px;
+            font-weight: bold;
+            text-align: center;
+            color: #000000
+        }
+        h4 span {
+          color: #3e84ce;
+        }
+        .tab-container {
+            display: flex;
+            background-color: #e6f2ff; /* Màu nền xanh nhạt */
+            padding: 5px;
+            border-radius: 40px;
+            margin: auto;
+            justify-content: center;
+            width: fit-content;
+            gap: 10px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: #3366cc;
+            font-size: 25px;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+          background: white;
+          border: 1px solid #007bff;
+        }
+        /* .tab.active {
+            border: 1px solid #3366cc;
+            background-color: white;
+        } */
+         .tab-content {
+          display: none;
+          padding: 20px;
+          background: white;
+          margin-top: 10px;
+          border-radius: 10px;
+         }
+         .tab-content.active {
+          display: block;
+         }
   </style>
 </head>
 
 <body>
 
 
-
-  <div class="grid-container">
+  <!-- <div class="grid-container">
     <div class="grid-item">
       <div class="card">
         <img src="{% static "images/admin.png" %}" alt="John" style="width:100%">
@@ -82,7 +132,37 @@
       </div>
     </div>
 
-  </div>
+  </div> -->
+
+  <h4>Explore <span>our website</span></h4>
+  <br>
+  <div class="tab-container">
+    <button class="tab-btn active" onclick="openTab(event, 'appointment')">Make an appointment</button>
+    <button class="tab-btn" onclick="openTab(event, 'health')">Health Consultation</button>
+    <button class="tab-btn" onclick="openTab(event, 'medicines')">Prescription Medicines</button>
+</div>
+
+<div id="appointment" class="tab-content active">
+  <p>Make an appointment</p>
+</div>
+<div id="health" class="tab-content">
+  <p>Health Consultation</p></p>
+</div>
+<div id="medicines" class="tab-content">
+  <p>Medicines</p>
+</div>
+<script>
+  function openTab (event, tabId) {
+    document.querySelectorAll(".tab-content").forEach(content => {
+      content.classList.remove ("active");
+    });
+    document.querySelectorAll(".tab-btn").forEach(button => {
+        button.classList.remove("active");
+    });
+    document.getElementById(tabId).classList.add("active");
+    event.currentTarget.classList.add("active");
+  }
+</script>
  
 
 </body>
