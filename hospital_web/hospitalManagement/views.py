@@ -1,3 +1,4 @@
+from django.contrib.auth import logout
 from django.shortcuts import render,redirect
 from django.db.models import Sum
 from django.contrib.auth.models import Group
@@ -12,7 +13,7 @@ from hospitalManagement import forms, models
 # Create your views here.
 def home_view(request):
     if request.user.is_authenticated:
-        return HttpResponseRedirect('afterlogin')
+        return redirect('afterlogin')
     return render(request,'index.html')
 def aboutus_view(request):
     return render(request, 'aboutus.html')
@@ -49,7 +50,7 @@ def admin_signup_view(request):
             user.save()
             my_admin_group = Group.objects.get_or_create(name='ADMIN')
             my_admin_group[0].user_set.add(user)
-            return HttpResponseRedirect('adminlogin')
+            return redirect('adminlogin')
     return render(request,'adminsignup.html',{'form':form})
 
 def patient_signup_view(request):
@@ -69,7 +70,7 @@ def patient_signup_view(request):
             patient=patient.save()
             my_patient_group = Group.objects.get_or_create(name='PATIENT')
             my_patient_group[0].user_set.add(user)
-        return HttpResponseRedirect('patientlogin')
+        return redirect('patientlogin')
     return render(request,'patientsignup.html',context=mydict)
 
 def doctor_signup_view(request):
@@ -88,7 +89,7 @@ def doctor_signup_view(request):
             doctor=doctor.save()
             my_doctor_group = Group.objects.get_or_create(name='DOCTOR')
             my_doctor_group[0].user_set.add(user)
-        return HttpResponseRedirect('doctorlogin')
+        return redirect('doctorlogin')
     return render(request,'doctorsignup.html',context=mydict)
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -99,6 +100,10 @@ def is_doctor(user):
 def is_patient(user):
     return user.groups.filter(name='PATIENT').exists()
 
+#-logout handle
+def logout_view(request):
+    logout(request)
+    return redirect('index')
 #---------AFTER ENTERING CREDENTIALS WE CHECK WHETHER USERNAME AND PASSWORD IS OF ADMIN,DOCTOR OR PATIENT
 def afterlogin_view(request):
     if is_admin(request.user):
