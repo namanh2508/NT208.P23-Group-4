@@ -21,6 +21,7 @@ from hospitalManagement import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('UserManagement.urls')),
     path('',views.home_view,name=''),
     path('adminclick', views.adminclick_view),
     path('doctorclick', views.doctorclick_view),
@@ -32,6 +33,5 @@ urlpatterns = [
     path('doctorlogin', LoginView.as_view(template_name='hospital/doctorlogin.html')),
     path('patientlogin', LoginView.as_view(template_name='hospital/patientlogin.html')),
     path('afterlogin', views.afterlogin_view,name='afterlogin'),
-    path('user/', include('UserManagement.urls')),
-    path('appointment/', include('UserManagement.urls')),
+    
 ]
