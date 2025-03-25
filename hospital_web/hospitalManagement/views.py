@@ -120,3 +120,4 @@ def afterlogin_view(request):
             return redirect('patient-dashboard')
         else:
             return render(request,'patient_wait_for_approval.html')
+    else: return redirect('index')
