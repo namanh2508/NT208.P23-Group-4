@@ -33,5 +33,10 @@ urlpatterns = [
     path('adminlogin/', LoginView.as_view(template_name='adminlogin.html'),name='adminlogin'),
     path('doctorlogin/', LoginView.as_view(template_name='doctorlogin.html'),name='doctorlogin'),
     path('patientlogin/', LoginView.as_view(template_name='patientlogin.html'),name='patientlogin'),
-    path('afterlogin/', views.afterlogin_view,name='afterlogin'),
+    path('afterlogin/', views.afterlogin_view, name='afterlogin'),
+    path('admin-dashboard/', LoginView.as_view(template_name='admin_dashboard.html'),name='admin_dashboard'),
+    path('doctor-dashboard/', LoginView.as_view(template_name='doctor_dashboard.html'),name='doctor_dashboard'),
+    path('patient-dashboard/', LoginView.as_view(template_name='patient_dashboard.html'),name='patient_dashboard'),
+
+
 ]
