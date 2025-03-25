@@ -39,4 +39,17 @@ urlpatterns = [
     path('patient-dashboard/', LoginView.as_view(template_name='patient_dashboard.html'),name='patient_dashboard'),
 
 
+    path('aboutus/', views.aboutus_view),
+    path('index/', views.index_view),
+    path('adminclick/', views.adminclick_view),
+    path('doctorclick/', views.doctorclick_view),
+    path('patientclick/', views.patientclick_view),
+    path('adminsignup/', views.admin_signup_view),
+    path('patientsignup/', views.patient_signup_view),
+    path('doctorsignup/', views.doctor_signup_view,name='doctorsignup.html'),
+    path('adminlogin/', LoginView.as_view(template_name='adminlogin.html')),
+    path('doctorlogin/', LoginView.as_view(template_name='doctorlogin.html')),
+    path('patientlogin/', LoginView.as_view(template_name='patientlogin.html')),
+    path('afterlogin/', views.afterlogin_view,name='afterlogin.html'),
+    
 ]
