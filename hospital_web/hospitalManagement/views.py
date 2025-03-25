@@ -13,26 +13,26 @@ from hospitalManagement import forms, models
 def home_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')
-    return render(request,'hospital/index.html')
+    return render(request,'index.html')
 
 #for showing signup/login button for admin(by sumit)
 def adminclick_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')
-    return render(request,'hospital/adminclick.html')
+    return render(request,'adminclick.html')
 
 #for showing signup/login button for doctor(by sumit)
 def doctorclick_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')
-    return render(request,'hospital/doctorclick.html')
+    return render(request,'doctorclick.html')
 
 
 #for showing signup/login button for patient(by sumit)
 def patientclick_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')
-    return render(request,'hospital/patientclick.html')
+    return render(request,'patientclick.html')
 
 #----------Signup Views----------------
 
@@ -47,7 +47,7 @@ def admin_signup_view(request):
             my_admin_group = Group.objects.get_or_create(name='ADMIN')
             my_admin_group[0].user_set.add(user)
             return HttpResponseRedirect('adminlogin')
-    return render(request,'hospital/adminsignup.html',{'form':form})
+    return render(request,'adminsignup.html',{'form':form})
 
 def patient_signup_view(request):
     userForm=forms.PatientUserForm()
@@ -67,7 +67,7 @@ def patient_signup_view(request):
             my_patient_group = Group.objects.get_or_create(name='PATIENT')
             my_patient_group[0].user_set.add(user)
         return HttpResponseRedirect('patientlogin')
-    return render(request,'hospital/patientsignup.html',context=mydict)
+    return render(request,'patientsignup.html',context=mydict)
 
 def doctor_signup_view(request):
     userForm=forms.DoctorUserForm()
@@ -86,7 +86,7 @@ def doctor_signup_view(request):
             my_doctor_group = Group.objects.get_or_create(name='DOCTOR')
             my_doctor_group[0].user_set.add(user)
         return HttpResponseRedirect('doctorlogin')
-    return render(request,'hospital/doctorsignup.html',context=mydict)
+    return render(request,'doctorsignup.html',context=mydict)
 
 #-----------for checking user is doctor , patient or admin(by sumit)
 def is_admin(user):
@@ -105,10 +105,10 @@ def afterlogin_view(request):
         if accountapproval:
             return redirect('doctor-dashboard')
         else:
-            return render(request,'hospital/doctor_wait_for_approval.html')
+            return render(request,'doctor_wait_for_approval.html')
     elif is_patient(request.user):
         accountapproval=models.Patient.objects.all().filter(user_id=request.user.id,status=True)
         if accountapproval:
             return redirect('patient-dashboard')
         else:
-            return render(request,'hospital/patient_wait_for_approval.html')
+            return render(request,'patient_wait_for_approval.html')

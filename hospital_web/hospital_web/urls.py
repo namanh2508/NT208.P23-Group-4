@@ -29,10 +29,10 @@ urlpatterns = [
     path('patientclick/', views.patientclick_view),
     path('adminsignup/', views.admin_signup_view),
     path('patientsignup/', views.patient_signup_view),
-    path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
-    path('adminlogin/', LoginView.as_view(template_name='hospital/adminlogin.html')),
-    path('doctorlogin/', LoginView.as_view(template_name='hospital/doctorlogin.html')),
-    path('patientlogin/', LoginView.as_view(template_name='hospital/patientlogin.html')),
-    path('afterlogin/', views.afterlogin_view,name='afterlogin'),
+    path('doctorsignup/', views.doctor_signup_view,name='doctorsignup.html'),
+    path('adminlogin/', LoginView.as_view(template_name='adminlogin.html')),
+    path('doctorlogin/', LoginView.as_view(template_name='doctorlogin.html')),
+    path('patientlogin/', LoginView.as_view(template_name='patientlogin.html')),
+    path('afterlogin/', views.afterlogin_view,name='afterlogin.html'),
     
 ]
