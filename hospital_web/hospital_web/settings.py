@@ -13,8 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-TEMPLATE_DIR = ('C:\\UIT\\Lập trình Web\\đồ án cuối\\templates')
+BASE_DIR =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+TEMPLATE_DIR = BASE_DIR
 
 
 # Quick-start development settings - unsuitable for production
@@ -84,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'postgres',  # Tên cơ sở dữ liệu
         'USER': 'postgres',      # Tên người dùng
-        'PASSWORD': '',  # Mật khẩu
+        'PASSWORD': 'PhuongGiang2803',  # Mật khẩu
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
