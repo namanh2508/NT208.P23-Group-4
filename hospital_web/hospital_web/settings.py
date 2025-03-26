@@ -84,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
         'USER': 'postgres',      # Tên người dùng
-        'PASSWORD': 'namanh2508',  # Mật khẩu
+        'PASSWORD': '',  # Mật khẩu
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
