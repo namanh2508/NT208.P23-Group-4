@@ -37,7 +37,8 @@ urlpatterns = [
     path('admin-dashboard/', LoginView.as_view(template_name='admin_dashboard.html'),name='admin-dashboard'),
     path('doctor-dashboard/', LoginView.as_view(template_name='doctor_dashboard.html'),name='doctor-dashboard'),
     path('patient-dashboard/', LoginView.as_view(template_name='patient_dashboard.html'),name='patient-dashboard'),
-    path('aboutus/', views.aboutus_view, name='aboutus'),
-    path('index/', views.index_view,name='index'),
+    path('aboutus/', LoginView.as_view(template_name='aboutus.html'), name='aboutus'),
+    path('index/', LoginView.as_view(template_name='index.html'),name='index'),
+    path('contactus/', LoginView.as_view(template_name='contactus.html'),name='contactus'),
     path('logout/', views.logout_view, name='logout'),
 ]

@@ -15,10 +15,6 @@ def home_view(request):
     if request.user.is_authenticated:
         return redirect('afterlogin')
     return render(request,'index.html')
-def aboutus_view(request):
-    return render(request, 'aboutus.html')
-def index_view(request):
-    return render(request, 'index.html')
 #for showing signup/login button for admin(by sumit)
 def adminclick_view(request):
     if request.user.is_authenticated:
