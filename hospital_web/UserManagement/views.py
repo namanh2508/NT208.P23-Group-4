@@ -16,7 +16,7 @@ class AppointmentListView(generics.ListAPIView):
     queryset = Appointments.objects.all()
     serializer_class = AppointmentSerializer
     
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def create_user(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():

@@ -22,7 +22,7 @@ from hospitalManagement import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('UserManagement.urls')),
-    #path('api/', include('DiseaseManagement.urls')),
+    path('api/', include('DiseaseManagement.urls')),
     path('',views.home_view,name=''),
     path('adminclick', views.adminclick_view),
     path('doctorclick', views.doctorclick_view),
