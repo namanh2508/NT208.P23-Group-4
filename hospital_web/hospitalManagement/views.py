@@ -7,8 +7,10 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
 from django.conf import settings
-
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 from hospitalManagement import forms, models
+from django.contrib import messages
 
 # Create your views here.
 def home_view(request):
@@ -43,12 +45,12 @@ def patientclick_view(request):
 #----------Signup Views----------------
 
 def admin_signup_view(request):
-    form=forms.AdminSigupForm()
+    form=forms.AdminSignupForm()
     if request.method=='POST':
-        form=forms.AdminSigupForm(request.POST)
+        form=forms.AdminSignupForm(request.POST)
         if form.is_valid():
-            user=form.save()
-            user.set_password(user.password)
+            user=form.save(commit=False)
+            user.set_password(form.cleaned_data["password"])
             user.save()
             my_admin_group = Group.objects.get_or_create(name='ADMIN')
             my_admin_group[0].user_set.add(user)
@@ -94,6 +96,23 @@ def doctor_signup_view(request):
         return redirect('doctorlogin')
     return render(request,'doctorsignup.html',context=mydict)
 
+#login view
+def adminlogin_view(request):
+    if request.method == "POST":
+        form = forms.AdminLoginForm(request, data=request.POST)
+
+        if form.is_valid():
+            user = form.get_user()
+            if user.groups.filter(name="ADMIN").exists():
+                login(request, user)
+                return redirect("admin-dashboard")  # Redirect to admin dashboard
+
+        messages.error(request, "Access denied! This is not an admin account!")
+
+    else:
+        form = forms.AdminLoginForm()
+
+    return render(request, "adminlogin.html", {"form": form})
 #-----------for checking user is doctor , patient or admin(by sumit)
 def is_admin(user):
     return user.groups.filter(name='ADMIN').exists()
