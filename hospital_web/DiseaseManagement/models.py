@@ -7,8 +7,9 @@ class Diseases(models.Model):
     diseaseName = models.CharField(max_length=255, unique=True)
     symptoms = models.JSONField()  # Lưu danh sách triệu chứng dạng JSON
     treatment = models.TextField()
-    @property
-    def get_name(self):
+    
+    
+    def __str__(self):
         return self.diseaseName
     
 class Diagnoses(models.Model):

@@ -38,3 +38,4 @@ class DiagnosisDiseaseListView(generics.ListAPIView):
 #         'diseases' : diseases
 #     }       
 #     return render(request, 'test.html', context)
+
