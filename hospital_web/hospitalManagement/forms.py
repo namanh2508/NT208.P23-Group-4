@@ -12,24 +12,6 @@ class AdminSignupForm(forms.ModelForm):
         widgets = {
         'password': forms.PasswordInput()
         }
-#for admin login
-class AdminLoginForm(AuthenticationForm):
-    username = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
-    )
-
-    def clean(self):
-        cleaned_data = super().clean()
-        user = self.get_user()
-
-        if user and not user.groups.filter(name="ADMIN").exists():
-            raise forms.ValidationError("Access Denied: You are not an Admin.")
-        
-        return cleaned_data
-
 #for doctor related form
 class DoctorUserForm(forms.ModelForm):
     class Meta:

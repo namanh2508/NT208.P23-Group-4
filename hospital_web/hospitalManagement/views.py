@@ -99,18 +99,17 @@ def doctor_signup_view(request):
 #login view
 def adminlogin_view(request):
     if request.method == "POST":
-        form = forms.AdminLoginForm(request, data=request.POST)
-
+        form = AuthenticationForm(request, data=request.POST)  # Django’s built-in login form
         if form.is_valid():
             user = form.get_user()
             if user.groups.filter(name="ADMIN").exists():
                 login(request, user)
-                return redirect("admin-dashboard")  # Redirect to admin dashboard
-
-        messages.error(request, "Access denied! This is not an admin account!")
+                return redirect("admin-dashboard")
+            else:
+                form.add_error(None, "Access Denied: You are not an Admin.")
 
     else:
-        form = forms.AdminLoginForm()
+        form = AuthenticationForm()
 
     return render(request, "adminlogin.html", {"form": form})
 #-----------for checking user is doctor , patient or admin(by sumit)
