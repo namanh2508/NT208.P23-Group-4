@@ -1,3 +1,4 @@
+import requests
 from django.contrib.auth import logout
 from django.shortcuts import render,redirect
 from django.db.models import Sum
@@ -7,6 +8,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
 from django.conf import settings
+from django.shortcuts import render
+
 
 from hospitalManagement import forms, models
 
@@ -117,3 +120,22 @@ def afterlogin_view(request):
         else:
             return render(request,'patient_wait_for_approval.html')
     else: return redirect('index')
+    
+  
+  
+# Lấy dữ liệu từ API để hiện thị tất các doctor lên cho trang admin_dashboard.html
+  
+# def admin_dashboard(request):
+#     doctor_response = requests.get("api/disease")
+#     patient_response = requests.get("api/diagnose")
+#     if doctor_response.status_code == 200 and patient_response.status_code == 200 :
+#         doctors = doctor_response.json()
+#         patients = patient_response.json()
+#     else:
+#         doctors = []
+#         patient = []
+#     context = {  
+#     'doctors': doctors,  
+#     'patients': patients  
+#     }    
+#     return render(request, 'test.html', context) 

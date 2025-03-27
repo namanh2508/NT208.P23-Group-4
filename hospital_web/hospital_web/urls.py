@@ -24,7 +24,7 @@ urlpatterns = [
     path('api/', include('UserManagement.urls')),
     path('api/', include('DiseaseManagement.urls')),
     path('',views.home_view,name=''),
-
+    # path('test/',views.admin_dashboard),
     path('adminclick/', views.adminclick_view,name='adminclick'),
     path('doctorclick/', views.doctorclick_view,name='doctorclick'),
     path('patientclick/', views.patientclick_view,name='patientclick'),
