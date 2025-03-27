@@ -44,4 +44,5 @@ urlpatterns = [
     path('index/', LoginView.as_view(template_name='index.html'),name='index'),
     path('contactus/', LoginView.as_view(template_name='contactus.html'),name='contactus'),
     path('logout/', views.logout_view, name='logout'),
+    
 ]
