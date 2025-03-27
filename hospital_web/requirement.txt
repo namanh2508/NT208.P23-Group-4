@@ -4,3 +4,5 @@ django-widget-tweaks
 djangorestframework
 django-cors-headers
 Pillow
+django-allauth
+django-oauth-toolkit

@@ -32,4 +32,5 @@ urlpatterns = [
     path('aboutus/', views.aboutus_view, name='aboutus'),
     path('index/', views.index_view,name='index'),
     
+    path('accounts/', include('allauth.urls')), #google authentication
 ]
