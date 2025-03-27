@@ -1,4 +1,3 @@
-import requests
 from django.contrib.auth import logout
 from django.shortcuts import render,redirect
 from django.db.models import Sum
@@ -8,8 +7,6 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
 from django.conf import settings
-from django.shortcuts import render
-
 
 from hospitalManagement import forms, models
 
@@ -18,6 +15,10 @@ def home_view(request):
     if request.user.is_authenticated:
         return redirect('afterlogin')
     return render(request,'index.html')
+def aboutus_view(request):
+    return render(request, 'aboutus.html')
+def index_view(request):
+    return render(request, 'index.html')
 #for showing signup/login button for admin(by sumit)
 def adminclick_view(request):
     if request.user.is_authenticated:
@@ -36,6 +37,8 @@ def patientclick_view(request):
     if request.user.is_authenticated:
         return redirect('afterlogin')
     return render(request,'patientclick.html')
+
+#----------Signup Views----------------
 
 #----------Signup Views----------------
 
@@ -99,10 +102,6 @@ def is_doctor(user):
 def is_patient(user):
     return user.groups.filter(name='PATIENT').exists()
 
-#-logout handle
-def logout_view(request):
-    logout(request)
-    return redirect('index')
 #---------AFTER ENTERING CREDENTIALS WE CHECK WHETHER USERNAME AND PASSWORD IS OF ADMIN,DOCTOR OR PATIENT
 def afterlogin_view(request):
     if is_admin(request.user):
@@ -120,22 +119,38 @@ def afterlogin_view(request):
         else:
             return render(request,'patient_wait_for_approval.html')
     else: return redirect('index')
-    
-  
-  
-# Lấy dữ liệu từ API để hiện thị tất các doctor lên cho trang admin_dashboard.html
-  
-# def admin_dashboard(request):
-#     doctor_response = requests.get("api/disease")
-#     patient_response = requests.get("api/diagnose")
-#     if doctor_response.status_code == 200 and patient_response.status_code == 200 :
-#         doctors = doctor_response.json()
-#         patients = patient_response.json()
-#     else:
-#         doctors = []
-#         patient = []
-#     context = {  
-#     'doctors': doctors,  
-#     'patients': patients  
-#     }    
-#     return render(request, 'test.html', context) 
+
+#-logout handle
+def logout_view(request):
+    logout(request)
+    return redirect('index')
+
+#---------------------------------------------------------------------------------
+#------------------------ ADMIN RELATED VIEWS START ------------------------------
+#---------------------------------------------------------------------------------
+@login_required(login_url='adminlogin')
+@user_passes_test(is_admin)
+def admin_dashboard_view(request):
+    #for both table in admin dashboard
+    doctors=models.Doctor.objects.all().order_by('-id')
+    patients=models.Patient.objects.all().order_by('-id')
+    #for three cards
+    doctorcount=models.Doctor.objects.all().filter(status=True).count()
+    pendingdoctorcount=models.Doctor.objects.all().filter(status=False).count()
+
+    patientcount=models.Patient.objects.all().filter(status=True).count()
+    pendingpatientcount=models.Patient.objects.all().filter(status=False).count()
+
+    appointmentcount=models.Appointment.objects.all().filter(status=True).count()
+    pendingappointmentcount=models.Appointment.objects.all().filter(status=False).count()
+    mydict={
+    'doctors':doctors,
+    'patients':patients,
+    'doctorcount':doctorcount,
+    'pendingdoctorcount':pendingdoctorcount,
+    'patientcount':patientcount,
+    'pendingpatientcount':pendingpatientcount,
+    'appointmentcount':appointmentcount,
+    'pendingappointmentcount':pendingappointmentcount,
+    }
+    return render(request,'admin_dashboard.html',context=mydict)

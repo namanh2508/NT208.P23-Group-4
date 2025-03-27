@@ -7,11 +7,7 @@ class Diseases(models.Model):
     diseaseName = models.CharField(max_length=255, unique=True)
     symptoms = models.JSONField()  # Lưu danh sách triệu chứng dạng JSON
     treatment = models.TextField()
-    
-    
-    def __str__(self):
-        return self.diseaseName
-    
+
 class Diagnoses(models.Model):
     diagnosisId = models.AutoField(primary_key=True)
     patientId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="diagnoses_as_patient")
