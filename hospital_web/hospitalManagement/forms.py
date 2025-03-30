@@ -1,20 +1,18 @@
 from django import forms
 from django.contrib.auth.models import User
 from . import models
-
+from django.contrib.auth.forms import AuthenticationForm
 
 
 #for admin signup
-class AdminSigupForm(forms.ModelForm):
+class AdminSignupForm(forms.ModelForm):
     class Meta:
         model=User
         fields=['first_name','last_name','username','password']
         widgets = {
         'password': forms.PasswordInput()
         }
-
-
-#for student related form
+#for doctor related form
 class DoctorUserForm(forms.ModelForm):
     class Meta:
         model=User
@@ -29,7 +27,7 @@ class DoctorForm(forms.ModelForm):
 
 
 
-#for teacher related form
+#for patient related form
 class PatientUserForm(forms.ModelForm):
     class Meta:
         model=User

@@ -58,10 +58,21 @@
   <br>
   <br>
 
+  {% if userForm.errors or patientForm.errors %}
+    <div class="alert alert-danger">
+      {% for field in userForm %}
+        {% if field.errors %}
+          <div>{{ field.label }}: {{ field.errors|striptags }}</div>
+        {% endif %}
+      {% endfor %}
+      {% for field in patientForm %}
+        {% if field.errors %}
+          <div>{{ field.label }}: {{ field.errors|striptags }}</div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
 
-
-
-  <!--- signup page for patient by admin(sumit)  ---------->
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="container register-form">
