@@ -11,7 +11,15 @@ departments = [
     ('bac_si_gay_me', 'Bác sĩ Gây mê'),
     ('bac_si_ngoai_tieu_hoa', 'Bác sĩ Ngoại tiêu hóa')
 ]
-
+class Admin (models.Model):
+    user = models.OneToOneField (User, on_delete=models.CASCADE)
+    full_name= models.CharField(max_length=100)
+    email = models.EmailField()
+    date_of_birth = models.DateField()
+    phone_number = models.CharField (max_length=11)
+    biological_sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
+    def __str__(self):
+        return self.full_name
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_pic = models.ImageField(upload_to='profile_pic/DoctorProfilePic/', null=True, blank=True)

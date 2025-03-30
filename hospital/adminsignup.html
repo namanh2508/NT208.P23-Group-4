@@ -55,8 +55,9 @@
             background-color: #f4f4f4;
         }
         .tabs {
-            margin-top: 100px;
+            margin-top: 60px;
             margin-bottom: 40px;
+            margin: 40px auto;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -110,11 +111,20 @@
             background: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 5px;
-            margin-top: 250px;
+            margin-top: 280px;
+            /* margin-bottom: 50px; */
             position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 45%;
+            left: 50%; 
+            /* margin: 50px auto;
+            position: relative;
+            top: auto;
+            left: auto;
+            transform: none; */
+            /* display: flex;
+            flex-direction: column;
+            align-items: center; */
+            transform: translate(-50%, -50%); 
         }
         h3 {
           text-align: center;
@@ -165,6 +175,25 @@
         .form-section button:hover {
           background-color: #0056b3;
         }
+        .form-container div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 10px; /* Khoảng cách giữa các dòng */
+}
+.form-container label {
+    width: 150px; /* Độ rộng cố định giúp label thẳng hàng */
+    font-weight: bold;
+    text-align: left;
+    margin-right: 5px; /* Khoảng cách giữa label và input */
+}
+.form-container input {
+    flex: 1; /* Giúp input mở rộng theo chiều ngang */
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+    border-radius: 5px;
+}
+
         #admin:checked ~ .form-container .admin-form,
         #doctor:checked ~ .form-container .doctor-form,
         #patient:checked ~ .form-container .patient-form {
@@ -184,7 +213,7 @@
   <br>
 
 
-
+<main>
 
   <!--- signup page for admin by admin(sumit)  ---------->
   <!-- <form method="post">
@@ -231,7 +260,7 @@
         <input type="radio" id="patient" name="tab">
         <label for="patient" class="tab">Patient</label>
 
-    <div class="form-container">
+    <!-- <div class="form-container">
         <div class="form-section admin-form">
             <h3>Admin Signup</h3>
             <input type="text" placeholder="Username" required><br>
@@ -253,13 +282,34 @@
             <input type="password" placeholder="Password" required><br>
             <button type="submit" name="submit-btn">Sign Up</button><br>
         </div>
-    </div>
+    </div> -->
+    <div class="form-container">
+      <form method="post">
+          {% csrf_token %}
+          <div class="form-section admin-form">
+              <h3>Admin Signup</h3>
+              
+              {% for field in form %}
+                  <div>
+                      {{ field.label_tag }}
+                      {{ field }}
+                      {% if field.errors %}
+                          <small style="color: red;">{{ field.errors|striptags }}</small>
+                      {% endif %}
+                  </div>
+              {% endfor %}
+              
+              <button type="submit" name="submit-btn">Sign Up</button><br>
+          </div>
+      </form>
+  </div>
+  
   </div> 
 
 <br><br><br>
 
 
-
+</main>
 
   {% include "footer.html" %}
 </body>

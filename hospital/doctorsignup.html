@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 
 {% load widget_tweaks %}
 <html lang="en" dir="ltr">
@@ -61,7 +61,7 @@
 
 
 
-  <!--- signup page for doctor by admin(sumit)  ---------->
+- signup page for doctor by admin(sumit)
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="container register-form">
@@ -115,4 +115,182 @@
 </body>
 
 
+</html> -->
+
+<!DOCTYPE html>
+{% load widget_tweaks %}
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HMS - Django</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      min-height: 100vh;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex-grow: 1;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      background: #e0f2ff;
+      border-radius: 30px;
+      padding: 8px;
+      width: 100%;
+      max-width: 700px;
+      margin-bottom: 30px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 10px;
+      cursor: pointer;
+      border-radius: 25px;
+      transition: background 0.3s;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    input[name="tab"] {
+      display: none;
+    }
+
+    input[name="tab"]:checked + label {
+      background: white;
+      border: 2px solid #a3c2e8;
+    }
+
+    /* Form container */
+    .form-container {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h3 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .form-section {
+      display: none;
+    }
+
+    #admin:checked ~ .form-container .admin-form,
+    #doctor:checked ~ .form-container .doctor-form,
+    #patient:checked ~ .form-container .patient-form {
+      display: block;
+    }
+
+    .form-container form > div {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .form-container label {
+      width: 150px;
+      font-weight: bold;
+    }
+
+    .form-container input,
+    .form-container select {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .form-container button {
+      margin: 20px auto 0;
+      display: block;
+      padding: 10px 20px;
+      background-color: #6d99c8;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .form-container button:hover {
+      background-color: #0056b3;
+    }
+
+    small {
+      color: red;
+      margin-left: 150px;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  {% include "navbar.html" %}
+
+  <main>
+    <!-- Tabs -->
+    <div class="tabs">
+      <input type="radio" id="admin" name="tab" checked>
+      <label for="admin" class="tab">Admin</label>
+      <input type="radio" id="doctor" name="tab">
+      <label for="doctor" class="tab">Doctor</label>
+      <input type="radio" id="patient" name="tab">
+      <label for="patient" class="tab">Patient</label>
+    </div>
+
+    <!-- Form -->
+    <div class="form-container">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-section admin-form">
+          <h3>Admin Signup</h3>
+
+          {% for field in form %}
+          <div>
+            {{ field.label_tag }}
+            {{ field }}
+          </div>
+          {% if field.errors %}
+            <small>{{ field.errors|striptags }}</small>
+          {% endif %}
+          {% endfor %}
+
+          <button type="submit">Sign Up</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  {% include "footer.html" %}
+</body>
+
 </html>
+
