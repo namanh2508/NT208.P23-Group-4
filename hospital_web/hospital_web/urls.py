@@ -7,31 +7,11 @@ from api.views import CreateUserView
 from hospitalManagement import views
 urlpatterns = [
     path('admin/', admin.site.urls),
-<<<<<<< HEAD
     path('IV-Medical/', include('UserManagement.urls')),
 
     path('',views.home_view,name='index'),
 
  #   path('patientsignup/', views.patient_signup_view,name='patientsignup'),
-=======
-    path("api/user/register/", CreateUserView.as_view(), name="register"),
-    path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),
-    path("api-auth/", include("rest_framework.urls")),
-    path("api/", include("api.urls")),
-
-    path('api/', include('UserManagement.urls')),
-    path('api/', include('DiseaseManagement.urls')),
-
-    path('',views.home_view,name=''),
-    path('adminclick/', views.adminclick_view,name='adminclick'),
-    path('doctorclick/', views.doctorclick_view,name='doctorclick'),
-    path('patientclick/', views.patientclick_view,name='patientclick'),
-
-    path('adminsignup/', views.admin_signup_view,name='adminsignup'),
-    path('patientsignup/', views.patient_signup_view,name='patientsignup'),
-    path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
->>>>>>> df227b7bbecd7cf084fed941d3274200dbb18ac9
 
     path('adminlogin/', views.adminlogin_view,name='adminlogin'),
     path('stafflogin/', views.doctorlogin_view,name='adminlogin'),
