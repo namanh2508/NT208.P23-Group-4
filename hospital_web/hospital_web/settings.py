@@ -40,14 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hospitalManagement', 
     'widget_tweaks',
-    'UserManagement',
-    'DiseaseManagement',
     'rest_framework', 
     'django.contrib.sites',  # Required for allauth
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',  # Add providers
+    'UserManagement',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'hospital_web.urls'
@@ -88,8 +88,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
-        'USER': 'postgres',      # Tên người dùng root
-        'PASSWORD': 'PhuongGiang2803',   # Mật khẩu root_pw
+        'USER': 'root',      # Tên người dùng root
+        'PASSWORD': 'root_pw',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }

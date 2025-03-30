@@ -1,11 +1,10 @@
-from django.urls import path
-from .views import UserListView
-from .views import AppointmentListView
-from .views import create_user
-
+from django.contrib import admin
+from django.urls import path,include
+from django.contrib.auth.views import LoginView,LogoutView
+from UserManagement import views
 urlpatterns = [
-    path('user/', UserListView.as_view(), name='user-list'),
-    path('appointment/', AppointmentListView.as_view(), name='appointment-list'),
-    path('create-user/', create_user, name="create-user"),
-
-]
+    path('',views.index_view,name=''),
+    path('patientsignup/', views.patient_signup_view,name='patientsignup'),
+    path('patientlogin', views.patientlogin_view, name='patientlogin'),
+    path('patient-dashboard', LoginView.as_view(template_name='patient_dashboard.html'), name='patient-dashboard'),
+ ]
