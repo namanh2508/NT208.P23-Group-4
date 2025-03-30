@@ -11,7 +11,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TEMPLATE_DIR = os.path.join(BASE_DIR,'hospital') 
@@ -26,8 +30,21 @@ SECRET_KEY = 'django-insecure-+%70bj&(=plk%op)2203yngsoseidf#0rg6*ytz@u65bk9f2^+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
 
 # Application definition
 
@@ -46,7 +63,13 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',  # Add providers
+<<<<<<< HEAD
     'UserManagement',
+=======
+    "api",
+    "corsheaders",
+    'rest_framework_simplejwt',
+>>>>>>> df227b7bbecd7cf084fed941d3274200dbb18ac9
 ]
 
 MIDDLEWARE = [
@@ -58,6 +81,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+<<<<<<< HEAD
+=======
+    "corsheaders.middleware.CorsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+>>>>>>> df227b7bbecd7cf084fed941d3274200dbb18ac9
 ]
 
 ROOT_URLCONF = 'hospital_web.urls'
@@ -88,8 +117,13 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
+<<<<<<< HEAD
         'USER': 'root',      # Tên người dùng root
         'PASSWORD': 'root_pw',   # Mật khẩu root_pw
+=======
+        'USER': 'postgres',      # Tên người dùng root
+        'PASSWORD': '123456',   # Mật khẩu root_pw
+>>>>>>> df227b7bbecd7cf084fed941d3274200dbb18ac9
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
@@ -141,3 +175,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWS_CREDENTIALS = True
+# AUTH_USER_MODEL = 'UserManagement.Users'
