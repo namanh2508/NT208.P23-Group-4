@@ -1,15 +1,23 @@
 from django.contrib import admin
 from django.urls import path,include
 from django.contrib.auth.views import LoginView,LogoutView
+from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
+
+from api.views import CreateUserView
 from hospitalManagement import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("api/user/register/", CreateUserView.as_view(), name="register"),
+    path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/", include("api.urls")),
+
     path('api/', include('UserManagement.urls')),
     path('api/', include('DiseaseManagement.urls')),
 
     path('',views.home_view,name=''),
-
     path('adminclick/', views.adminclick_view,name='adminclick'),
     path('doctorclick/', views.doctorclick_view,name='doctorclick'),
     path('patientclick/', views.patientclick_view,name='patientclick'),
