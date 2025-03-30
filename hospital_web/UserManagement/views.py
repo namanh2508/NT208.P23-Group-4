@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from hospitalManagement import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 # Create your views here.
 def index_view(request):
     if request.user.is_authenticated:
@@ -44,5 +44,8 @@ def patientlogin_view(request):
 
     return render(request, "patientlogin.html", {"form": form})
 
+def logout_view(request):
+    logout(request)
+    return redirect('index_home')
 
 

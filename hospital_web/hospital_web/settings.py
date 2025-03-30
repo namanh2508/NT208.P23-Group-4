@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',  # Add providers
-    'UserManagement',
+    'UserManagement','api',
 ]
 
 MIDDLEWARE = [
