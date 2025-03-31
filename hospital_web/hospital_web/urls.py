@@ -8,9 +8,9 @@ from hospitalManagement import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('IV-Medical/', include('UserManagement.urls')),
-
+    path('api/', include('api.urls')),
     path('',views.home_view,name='index'),
-
+    
  #   path('patientsignup/', views.patient_signup_view,name='patientsignup'),
 
     path('adminlogin/', views.adminlogin_view,name='adminlogin'),

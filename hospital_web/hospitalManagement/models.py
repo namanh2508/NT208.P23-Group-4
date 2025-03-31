@@ -59,6 +59,7 @@ class Patient(models.Model):
 
 
 class Appointment(models.Model):
+    appointmentID=models.AutoField(primary_key=True)
     patientId=models.PositiveIntegerField(null=True)
     doctorId=models.PositiveIntegerField(null=True)
     patientName=models.CharField(max_length=40,null=True)
@@ -66,7 +67,6 @@ class Appointment(models.Model):
     appointmentDate=models.DateField(auto_now=True)
     description=models.TextField(max_length=500)
     status=models.BooleanField(default=False)
-
 
 
 class PatientDischargeDetails(models.Model):
@@ -86,3 +86,20 @@ class PatientDischargeDetails(models.Model):
     doctorFee=models.PositiveIntegerField(null=False)
     OtherCharge=models.PositiveIntegerField(null=False)
     total=models.PositiveIntegerField(null=False)
+
+class Diseases(models.Model):
+    diseaseID = models.AutoField(primary_key=True)
+    diseaseName = models.CharField(max_length=255, unique=True)
+    symptoms = models.TextField() 
+    treatment = models.TextField()
+
+class Diagnoses(models.Model):
+    diagnosisId = models.AutoField(primary_key=True)
+    patientId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="diagnoses_as_patient")
+    doctorId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="diagnoses_as_doctor")
+    note = models.TextField(blank=True, null=True)
+    
+class DiagnosisDisease(models.Model):
+    diseaseID = models.ForeignKey(Diseases, on_delete=models.CASCADE)
+    diagnosisId = models.ForeignKey(Diagnoses, on_delete=models.CASCADE)
+    
