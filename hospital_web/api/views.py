@@ -45,10 +45,18 @@ class GetAllPatientDischargeDetail(generics.ListAPIView):
 class GetAllDoctor(generics.ListAPIView):
     queryset = PatientDischargeDetails.objects.all()
     serializer_class = DoctorSerializer
-    permission_classes = [AllowAny]
     
-    
+<<<<<<< HEAD
 
+=======
+class GetAllDoctor2(generics.ListAPIView):
+    queryset = Doctor.objects.all()  # Đổi từ PatientDischargeDetails thành Doctor
+    serializer_class = DoctorSerializer   
+    
+    
+    
+    
+>>>>>>> 1938e2aaf49be08bb826641d1926ea0210f38dae
 def patient_appointments_view(request,patientID):
     patient = get_object_or_404(User, pk=patientID)
     appointments = Appointment.objects.filter(patient_id=patientID).order_by('-appointmentDate')

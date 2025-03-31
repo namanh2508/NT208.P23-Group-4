@@ -11,6 +11,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from hospitalManagement import forms, models
 from django.contrib import messages
+from django.urls import reverse
 
 # Create your views here.
 def home_view(request):
@@ -149,11 +150,7 @@ def afterlogin_view(request):
     if is_admin(request.user):
         return redirect('admin-dashboard')
     elif is_doctor(request.user):
-        accountapproval=models.Doctor.objects.all().filter(user_id=request.user.id,status=True)
-        if accountapproval:
-            return redirect('doctor-dashboard')
-        else:
-            return render(request,'doctor_wait_for_approval.html')
+        return redirect('doctor-dashboard')
     elif is_patient(request.user):
         accountapproval=models.Patient.objects.all().filter(user_id=request.user.id,status=True)
         if accountapproval:
