@@ -45,7 +45,7 @@ class GetAllPatientDischargeDetail(generics.ListAPIView):
 class GetAllDoctor(generics.ListAPIView):
     queryset = PatientDischargeDetails.objects.all()
     serializer_class = DoctorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     
     
