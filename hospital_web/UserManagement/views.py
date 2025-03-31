@@ -3,6 +3,7 @@ from hospitalManagement import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
+from django.urls import reverse
 # Create your views here.
 def index_view(request):
     if request.user.is_authenticated:
