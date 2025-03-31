@@ -46,7 +46,9 @@ class GetAllDoctor(generics.ListAPIView):
     queryset = PatientDischargeDetails.objects.all()
     serializer_class = DoctorSerializer
     
-    
+class GetAllDoctor2(generics.ListAPIView):
+    queryset = Doctor.objects.all()  # Đổi từ PatientDischargeDetails thành Doctor
+    serializer_class = DoctorSerializer   
     
     
     

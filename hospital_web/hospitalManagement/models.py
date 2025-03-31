@@ -31,7 +31,9 @@ class Doctor(models.Model):
     @property
     def get_name(self):
         return self.user.first_name + " " + self.user.last_name
-
+    @property
+    def get_profile_pic(self):
+        return self.profile_pic.url if self.profile_pic else None
     @property
     def get_id(self):
         return self.user.id

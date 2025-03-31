@@ -130,10 +130,47 @@
       </div>
     </nav>
 
-    <div class="container mt-4">
-       <h1>Welcome to IV MEDICAL</h1>
-       <p>Your main content goes here...</p>
-    </div>
+    <<div class="container mt-4">
+      <h2>Danh Sách Bác Sĩ</h2>
+      <div class="row" id="doctor-list"> 
+          <!-- Dữ liệu bác sĩ sẽ được thêm ở đây -->
+      </div>
+  </div>
+  
+  <script>
+      async function fetchDoctors() {
+          try {
+              let response = await fetch("/api/doctor/");
+              let data = await response.json();
+              let doctorList = document.getElementById("doctor-list");
+  
+              // Xóa nội dung cũ trước khi thêm mới
+              doctorList.innerHTML = "";
+  
+              // Duyệt qua danh sách bác sĩ và hiển thị
+              data.forEach(doctor => {
+                  let card = `
+                      <div class="col-md-2 mb-4 d-flex justify-content-center">
+                          <div class="text-center">
+                              <a href="/IV-Medical/doctor/${doctor.id}/">
+                                  <img src="${doctor.profile_pic}" alt="Doctor Image" style="width: 120px; height: 120px; border-radius: 50%;">
+                              </a>
+                              <h5 class="mt-2">${doctor.user.last_name} ${doctor.user.first_name}</h5>
+                              <p>${doctor.department}</p>
+                          </div>
+                      </div>
+                  `;
+                  doctorList.innerHTML += card;
+              });
+          } catch (error) {
+              console.error("Lỗi khi tải danh sách bác sĩ:", error);
+          }
+      }
+  
+      // Gọi hàm fetchDoctors khi trang web tải xong
+      window.onload = fetchDoctors;
+  </script>
+  
 
   </div> {% include "footer.html" %} <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
