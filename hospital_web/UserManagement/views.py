@@ -3,6 +3,7 @@ from hospitalManagement import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
 # Create your views here.
 def index_view(request):
@@ -49,4 +50,13 @@ def logout_view(request):
     logout(request)
     return redirect('index_home')
 
+def is_patient(user):
+    return user.groups.filter(name='PATIENT').exists()
 
+@login_required(login_url='patientlogin')
+@user_passes_test(is_patient)
+def patient_dashboard_view(request):
+    if request.user.is_authenticated:
+        return render(request, 'patient_dashboard.html')
+    else:
+        return redirect('patientlogin')
