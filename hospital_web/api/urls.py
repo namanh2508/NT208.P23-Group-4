@@ -6,6 +6,6 @@ urlpatterns = [
     path("notes/delete/<int:pk>/", views.NoteDelete.as_view(), name="delete-note"),
     path('discharge/',views.GetAllPatientDischargeDetail.as_view(), name="All patient discharge"),
     path('appointment/patient/<int:patient_id>/', views.patient_appointments_view, name='patient_appointments'),
-    path('doctor/',views.GetAllDoctor.as_view(), name="All doctor"),
+    path('doctor/',views.GetAllDoctor, name="All doctor"),
     path('createuser/', views.CreateUserView.as_view(), name='create-user'),
 ]

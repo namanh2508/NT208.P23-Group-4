@@ -45,7 +45,6 @@ class GetAllPatientDischargeDetail(generics.ListAPIView):
 class GetAllDoctor(generics.ListAPIView):
     queryset = PatientDischargeDetails.objects.all()
     serializer_class = DoctorSerializer
-
     
     
     
