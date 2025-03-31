@@ -48,10 +48,7 @@ class GetAllDoctor(generics.ListAPIView):
     permission_classes = [AllowAny]
     
     
-    
-    
-    
-    
+
 def patient_appointments_view(request,patientID):
     patient = get_object_or_404(User, pk=patientID)
     appointments = Appointment.objects.filter(patient_id=patientID).order_by('-appointmentDate')
