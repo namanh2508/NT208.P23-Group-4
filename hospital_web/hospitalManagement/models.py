@@ -31,7 +31,9 @@ class Doctor(models.Model):
     @property
     def get_name(self):
         return self.user.first_name + " " + self.user.last_name
-
+    @property
+    def get_profile_pic(self):
+        return self.profile_pic.url if self.profile_pic else None
     @property
     def get_id(self):
         return self.user.id
@@ -48,25 +50,24 @@ class Patient(models.Model):
     mobile = models.CharField(max_length=20,null=False)
     admitDate=models.DateField(auto_now=True)
     status=models.BooleanField(default=False)
+    symptoms = models.CharField(max_length=100, null=True)
     @property
     def get_name(self):
         return self.user.first_name+" "+self.user.last_name
     @property
     def get_id(self):
         return self.user.id
-    def __str__(self):
-        return self.user.first_name+" ("+self.symptoms+")"
 
 
 class Appointment(models.Model):
-    patientId=models.PositiveIntegerField(null=True)
-    doctorId=models.PositiveIntegerField(null=True)
+    appointmentID=models.AutoField(primary_key=True)
+    patientId = models.ForeignKey(Patient, on_delete=models.PROTECT, related_name="appointments")  # ForeignKey to Patient
+    doctorId = models.ForeignKey(Doctor, on_delete=models.PROTECT, related_name="appointments")  # ForeignKey to Doctor
     patientName=models.CharField(max_length=40,null=True)
     doctorName=models.CharField(max_length=40,null=True)
     appointmentDate=models.DateField(auto_now=True)
     description=models.TextField(max_length=500)
     status=models.BooleanField(default=False)
-
 
 
 class PatientDischargeDetails(models.Model):
@@ -86,3 +87,20 @@ class PatientDischargeDetails(models.Model):
     doctorFee=models.PositiveIntegerField(null=False)
     OtherCharge=models.PositiveIntegerField(null=False)
     total=models.PositiveIntegerField(null=False)
+
+class Diseases(models.Model):
+    diseaseID = models.AutoField(primary_key=True)
+    diseaseName = models.CharField(max_length=255, unique=True)
+    symptoms = models.TextField() 
+    treatment = models.TextField()
+
+class Diagnoses(models.Model):
+    diagnosisId = models.AutoField(primary_key=True)
+    patientId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="diagnoses_as_patient")
+    doctorId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="diagnoses_as_doctor")
+    note = models.TextField(blank=True, null=True)
+    
+class DiagnosisDisease(models.Model):
+    diseaseID = models.ForeignKey(Diseases, on_delete=models.CASCADE)
+    diagnosisId = models.ForeignKey(Diagnoses, on_delete=models.CASCADE)
+    

@@ -2,13 +2,15 @@ from django.contrib import admin
 from django.urls import path,include
 from django.contrib.auth.views import LoginView,LogoutView
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
+from django.conf.urls.static import static
 
 from api.views import CreateUserView
 from hospitalManagement import views
+from hospital_web import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('IV-Medical/', include('UserManagement.urls')),
-
+    path('api/', include('api.urls')),
     path('',views.home_view,name='index'),
 
     path('adminsignup/', views.admin_signup_view,name='adminsignup'),
@@ -61,4 +63,4 @@ urlpatterns = [
     path('discharge-patient/<int:pk>', views.discharge_patient_view,name='discharge-patient'),
     path('download-pdf/<int:pk>', views.download_pdf_view,name='download-pdf'),
 
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
