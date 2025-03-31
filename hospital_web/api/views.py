@@ -55,7 +55,7 @@ class GetAllDoctor(generics.ListAPIView):
 def patient_appointments_view(request,patientID):
     patient = get_object_or_404(User, pk=patientID)
     appointments = Appointment.objects.filter(patient_id=patientID).order_by('-appointmentDate')
-    if not (request.user.is_staff or request.user.pk == patient_id):
+    if not (request.user.is_staff or request.user.pk == patientID):
         return HttpResponseForbidden("Bạn không có quyền xem lịch hẹn này.")
     context = {
         'patient': patient,
