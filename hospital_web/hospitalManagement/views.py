@@ -130,12 +130,12 @@ def doctorlogin_view(request):
                 login(request, user)
                 return redirect("doctor-dashboard")
             else:
-                form.add_error(None, "Access Denied: You are not an DOCTOR.")
+                form.add_error(None, "Access Denied: You are not a DOCTOR.")
 
     else:
         form = AuthenticationForm()
 
-    return render(request, "stafflogin.html", {"form": form})
+    return render(request, "login.html", {"form": form})
 #-----------for checking user is doctor , patient or admin(by sumit)
 def is_admin(user):
     return user.groups.filter(name='ADMIN').exists()

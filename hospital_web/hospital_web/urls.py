@@ -11,10 +11,10 @@ urlpatterns = [
 
     path('',views.home_view,name='index'),
 
- #   path('patientsignup/', views.patient_signup_view,name='patientsignup'),
+    path('adminsignup/', views.admin_signup_view,name='adminsignup'),
 
     path('adminlogin/', views.adminlogin_view,name='adminlogin'),
-    path('stafflogin/', views.doctorlogin_view,name='adminlogin'),
+    path('login/', views.doctorlogin_view,name='login'),
     
     path('afterlogin/', views.afterlogin_view, name='afterlogin'),
     path('logout/', views.logout_view, name='logout'),
