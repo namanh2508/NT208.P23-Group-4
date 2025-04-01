@@ -13,10 +13,10 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('',views.home_view,name='index'),
 
-    path('signup/', views.signup_view,name='signup'),
-
-    path('login/', views.login_view,name='login'),
-    
+    path('adminsignup/', views.admin_signup_view,name='adminsignup'),
+    path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
+    path('adminlogin/', views.admin_login_view,name='adminlogin'),
+    path('doctorlogin/', views.doctor_login_view,name='login'),
     path('afterlogin/', views.afterlogin_view, name='afterlogin'),
     path('logout/', views.logout_view, name='logout'),
     

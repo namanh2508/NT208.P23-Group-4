@@ -14,13 +14,14 @@
       min-height: 100%;
       display: flex;
       flex-direction: column;
-    }
+    } 
     .content {
       flex: 1; /* Đẩy footer xuống */
     }
     /* Hiệu ứng input */
     .form-control {
-      border: 2px solid #007bff;
+      border: none;
+      border-bottom: 2px solid #007bff;
       transition: all 0.3s ease-in-out;
     }
     .form-control:focus {
@@ -33,6 +34,13 @@
       transform: scale(1.05);
       transition: all 0.3s ease-in-out;
     }
+    h3 {
+      font-size: 40px !important;
+    }
+    a:hover {
+      cursor: pointer;
+      color: rgb(73, 133, 133) !important;
+    }
   </style>
 </head>
 <body>
@@ -43,24 +51,32 @@
       <div class="col-md-6">
         <div class="card shadow-lg p-4 rounded-3">
           <div class="card-body">
-            <h3 class="text-center text-primary fw-bold mb-4">Đăng nhập admin</h3>
+            <h3 class="text-center text-primary fw-bold mb-4">Login as admin</h3>
 
             <form method="post">
               {% csrf_token %}
               {% load widget_tweaks %}
 
-              <div class="mb-3">
-                <label class="form-label fw-bold">Username</label>
+              <div class="mb-3 row justify-content-center align-items-center py-2">
+                <label class="col-md-3 col-form-label fw-bold">Username</label>
+                <div class="col-md-8">
                 {% render_field form.username class="form-control rounded-3" placeholder="Enter your username" %}
+                </div>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label fw-bold">Password</label>
+              <div class="mb-3 row justify-content-center align-items-center py-2">
+                <label class="col-md-3 col-form-label fw-bold">Password</label>
+                <div class="col-md-8">
                 {% render_field form.password class="form-control rounded-3" placeholder="Enter your password" %}
+                </div>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Đăng nhập</button>
-
+              <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Login</button>
+              <!-- Signup link -->
+              <div class="text-center mt-3">
+                <span>Don't have an account?</span> 
+                <a href="{% url 'signup' %}" class="text-primary fw-bold ms-2">Signup now!</a>
+              </div>
 
               {% if form.non_field_errors %}
               <div class="alert alert-danger mt-3">
