@@ -7,64 +7,83 @@ from django.core.validators import RegexValidator
 
 
 #for signup
-class SignupForm(forms.ModelForm):
-    user_group = forms.ChoiceField(choices=[
-        ('Admin', 'Admin'),
-        ('Doctor', 'Doctor'),
-        ('Patient', 'Patient')
-    ], required=True,
-    widget=forms.HiddenInput(attrs={'class': 'hidden-field'}))
-    username = forms.CharField(max_length=100,
+class AdminSignupForm(forms.ModelForm):
+    username = forms.CharField(
+        max_length=150,
         required=True,
-        label="Username",
-        widget=forms.TextInput(attrs={'placeholder': 'Enter your username'}))
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your username'
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'}),
+        required=True
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm your password'}),
+        required=True
+    )
+    full_name = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your full name'})
+    )
     email = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(attrs={'placeholder': 'Enter your email'}))
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'})
+    )
     date_of_birth = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'placeholder': 'Select your date of birth'}))
-    phone_number = forms.CharField(
+        widget=forms.DateInput(attrs={'class': 'form-control','type': 'date', 'placeholder': 'Select your date of birth'})
+    )
+    mobile = forms.CharField(
         max_length=11,
         required=True,
-        label="Phone Number",
-        validators=[RegexValidator(r'^[0-9]{10,11}$', 'Your phone number is invalid')],
-        widget=forms.TextInput(attrs={'placeholder': 'Enter your phone number'}))
+        label="Mobile Number",
+        validators=[RegexValidator(r'^[0-9]{10,11}$', 'Phone number must be 10-11 digits')],
+        widget=forms.TextInput(attrs={'class': 'form-control','placeholder': 'Enter your mobile number'})
+    )
     biological_sex = forms.ChoiceField(
         choices=[('M', 'Male'), ('F', 'Female')],
         required=True,
         widget=forms.RadioSelect,
-        initial='M')
+        initial='M'
+    )
+
     class Meta:
         model = User
-        fields = ['username','email', 'password']
+        fields = ['username', 'email', 'password']
         widgets = {
-            'password': forms.PasswordInput(attrs={'placeholder': 'Enter your password'})
+            'username': forms.TextInput(attrs={'placeholder': 'Enter your username'})
         }
-    def __init__(self, *args, **kwargs):
-        form_type = kwargs.pop('form_type', 'Admin')
-        super().__init__(*args, **kwargs)
-        self.fields['user_group'].initial = form_type
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            raise forms.ValidationError("Passwords do not match")
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])  # Mã hóa mật khẩu
+        user.set_password(self.cleaned_data["password"])
+        
         if commit:
             user.save()
-            group_name = self.cleaned_data['user_group']
-            group, created = Group.objects.get_or_create(name=group_name)
-            user.groups.add(group)
-            profile_data = {
-                'user': user,
-                'date_of_birth': self.cleaned_data['date_of_birth'],
-                'phone_number': self.cleaned_data['phone_number'],
-                'biological_sex': self.cleaned_data['biological_sex']
-            }
-            if group_name == 'Admin':
-                models.Admin.objects.create(**profile_data)
-            elif group_name == 'Doctor':
-                models.Doctor.objects.create(**profile_data)
-            elif group_name == 'Patient':
-                models.Patient.objects.create(**profile_data)
+            # Tạo profile admin
+            admin = models.Admin.objects.create(
+                user=user,
+                full_name=self.cleaned_data['full_name'],
+                email=self.cleaned_data['email'],
+                date_of_birth=self.cleaned_data['date_of_birth'],
+                mobile=self.cleaned_data['mobile'],
+                biological_sex=self.cleaned_data['biological_sex']
+            )
+            # Thêm vào group Admin
+            admin_group, created = Group.objects.get_or_create(name='Admin')
+            user.groups.add(admin_group)
+        
         return user
     
 

@@ -50,12 +50,12 @@ def patientclick_view(request):
 
 def admin_signup_view(request):
     if request.method == "POST":
-        form = forms.SignupForm(request.POST)
+        form = forms.AdminSignupForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('adminlogin.html') 
     else:
-        form = forms.SignupForm()
+        form = forms.AdminSignupForm()
     return render(request, 'adminsignup.html', {'form': form})
 
 def patient_signup_view(request):

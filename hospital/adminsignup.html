@@ -45,7 +45,7 @@
     .form-group {
       margin-bottom: 1.5rem;
       display: grid;
-      grid-template-columns: 120px 1fr;
+      grid-template-columns: 150px 1fr;
       align-items: center;
       gap: 1rem;
     }
@@ -98,6 +98,7 @@
     }
 
     .btn-register:hover {
+      color: white;
       background: #2980b9;
       transform: scale(1.05);
       transition: all 0.3s ease-in-out;
@@ -130,55 +131,111 @@
   <div class="form-container">
     <h2>Admin Registration</h2>
     <form method="post" novalidate>
-      {% csrf_token %}
-      
-      <!-- Username -->
-      <div class="form-group">
-        <label for="id_username">Username</label>
-        <input type="text" class="form-control" id="id_username" placeholder="Enter your username">
-      </div>
-
-      <!-- Email -->
-      <div class="form-group">
-        <label for="id_email">Email</label>
-        <input type="email" class="form-control" id="id_email" placeholder="Enter your email">
-      </div>
-
-      <!-- Password -->
-      <div class="form-group">
-        <label for="id_password">Password</label>
-        <input type="password" class="form-control" id="id_password" placeholder="Enter your password">
-      </div>
-
-      <!-- Date of Birth -->
-      <div class="form-group">
-        <label for="id_dob">Date of Birth</label>
-        <input type="date" class="form-control" id="id_dob">
-      </div>
-
-      <!-- Biological sex -->
-      <div class="form-group">
-        <label>Biological sex</label>
-        <div class="radio-group">
-          <div class="form-check">
-            <input type="radio" name="bsex" id="male">
-            <label for="male">Male</label>
-          </div>
-          <div class="form-check">
-            <input type="radio" name="bsex" id="female">
-            <label for="female">Female</label>
-          </div>
+        {% csrf_token %}
+        
+        <!-- Username -->
+        <div class="form-group">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="text-danger">
+                    {{ form.username.errors }}
+                </div>
+            {% endif %}
         </div>
-      </div>
 
-      <button type="submit" class="btn-register">Register</button>
-      <!-- Login link -->
-          <div class="text-center mt-3">
+        <!-- Full Name -->
+        <div class="form-group">
+            {{ form.full_name.label_tag }}
+            {{ form.full_name }}
+            {% if form.full_name.errors %}
+                <div class="text-danger">
+                    {{ form.full_name.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="text-danger">
+                    {{ form.email.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+            {{ form.password.label_tag }}
+            {{ form.password }}
+            {% if form.password.errors %}
+                <div class="text-danger">
+                    {{ form.password.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+            {{ form.confirm_password.label_tag }}
+            {{ form.confirm_password }}
+            {% if form.confirm_password.errors %}
+                <div class="text-danger">
+                    {{ form.confirm_password.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Date of Birth -->
+        <div class="form-group">
+            {{ form.date_of_birth.label_tag }}
+            {{ form.date_of_birth }}
+            {% if form.date_of_birth.errors %}
+                <div class="text-danger">
+                    {{ form.date_of_birth.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Mobile -->
+        <div class="form-group">
+            {{ form.mobile.label_tag }}
+            {{ form.mobile }}
+            {% if form.mobile.errors %}
+                <div class="text-danger">
+                    {{ form.mobile.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Biological sex -->
+        <div class="form-group">
+            <label>Biological sex:</label>
+            <div class="radio-group">
+                {% for radio in form.biological_sex %}
+                    <div class="form-check form-check-inline">
+                        {{ radio }}
+                    </div>
+                {% endfor %}
+            </div>
+            {% if form.biological_sex.errors %}
+                <div class="text-danger">
+                    {{ form.biological_sex.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-register">Register</button>
+        <!-- Login link -->
+            <div class="text-center mt-3">
               <span>Already have an account?</span> 
                 <a href="{% url 'adminlogin' %}" class="text-primary fw-bold ms-2">Login now!</a>
-          </div>
+            </div>
     </form>
-  </div>
+</div>
+  
   {% include "footer.html" %}
 </body>
 </html>
