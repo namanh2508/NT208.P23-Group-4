@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>HMS - Django</title>
+  <title>Doctor</title>
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -137,8 +137,9 @@
       background-repeat: no-repeat;
       background-position: left 15px center;
       background-size: auto 20px;
-      transition: all 0.15s linear;
+      transition: all 0.3s ease-in-out;
       cursor: pointer;
+      border-radius: 5px;
     }
     .menu ul li.icon-dashboard {
       background-image: url("http://www.entypo.com/images//gauge.svg");
@@ -154,8 +155,12 @@
     }
 
     .menu ul li:hover {
-      background-color: rgba(0, 0, 0, 0.1);
-    }
+
+background-color: rgba(255, 255, 255, 0.2);
+
+transform: scale(1.05);
+
+}
     .menu ul li:focus {
       outline: none;
     }
@@ -273,27 +278,28 @@
 </head>
 
 <body>
+  <div class="wrapper">
   <!-- partial:index.partial.html -->
   <nav class="menu" tabindex="0">
     <div class="smartphone-menu-trigger"></div>
     <header class="avatar">
       <img src="{{ request.user.doctor.profile_pic.url }}" alt="Doctor Profile Picture">
       <br><br>
-      <h6>Doctor</h6>
-      <h2>{{request.user.first_name}}</h2>
+      <h4><b>Bác sĩ</b></h>
+      <h2><b>{{request.user.last_name}} {{request.user.first_name}} </b></h2>
     
     </header>
     <ul>
-      <li tabindex="0" class="icon-dashboard"> <a style="color:white; text-decoration:none;" href="/doctor-dashboard"><span>Dashboard</span></a> </li>
-      <li tabindex="0" class="icon-users"> <a style="color:white; text-decoration:none;" href="/doctor-patient"><span>Patient</span></a></li>
-      <li tabindex="0" class="icon-calendar"> <a style="color:white; text-decoration:none;" href="/doctor-appointment"><span>Appointments</span></a></li>
+      <li tabindex="0"><i class="fa fa-dashboard"></i> <a style="color:white; text-decoration:none;" href="/doctor-dashboard"><span>Dashboard</span></a> </li>
+      <li tabindex="0" class="icon-users"><i class="fa fa-users"></i> <a style="color:white; text-decoration:none;" href="/doctor-patient"><span>Patient</span></a></li>
+      <li tabindex="0" class="icon-calendar"><i class="fa fa-calendar"></i> <a style="color:white; text-decoration:none;" href="/doctor-appointment"><span>Appointments</span></a></li>
     </ul>
   </nav>
   <main>
     <!-- nav start -->
     <div class="bs-example">
       <nav class="navbar navbar-expand-md  navbar-dark fixed-top" style="background:#337AB7;">
-        <a href="/doctor-dashboard" class="navbar-brand">HOSPITAL MANAGEMENT</a>
+        <a href="/doctor-dashboard" class="navbar-brand">Nhân viên: Bác sĩ</a>
         <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -312,21 +318,8 @@
     {% endblock content %}
     <!-- content end-->
     <br><br><br><br><br><br><br>
-    <footer>
-     
-      <br>
-      <div class="container">
-        <div class="row">
-          <div class="col-md-12 col-sm-12">
-            <div style="color:#ffffff;" class="wow fadeInUp footer-copyright">
-                <p>
-                    Copyright &copy; NT208.P23-Group-4
-                </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </footer>
+  </div>
+  {%include 'footer.html'%}
   </main>
   <!-- partial -->
 </body>

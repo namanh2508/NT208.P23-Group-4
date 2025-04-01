@@ -155,10 +155,9 @@
   <nav class="menu" tabindex="0">
     <div class="smartphone-menu-trigger"></div>
     <header class="avatar">
-      <img src="{% static "images/adminpropic.png" %}" />
+      <img src="https://t4.ftcdn.net/jpg/04/75/00/99/360_F_475009987_zwsk4c77x3cTpcI3W1C1LU4pOSyPKaqi.jpg" />
       <br><br>
-      <h6>Admin</h6>
-      <h2>{{request.user.first_name}}</h2>
+      <h2>{{request.user.last_name}} {{request.user.first_name}}</h2>
     </header>
     <ul>
       <li tabindex="0"><i class="fa fa-dashboard"></i> <a style="color:white; text-decoration:none;" href="/admin-dashboard"><span>Dashboard</span></a> </li>
