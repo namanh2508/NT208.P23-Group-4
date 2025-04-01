@@ -48,15 +48,15 @@ def patientclick_view(request):
 
 #----------Signup Views----------------
 
-def signup_view(request):
+def admin_signup_view(request):
     if request.method == "POST":
         form = forms.SignupForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('login.html') 
+            return redirect('adminlogin.html') 
     else:
         form = forms.SignupForm()
-    return render(request, 'signup.html', {'form': form})
+    return render(request, 'adminsignup.html', {'form': form})
 
 def patient_signup_view(request):
     userForm=forms.PatientUserForm()
@@ -118,21 +118,36 @@ def google_login_redirect(request):
     
     return redirect(google_auth_url)
 #login view
-def login_view(request):
+def admin_login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)  # Django�s built-in login form
         if form.is_valid():
             user = form.get_user()
-            if user.groups.filter(name="ADMIN").exists() or user.groups.filter(name="DOCTOR").exists():
+            if is_admin(user):
                 login(request, user)
-                return redirect("afterlogin")
+                return redirect("admin-dashboard")
             else:
-                form.add_error(None, "Cấm: Bạn không phải nhân viên.")
+                form.add_error(None, "Access Denied: You are not an Admin.")
 
     else:
         form = AuthenticationForm()
 
-    return render(request, "login.html", {"form": form})
+    return render(request, "adminlogin.html", {"form": form})
+def doctor_login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if is_doctor(user):
+                login(request, user)
+                return redirect("doctor-dashboard")
+            else:
+                form.add_error(None, "Access Denied: You are not a Doctor.")
+
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "doctorlogin.html", {"form": form})
 
 #-----------for checking user is doctor , patient or admin(by sumit)
 def is_admin(user):
