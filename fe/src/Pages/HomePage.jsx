@@ -7,6 +7,7 @@ import OurServs from "../Components/OurServs/OurServs";
 import Book from "../Components/Book/Book";
 import Doctor from "../Components/Doctor/Doctor";
 import Footer from "../Components/Footer/Footer";
+import ChatBot from "./Chatbot/ChatBot";
 const HomePage = ({ isAuthenticated }) => {
   let heroData=[
     {text1:"Take Care",text2:"Healthy Health"},
@@ -41,6 +42,7 @@ const HomePage = ({ isAuthenticated }) => {
       <Book/>
       <Doctor/>
       <Footer/>
+      <ChatBot/>
     </div>
   )
 }

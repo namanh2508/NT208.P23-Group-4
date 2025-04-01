@@ -6,6 +6,7 @@ import ProtectedRoute from "./Components/ProtectedRoute"
 import NotFound from "./Pages/NotFound"
 import { useEffect, useState } from "react"
 import { ACCESS_TOKEN } from "./constant"
+import ChatBot from "./Pages/Chatbot/ChatBot"
 function Logout() {
   localStorage.clear()
   return <Navigate to="/login" />
@@ -39,7 +40,7 @@ function App() {
         />
         <Route path="*" element={<NotFound isAuthenticated={isAuthenticated}/>} />
         <Route path="/register" element={<RegisterAndLogout />} />
-        <Route path="/logout" element={<Logout />} />      
+        <Route path="/logout" element={<Logout />} />  
         </Routes>
     </BrowserRouter>
   );

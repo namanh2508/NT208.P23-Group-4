@@ -14,7 +14,7 @@ const Navbar = ({ isAuthenticated }) => {
         <li className='nav-service'>
           Service <img src={chevron} alt="dropdown icon" />
           <ul className="dropdown">
-            <li onClick={() => navigate("/ai-support")}>AI Support</li>
+            <li onClick={() => navigate("/chatbot")}>AI Support</li>
             <li onClick={() => navigate("/book-appointment")}>Book an Appointment</li>
             <li onClick={() => navigate("/drug-info")}>Drug Information</li>
             <li onClick={() => navigate("/talk-to-doctor")}>Talk to a Doctor</li>
