@@ -106,7 +106,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
-        'USER': 'postgres',      # Tên người dùng root
+        'USER': '',      # Tên người dùng root
         'PASSWORD': '',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
@@ -177,6 +177,9 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {'access_type': 'online'},
     }
 }
+# Google OAuth Settings
+GOOGLE_CLIENT_ID = "956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
 
 # Set a secure session cookie
 SESSION_COOKIE_SECURE = False  # Set to False only in local development

@@ -1,7 +1,7 @@
 from django.contrib.auth import logout
 from django.shortcuts import render,redirect
 from django.db.models import Sum
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group,User
 from django.http import HttpResponseRedirect,HttpResponse
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
@@ -110,6 +110,7 @@ def patient_signup_view(request):
 
 #google login
 def google_login_redirect(request):
+    role = request.GET.get('role', 'patient')
     try:
         google_app = SocialApp.objects.get(provider='google')
         client_id = google_app.client_id
@@ -120,6 +121,7 @@ def google_login_redirect(request):
     state_token = secrets.token_urlsafe(16)
     # Store state in the session for verification later
     request.session['oauth_state'] = state_token
+    request.session['oauth_role'] = role  # Store role in session
     request.session.modified = True  # Ensure session updates
     google_auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth?"
@@ -127,20 +129,74 @@ def google_login_redirect(request):
         f"redirect_uri={redirect_uri}&"
         "scope=email%20profile&"
         "response_type=code&"
-        f"state=randomstring&"
+        f"state={state_token}&"
         "access_type=online"
     ) 
     return redirect(google_auth_url)
 
 def google_callback(request):
-    stored_state = request.session.get('oauth_state')  # Retrieve stored state
-    received_state = request.GET.get('state')  # Get state from Google response
-    print(f"Stored State: {stored_state}")  # Debugging
-    print(f"Received State: {received_state}")  # Debugging
+    stored_state = request.session.get('oauth_state')
+    received_state = request.GET.get('state')
+
     if not stored_state or stored_state != received_state:
-        return HttpResponse("Invalid state parameter", status=400)  # CSRF detected!
+        return HttpResponse("Invalid state parameter", status=400)
+
     del request.session['oauth_state']
-    return HttpResponse("State verified successfully!")  # Proceed with OAuth
+    
+    role = request.session.get('oauth_role', 'patient')  # Retrieve role from session
+
+    code = request.GET.get("code")
+    if not code:
+        return HttpResponse("Authorization failed", status=400)
+
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "client_secret": settings.GOOGLE_CLIENT_SECRET,
+        "redirect_uri": settings.SITE_URL + "/accounts/google/login/callback/",
+        "grant_type": "authorization_code",
+    }
+
+    response = requests.post(token_url, data=data)
+    token_data = response.json()
+
+    if "access_token" not in token_data:
+        return HttpResponse("Failed to get access token", status=400)
+
+    access_token = token_data["access_token"]
+
+    user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    user_info_response = requests.get(user_info_url, headers=headers)
+    user_info = user_info_response.json()
+
+    email = user_info.get("email")
+    name = user_info.get("name")
+
+    if not email:
+        return HttpResponse("Failed to retrieve user email", status=400)
+
+    # Get or create the user
+    user, created = User.objects.get_or_create(username=email, defaults={"email": email, "first_name": name})
+
+    # Always assign group regardless of whether the user is new or not
+    if role == 'doctor':
+        group, _ = Group.objects.get_or_create(name='DOCTOR')
+    elif role == 'admin':
+        group, _ = Group.objects.get_or_create(name='ADMIN')
+    else:
+        group, _ = Group.objects.get_or_create(name='PATIENT')
+
+    # Add user to the group
+    user.groups.add(group)
+
+    # Log the user in, specifying the backend as GoogleOAuth2
+    login(request, user, backend='socialaccount.auth_backends.GoogleOAuth2')
+
+    return redirect("afterlogin")
+
+
 #login view
 def admin_login_view(request):
     if request.method == "POST":

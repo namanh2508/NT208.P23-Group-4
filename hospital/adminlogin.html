@@ -54,41 +54,45 @@
             <h3 class="text-center text-primary fw-bold mb-4">Login as admin</h3>
 
             <form method="post">
-              {% csrf_token %}
-              {% load widget_tweaks %}
+                {% csrf_token %}
+                {% load widget_tweaks %}
 
-              <div class="mb-3 row justify-content-center align-items-center py-2">
-                <label class="col-md-3 col-form-label fw-bold">Username</label>
-                <div class="col-md-8">
-                {% render_field form.username class="form-control rounded-3" placeholder="Enter your username" %}
+                <div class="mb-3 row justify-content-center align-items-center py-2">
+                    <label class="col-md-3 col-form-label fw-bold">Username</label>
+                    <div class="col-md-8">
+                        {% render_field form.username class="form-control rounded-3" placeholder="Enter your username" %}
+                    </div>
                 </div>
-              </div>
 
-              <div class="mb-3 row justify-content-center align-items-center py-2">
-                <label class="col-md-3 col-form-label fw-bold">Password</label>
-                <div class="col-md-8">
-                {% render_field form.password class="form-control rounded-3" placeholder="Enter your password" %}
+                <div class="mb-3 row justify-content-center align-items-center py-2">
+                    <label class="col-md-3 col-form-label fw-bold">Password</label>
+                    <div class="col-md-8">
+                        {% render_field form.password class="form-control rounded-3" placeholder="Enter your password" %}
+                    </div>
                 </div>
-              </div>
 
-              <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Login</button>
-              <!-- Signup link -->
-              <div class="text-center mt-3">
-                <span>Don't have an account?</span> 
-                <a href="{% url 'adminsignup' %}" class="text-primary fw-bold ms-2">Signup now!</a>
-              </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Login</button>
+                <!-- Signup link -->
+                <div class="text-center mt-3">
+                    <span>Don't have an account?</span>
+                    <a href="{% url 'adminsignup' %}" class="text-primary fw-bold ms-2">Signup now!</a>
+                </div>
 
-              {% if form.non_field_errors %}
-              <div class="alert alert-danger mt-3">
-                {% for error in form.non_field_errors %}
-                  <p class="mb-0">{{ error }}</p>
-                {% endfor %}
-              </div>
-              {% endif %}
-              {% load socialaccount %}
-              <a href="{% url 'google_login_redirect' %}">
-                  <button type="button">Sign in with Google</button>
-              </a>
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger mt-3">
+                    {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <button onclick="loginWithGoogle('admin')">Login with Google as Admin</button>
+                <script>
+                    function loginWithGoogle(role) {
+                        let googleLoginUrl = `/google_login_redirect?role=${role}`;  // Send role to backend
+                        window.location.href = googleLoginUrl;
+                    }
+                </script>
+
             </form>
           </div>
         </div>
