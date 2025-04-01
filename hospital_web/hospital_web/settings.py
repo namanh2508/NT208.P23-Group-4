@@ -105,8 +105,8 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': '',  # Tên cơ sở dữ liệu
-        'USER': '',      # Tên người dùng root
+        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
+        'USER': 'postgres',      # Tên người dùng root
         'PASSWORD': '',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
@@ -160,6 +160,7 @@ LOGIN_REDIRECT_URL = '/afterlogin/'
 LOGOUT_REDIRECT_URL = '/'
 
  #--------------------------allauth setup
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
@@ -176,6 +177,12 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {'access_type': 'online'},
     }
 }
+
+# Set a secure session cookie
+SESSION_COOKIE_SECURE = False  # Set to False only in local development
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict' may block OAuth redirects
+
 #------------------------------------------------
 
 CORS_ALLOW_ALL_ORIGINS = True

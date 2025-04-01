@@ -2,7 +2,7 @@ from django.contrib.auth import logout
 from django.shortcuts import render,redirect
 from django.db.models import Sum
 from django.contrib.auth.models import Group
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect,HttpResponse
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
@@ -17,6 +17,8 @@ from django.urls import reverse
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.models import SocialApp
+import secrets
+import requests
 # Create your views here.
 def home_view(request):
     return render(request,'index.html')
@@ -104,8 +106,12 @@ def google_login_redirect(request):
         client_id = google_app.client_id
     except SocialApp.DoesNotExist:
         client_id = '956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com'
-
     redirect_uri = settings.SITE_URL + "/accounts/google/login/callback/"
+    # Generate a secure random state token
+    state_token = secrets.token_urlsafe(16)
+    # Store state in the session for verification later
+    request.session['oauth_state'] = state_token
+    request.session.modified = True  # Ensure session updates
     google_auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth?"
         f"client_id={client_id}&"
@@ -114,13 +120,22 @@ def google_login_redirect(request):
         "response_type=code&"
         f"state=randomstring&"
         "access_type=online"
-    )
-    
+    ) 
     return redirect(google_auth_url)
+
+def google_callback(request):
+    stored_state = request.session.get('oauth_state')  # Retrieve stored state
+    received_state = request.GET.get('state')  # Get state from Google response
+    print(f"Stored State: {stored_state}")  # Debugging
+    print(f"Received State: {received_state}")  # Debugging
+    if not stored_state or stored_state != received_state:
+        return HttpResponse("Invalid state parameter", status=400)  # CSRF detected!
+    del request.session['oauth_state']
+    return HttpResponse("State verified successfully!")  # Proceed with OAuth
 #login view
 def admin_login_view(request):
     if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)  # Django�s built-in login form
+        form = AuthenticationForm(request, data=request.POST)  # Django's built-in login form
         if form.is_valid():
             user = form.get_user()
             if is_admin(user):
