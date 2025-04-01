@@ -20,7 +20,7 @@ urlpatterns = [
     
     #google login
     path('google_login_redirect/', views.google_login_redirect, name='google_login_redirect'),
-
+    path('accounts/google/login/callback/', views.google_callback, name='google_callback'),
     path('afterlogin/', views.afterlogin_view, name='afterlogin'),
     path('logout/', views.logout_view, name='logout'),
     
