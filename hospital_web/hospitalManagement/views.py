@@ -94,7 +94,7 @@ def doctor_signup_view(request):
             doctor=doctor.save()
             my_doctor_group = Group.objects.get_or_create(name='DOCTOR')
             my_doctor_group[0].user_set.add(user)
-        return redirect('doctorlogin')
+        return redirect('login')
     return render(request,'doctorsignup.html',context=mydict)
 
 #google login
@@ -123,11 +123,11 @@ def login_view(request):
         form = AuthenticationForm(request, data=request.POST)  # Django�s built-in login form
         if form.is_valid():
             user = form.get_user()
-            if user.groups.filter(name="ADMIN").exists():
+            if user.groups.filter(name="ADMIN").exists() or user.groups.filter(name="DOCTOR").exists():
                 login(request, user)
-                return redirect("admin-dashboard")
+                return redirect("afterlogin")
             else:
-                form.add_error(None, "Access Denied: You are not an Admin.")
+                form.add_error(None, "Cấm: Bạn không phải nhân viên.")
 
     else:
         form = AuthenticationForm()
@@ -508,3 +508,177 @@ def download_pdf_view(request, pk):
 
 
 
+@login_required(login_url='adminlogin')
+@user_passes_test(is_admin)
+def admin_appointment_view(request):
+    return render(request,'admin_appointment.html')
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_view_appointment_view(request):
+    appointments=models.Appointment.objects.all().filter(status=True)
+    return render(request,'admin_view_appointment.html',{'appointments':appointments})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_add_appointment_view(request):
+    appointmentForm=forms.AppointmentForm()
+    mydict={'appointmentForm':appointmentForm,}
+    if request.method=='POST':
+        appointmentForm=forms.AppointmentForm(request.POST)
+        if appointmentForm.is_valid():
+            appointment=appointmentForm.save(commit=False)
+            appointment.doctorId=request.POST.get('doctorId')
+            appointment.patientId=request.POST.get('patientId')
+            appointment.doctorName=models.User.objects.get(id=request.POST.get('doctorId')).first_name
+            appointment.patientName=models.User.objects.get(id=request.POST.get('patientId')).first_name
+            appointment.status=True
+            appointment.save()
+        return HttpResponseRedirect('admin-view-appointment')
+    return render(request,'admin_add_appointment.html',context=mydict)
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_approve_appointment_view(request):
+    #those whose approval are needed
+    appointments=models.Appointment.objects.all().filter(status=False)
+    return render(request,'admin_approve_appointment.html',{'appointments':appointments})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def approve_appointment_view(request,pk):
+    appointment=models.Appointment.objects.get(appointmentID=pk)
+    appointment.status=True
+    appointment.save()
+    return redirect(reverse('admin-approve-appointment'))
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def reject_appointment_view(request,pk):
+    appointment=models.Appointment.objects.get(appointmentID=pk)
+    appointment.delete()
+    return redirect('admin-approve-appointment')
+
+#--------doctor
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_dashboard_view(request):
+    # Lấy số lượng cuộc hẹn chưa hoàn thành của bác sĩ
+    appointmentcount = models.Appointment.objects.filter(status=True, doctorId_id=request.user.id).count()
+
+    # Số lượng bệnh nhân đã xuất viện (nếu có, nếu không cần có thể bỏ phần này)
+    patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
+
+    # Lấy danh sách các cuộc hẹn của bác sĩ đã được xác nhận
+    appointments = models.Appointment.objects.filter(status=True, doctorId_id=request.user.id).order_by('-appointmentID')
+    
+    # Lấy danh sách bệnh nhân đã có cuộc hẹn với bác sĩ
+    patientid = [appointment.patientId_id for appointment in appointments]  # Tạo danh sách id bệnh nhân
+    patients = models.Patient.objects.filter(status=True, id__in=patientid).order_by('-id')
+    
+    # Kết hợp các cuộc hẹn và bệnh nhân lại với nhau
+    appointments_and_patients = zip(appointments, patients)
+
+    # Gửi dữ liệu vào template
+    mydict = {
+        'appointmentcount': appointmentcount,  # Tổng số cuộc hẹn chưa hoàn thành
+        'patientdischarged': patientdischarged,  # Số lượng bệnh nhân đã xuất viện
+        'appointments_and_patients': appointments_and_patients,  # Các cuộc hẹn kèm bệnh nhân
+        'doctor': models.Doctor.objects.get(user_id=request.user.id),  # Thông tin bác sĩ (bao gồm ảnh đại diện)
+    }
+    
+    return render(request, 'doctor_dashboard.html', context=mydict)
+
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_patient_view(request):
+    mydict={
+    'doctor':models.Doctor.objects.get(user_id=request.user.id), #for profile picture of doctor in sidebar
+    }
+    return render(request,'doctor_patient.html',context=mydict)
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_view_patient_view(request):
+    patients=models.Patient.objects.all().filter(status=True,assignedDoctorId=request.user.id)
+    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
+    return render(request,'doctor_view_patient.html',{'patients':patients,'doctor':doctor})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_view_discharge_patient_view(request):
+    dischargedpatients=models.PatientDischargeDetails.objects.all().distinct().filter(assignedDoctorName=request.user.first_name)
+    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
+    return render(request,'doctor_view_discharge_patient.html',{'dischargedpatients':dischargedpatients,'doctor':doctor})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_appointment_view(request):
+    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
+    return render(request,'doctor_appointment.html',{'doctor':doctor})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_view_appointment_view(request):
+    doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
+    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
+    patient_ids = [a.patientId.id for a in appointments]
+    patients = models.Patient.objects.filter(id__in=patient_ids)
+    print("Appointments:")
+    for a in appointments:
+        print(f"Appointment ID: {a.appointmentID}, Doctor: {a.doctorName}, Patient: {a.patientName}, Date: {a.appointmentDate}")
+    print("Patients:")
+    for p in patients:
+        print(f"Patient ID: {p.id}, Name: {p.user.first_name} {p.user.last_name}, Mobile: {p.mobile}")
+    appointments = zip(appointments, patients)
+    return render(request,'doctor_view_appointment.html',{'appointments': appointments, 'doctor': doctor})
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_delete_appointment_view(request):
+    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
+    appointments=models.Appointment.objects.all().filter(status=True,doctorId=request.user.id)
+    patientid=[]
+    for a in appointments:
+        patientid.append(a.patientId)
+    patients=models.Patient.objects.all().filter(status=True,user_id__in=patientid)
+    appointments=zip(appointments,patients)
+    return render(request,'doctor_delete_appointment.html',{'appointments':appointments,'doctor':doctor})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def delete_appointment_view(request,pk):
+    appointment=models.Appointment.objects.get(id=pk)
+    appointment.delete()
+    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
+    appointments=models.Appointment.objects.all().filter(status=True,doctorId=request.user.id)
+    patientid=[]
+    for a in appointments:
+        patientid.append(a.patientId)
+    patients=models.Patient.objects.all().filter(status=True,user_id__in=patientid)
+    appointments=zip(appointments,patients)
+    return render(request,'doctor_delete_appointment.html',{'appointments':appointments,'doctor':doctor})
