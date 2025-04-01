@@ -16,7 +16,7 @@ class Admin (models.Model):
     full_name= models.CharField(max_length=100)
     email = models.EmailField()
     date_of_birth = models.DateField()
-    phone_number = models.CharField (max_length=11)
+    mobile = models.CharField (max_length=11)
     biological_sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
     def __str__(self):
         return self.full_name

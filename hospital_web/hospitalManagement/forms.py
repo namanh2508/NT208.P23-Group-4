@@ -79,7 +79,7 @@ class DoctorUserForm(forms.ModelForm):
 class DoctorForm(forms.ModelForm):
     class Meta:
         model=models.Doctor
-        fields=['phone_number','department','status','profile_pic']
+        fields=['mobile','department','status','profile_pic']
 
 
 
@@ -97,7 +97,7 @@ class PatientForm(forms.ModelForm):
     #to_field_name this will fetch corresponding value  user_id present in Doctor model and return it
     class Meta:
         model=models.Patient
-        fields=['phone_number','status']
+        fields=['mobile','status']
 
 
 
