@@ -589,7 +589,8 @@ def reject_appointment_view(request,pk):
 @user_passes_test(is_doctor)
 def doctor_dashboard_view(request):
     # Lấy số lượng cuộc hẹn chưa hoàn thành của bác sĩ
-    appointmentcount = models.Appointment.objects.filter(status=True, doctorId_id=request.user.id).count()
+    doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
+    appointmentcount = models.Appointment.objects.filter(status=True, doctorId=doctor).count()
 
     # Số lượng bệnh nhân đã xuất viện (nếu có, nếu không cần có thể bỏ phần này)
     patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
@@ -630,9 +631,22 @@ def doctor_patient_view(request):
 @login_required(login_url='login')
 @user_passes_test(is_doctor)
 def doctor_view_patient_view(request):
-    patients=models.Patient.objects.all().filter(status=True,assignedDoctorId=request.user.id)
-    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
-    return render(request,'doctor_view_patient.html',{'patients':patients,'doctor':doctor})
+    doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
+    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
+    patient_ids = [a.patientId.id for a in appointments]
+    patients = models.Patient.objects.filter(id__in=patient_ids)
+    print("Appointments:")
+    for a in appointments:
+        print(f"Appointment ID: {a.appointmentID}, Doctor: {a.doctorName}, Patient: {a.patientName}, Date: {a.appointmentDate}")
+    print("Patients:")
+    for p in patients:
+        print(f"Patient ID: {p.id}, Name: {p.user.first_name} {p.user.last_name}, Mobile: {p.mobile}")
+        p.num_appointments_with_doctor = appointments.filter(patientId=p).count()
+    # Tính toán số lượng cuộc hẹn của mỗi bệnh nhân với bác sĩ
+    for p in patients:
+        p.num_appointments_with_doctor = appointments.filter(patientId=p).count()
+    appointments = zip(appointments, patients)
+    return render(request,'doctor_view_patient.html',{'appointments': appointments, 'patients': patients})
 
 
 
@@ -673,14 +687,18 @@ def doctor_view_appointment_view(request):
 @login_required(login_url='login')
 @user_passes_test(is_doctor)
 def doctor_delete_appointment_view(request):
-    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=request.user.id)
-    patientid=[]
+    doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
+    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
+    patient_ids = [a.patientId.id for a in appointments]
+    patients = models.Patient.objects.filter(id__in=patient_ids)
+    print("Appointments:")
     for a in appointments:
-        patientid.append(a.patientId)
-    patients=models.Patient.objects.all().filter(status=True,user_id__in=patientid)
-    appointments=zip(appointments,patients)
-    return render(request,'doctor_delete_appointment.html',{'appointments':appointments,'doctor':doctor})
+        print(f"Appointment ID: {a.appointmentID}, Doctor: {a.doctorName}, Patient: {a.patientName}, Date: {a.appointmentDate}")
+    print("Patients:")
+    for p in patients:
+        print(f"Patient ID: {p.id}, Name: {p.user.first_name} {p.user.last_name}, Mobile: {p.mobile}")
+    appointments = zip(appointments, patients)
+    return render(request,'doctor_delete_appointment.html',{'appointments': appointments, 'doctor': doctor})
 
 
 

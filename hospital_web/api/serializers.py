@@ -49,9 +49,10 @@ class NoteSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(serializers.ModelSerializer):
     doctorMobile = serializers.SerializerMethodField() 
     doctorDepartment = serializers.SerializerMethodField()
+    doctorPicture = serializers.SerializerMethodField()
     class Meta:
         model= Appointment
-        fields=["appointmentID","patientName","doctorName","doctorMobile","doctorDepartment", "appointmentDate"]
+        fields=["appointmentID","patientName","doctorName","doctorMobile","doctorDepartment", "doctorPicture","appointmentDate"]
     
     def get_doctorMobile(self,obj):
         # Truy cập đối tượng Doctor thông qua doctorId
@@ -60,6 +61,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
     def get_doctorDepartment(self,obj):
         # Truy cập đối tượng Doctor thông qua doctorId
          return obj.doctorId.department if obj.doctorId else None
+     
+    def get_doctorPicture(self,obj):
+        # Truy cập đối tượng Doctor thông qua doctorId
+        return obj.doctorId.profile_pic.url if obj.doctorId.profile_pic else None
      
      
      
