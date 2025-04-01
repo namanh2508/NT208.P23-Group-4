@@ -10,4 +10,8 @@ urlpatterns = [
     path('patient-dashboard', views.patient_dashboard_view, name='patient-dashboard'),
     path('logout/', views.logout_view, name='logout'),
     path('doctor/<int:doctor_id>/', views.appointment_view, name='appointment_view'),
+
+    path('discharge/',views.GetAllPatientDischargeDetail.as_view(), name="All patient discharge"),
+    path('appointment/patient/<str:name>/', views.get_appointment_by_patient_name, name='patient_appointments'),
+    path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
  ]

@@ -1,4 +1,6 @@
 from django.shortcuts import redirect, render
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from hospitalManagement import forms
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import AuthenticationForm
@@ -6,6 +8,10 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
 from hospitalManagement.models import Doctor  # Import the Doctor model
+from api.serializers import UserSerializer, NoteSerializer,PatientDischargeDetailsSerializer,DoctorSerializer,PatientSerializer,DoctorDetailSerializer
+from api.serializers import AppointmentSerializer
+from hospitalManagement.models import Appointment,Doctor,Patient
+from hospitalManagement.models import PatientDischargeDetails
 # Create your views here.
 def index_view(request):
     if request.user.is_authenticated:
@@ -86,3 +92,34 @@ def appointment_view(request, doctor_id):
         'doctor': doctor,
         'doctor_id': doctor.id
     })
+    
+class GetAllPatientDischargeDetail(generics.ListAPIView):
+    queryset = PatientDischargeDetails.objects.all() # Lấy tất cả đối tượng Product
+    serializer_class = PatientDischargeDetailsSerializer
+
+class GetAllDoctor(generics.ListAPIView):
+    queryset = Doctor.objects.all()
+    serializer_class = DoctorSerializer
+    permission_classes = [AllowAny]
+    
+class GetAllPatient(generics.ListAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+    permission_classes = [AllowAny]
+    
+    
+# trả ra json
+class GetAppointmentByPatientName(generics.ListAPIView):
+    serializer_class = AppointmentSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        name = self.kwargs['name']
+        return Appointment.objects.filter(patientId__user__first_name=name)  
+    
+# trả ra  html
+@login_required(login_url='patientlogin')
+def get_appointment_by_patient_name(request, name):
+    # Lấy danh sách các cuộc hẹn dựa trên tên bệnh nhân
+    appointments = Appointment.objects.filter(patientId__user__first_name=name)
+    return render(request, 'patient_view_appointment.html', {'appointments': appointments})    
