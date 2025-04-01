@@ -51,7 +51,6 @@ class GetAllDoctor(generics.ListAPIView):
     serializer_class = DoctorSerializer
     permission_classes = [AllowAny]
     
-<<<<<<< Updated upstream
 class GetAllPatient(generics.ListAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
@@ -73,7 +72,6 @@ class GetDoctorByName(generics.ListAPIView):
     def get_queryset(self):
         name = self.kwargs['name']
         return Doctor.objects.filter(user__first_name=name)  # Lọc theo tên bác sĩ trong User model
-=======
 def patient_appointments_view(request,patientID):
     patient = get_object_or_404(User, pk=patientID)
     appointments = Appointment.objects.filter(patient_id=patientID).order_by('-appointmentDate')
@@ -84,4 +82,3 @@ def patient_appointments_view(request,patientID):
         'appointments': appointments,
     }
     return render(request, '' , context) # thêm file.html để hiển thị các lịch hẹn của 1 patient
->>>>>>> Stashed changes
