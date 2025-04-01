@@ -68,8 +68,8 @@ class Appointment(models.Model):
     appointmentDate=models.DateField(auto_now=True)
     description=models.TextField(max_length=500)
     status=models.BooleanField(default=False)
-
-
+    
+     
 class PatientDischargeDetails(models.Model):
     patientId=models.PositiveIntegerField(null=True)
     patientName=models.CharField(max_length=40)

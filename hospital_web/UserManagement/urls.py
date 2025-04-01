@@ -5,6 +5,7 @@ from UserManagement import views
 urlpatterns = [
     path('',views.index_view,name='index_home'),
     path('patientsignup/', views.patient_signup_view,name='patientsignup'),
+    # check
     path('patientlogin', views.patientlogin_view, name='patientlogin'),
     path('patient-dashboard', views.patient_dashboard_view, name='patient-dashboard'),
     path('logout/', views.logout_view, name='logout'),
