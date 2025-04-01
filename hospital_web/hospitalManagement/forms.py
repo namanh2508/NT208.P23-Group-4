@@ -6,11 +6,39 @@ from django.contrib.auth.forms import AuthenticationForm
 
 #for admin signup
 class AdminSignupForm(forms.ModelForm):
+    # class Meta:
+    #     model=User
+    #     fields=['first_name','last_name','username','password']
+    #     widgets = {
+    #     'password': forms.PasswordInput()
+    #     }
+    full_name = forms.CharField(max_length=100, required=True, label="Full Name")
+    email = forms.EmailField(required=True)
+    date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    phone_number = forms.CharField(max_length=15, required=True, label="Phone Number")
+    biological_sex = forms.ChoiceField(choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Other')], required=True)
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])  # Mã hóa mật khẩu
+        if commit:
+            user.save()
+            # Tạo profile Admin
+            AdminSignupForm.objects.create(
+                user=user,
+                full_name=self.cleaned_data['full_name'],
+                email=self.cleaned_data['email'],
+                date_of_birth=self.cleaned_data['date_of_birth'],
+                phone_number=self.cleaned_data['phone_number'],
+                sex=self.cleaned_data['sex'],
+                speciality=self.cleaned_data['speciality']
+            )
+        return user
+    
     class Meta:
-        model=User
-        fields=['first_name','last_name','username','password']
+        model = User
+        fields = ['username', 'password']
         widgets = {
-        'password': forms.PasswordInput()
+            'password': forms.PasswordInput()
         }
 #for doctor related form
 class DoctorUserForm(forms.ModelForm):
@@ -39,10 +67,9 @@ class PatientForm(forms.ModelForm):
     #this is the extrafield for linking patient and their assigend doctor
     #this will show dropdown __str__ method doctor model is shown on html so override it
     #to_field_name this will fetch corresponding value  user_id present in Doctor model and return it
-    assignedDoctorId=forms.ModelChoiceField(queryset=models.Doctor.objects.all().filter(status=True),empty_label="Name and Department", to_field_name="user_id")
     class Meta:
         model=models.Patient
-        fields=['address','mobile','status','symptoms','profile_pic']
+        fields=['address','mobile','status']
 
 
 

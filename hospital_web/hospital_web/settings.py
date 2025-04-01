@@ -37,7 +37,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        "rest_framework.permissions.AllowAny",
     ],
 }
 
@@ -57,17 +57,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hospitalManagement', 
     'widget_tweaks',
-    'UserManagement',
-    'DiseaseManagement',
     'rest_framework', 
     'django.contrib.sites',  # Required for allauth
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',  # Add providers
-    "api",
-    "corsheaders",
-    'rest_framework_simplejwt',
+    'UserManagement','api',
 ]
 
 MIDDLEWARE = [
@@ -79,9 +75,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'hospital_web.urls'
@@ -111,9 +104,9 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
-        'USER': 'postgres',      # Tên người dùng root
-        'PASSWORD': '123456',   # Mật khẩu root_pw
+        'NAME': 'hospital_database',  # Tên cơ sở dữ liệu
+        'USER': 'root',      # Tên người dùng root
+        'PASSWORD': 'root_pw',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
@@ -155,6 +148,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/'
+MEDIA_ROOT = r"C:\UIT\Lập trình Web\NT208.P23-Group-4\hospital_web"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
