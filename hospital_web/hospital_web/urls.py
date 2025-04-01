@@ -17,6 +17,11 @@ urlpatterns = [
     path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
     path('adminlogin/', views.admin_login_view,name='adminlogin'),
     path('doctorlogin/', views.doctor_login_view,name='login'),
+    path('signup/', views.signup_view,name='signup'),
+    
+    #google login
+    path('google_login_redirect/', views.google_login_redirect, name='google_login_redirect'),
+
     path('afterlogin/', views.afterlogin_view, name='afterlogin'),
     path('logout/', views.logout_view, name='logout'),
     
@@ -60,4 +65,30 @@ urlpatterns = [
     path('discharge-patient/<int:pk>', views.discharge_patient_view,name='discharge-patient'),
     path('download-pdf/<int:pk>', views.download_pdf_view,name='download-pdf'),
 
+
+
+
+    path('admin-appointment', views.admin_appointment_view,name='admin-appointment'),
+    path('admin-view-appointment', views.admin_view_appointment_view,name='admin-view-appointment'),
+    path('admin-add-appointment', views.admin_add_appointment_view,name='admin-add-appointment'),
+    path('admin-approve-appointment', views.admin_approve_appointment_view,name='admin-approve-appointment'),
+    path('approve-appointment/<int:pk>', views.approve_appointment_view,name='approve-appointment'),
+    path('reject-appointment/<int:pk>', views.reject_appointment_view,name='reject-appointment'),
+
+
+
+
+
+
+
+    path('doctor-dashboard', views.doctor_dashboard_view,name='doctor-dashboard'),
+
+    path('doctor-patient', views.doctor_patient_view,name='doctor-patient'),
+    path('doctor-view-patient', views.doctor_view_patient_view,name='doctor-view-patient'),
+    path('doctor-view-discharge-patient',views.doctor_view_discharge_patient_view,name='doctor-view-discharge-patient'),
+
+    path('doctor-appointment', views.doctor_appointment_view,name='doctor-appointment'),
+    path('doctor-view-appointment', views.doctor_view_appointment_view,name='doctor-view-appointment'),
+    path('doctor-delete-appointment',views.doctor_delete_appointment_view,name='doctor-delete-appointment'),
+    path('delete-appointment/<int:pk>', views.delete_appointment_view,name='delete-appointment'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

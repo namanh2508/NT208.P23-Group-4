@@ -30,7 +30,7 @@ class Doctor(models.Model):
 
     @property
     def get_name(self):
-        return self.user.first_name + " " + self.user.last_name
+        return self.user.last_name + " " +  self.user.first_name 
     @property
     def get_profile_pic(self):
         return self.profile_pic.url if self.profile_pic else None
@@ -39,7 +39,7 @@ class Doctor(models.Model):
         return self.user.id
 
     def __str__(self):
-        return "{} ({})".format(self.user.first_name, self.get_department_display())  # Hiển thị tên đầy đủ
+        return "{} ({})".format(self.user.first_name, self.get_department_display()) 
 
 
 
@@ -50,7 +50,6 @@ class Patient(models.Model):
     mobile = models.CharField(max_length=20,null=False)
     admitDate=models.DateField(auto_now=True)
     status=models.BooleanField(default=False)
-    symptoms = models.CharField(max_length=100, null=True)
     @property
     def get_name(self):
         return self.user.first_name+" "+self.user.last_name
@@ -65,9 +64,13 @@ class Appointment(models.Model):
     doctorId = models.ForeignKey(Doctor, on_delete=models.PROTECT, related_name="appointments")  # ForeignKey to Doctor
     patientName=models.CharField(max_length=40,null=True)
     doctorName=models.CharField(max_length=40,null=True)
-    appointmentDate=models.DateField(auto_now=True)
+    appointmentDate=models.DateField(null=True, blank=True)
+    appointmentTime=models.TimeField(null=True, blank=True)
     description=models.TextField(max_length=500)
     status=models.BooleanField(default=False)
+    @property
+    def get_patient_name(self):
+        return self.patientId.get_name if self.patientId else None
     
      
 class PatientDischargeDetails(models.Model):

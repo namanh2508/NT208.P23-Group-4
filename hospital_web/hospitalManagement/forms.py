@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from django import forms
 from django.contrib.auth.models import User, Group
 from . import models
@@ -122,4 +123,24 @@ class ContactusForm(forms.Form):
     Message = forms.CharField(max_length=500,widget=forms.Textarea(attrs={'rows': 3, 'cols': 30}))
 
 
+class AppointmentForm(forms.ModelForm):
+    # Lấy các ngày hẹn trong vòng 6 ngày
+    available_dates = []
+    today = date.today()
+    for i in range(6):
+        available_dates.append(today + timedelta(days=i))
+        
+    appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn')
 
+    # Lấy các giờ hẹn trong ngày, mỗi 30 phút
+    available_times = [
+        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+    ]
+    appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn')
+
+    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
+
+    class Meta:
+        model = models.Appointment
+        fields = ['appointmentDate', 'appointmentTime', 'description']

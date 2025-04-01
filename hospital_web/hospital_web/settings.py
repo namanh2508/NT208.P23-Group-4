@@ -55,15 +55,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'api',
+    'django.contrib.sites',  # Required for allauth
+    'allauth', # Required for allauth
+    'allauth.account', # Required for allauth
+    'allauth.socialaccount', # Required for allauth
+    'allauth.socialaccount.providers.google',  # Google oauth2
     'hospitalManagement', 
     'widget_tweaks',
     'rest_framework', 
-    'django.contrib.sites',  # Required for allauth
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',  # Add providers
-    'UserManagement','api',
+    
 ]
 
 MIDDLEWARE = [
@@ -104,7 +105,7 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
+        'NAME': '',  # Tên cơ sở dữ liệu
         'USER': '',      # Tên người dùng root
         'PASSWORD': '',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
@@ -151,15 +152,31 @@ STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'hospital', 'media')
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-SITE_ID = 1
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/afterlogin/'
+LOGOUT_REDIRECT_URL = '/'
+
+ #--------------------------allauth setup
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
+SITE_ID = 1 #allauth required
+SITE_URL = 'http://127.0.0.1:8000'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': '956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com',
+            'secret': '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',
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}
+#------------------------------------------------
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True

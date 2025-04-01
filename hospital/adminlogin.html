@@ -85,6 +85,10 @@
                 {% endfor %}
               </div>
               {% endif %}
+              {% load socialaccount %}
+              <a href="{% url 'google_login_redirect' %}">
+                  <button type="button">Sign in with Google</button>
+              </a>
             </form>
           </div>
         </div>

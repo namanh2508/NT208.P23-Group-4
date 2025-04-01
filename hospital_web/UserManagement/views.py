@@ -5,6 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
+from hospitalManagement.models import Doctor  # Import the Doctor model
 # Create your views here.
 def index_view(request):
     if request.user.is_authenticated:
@@ -60,3 +61,28 @@ def patient_dashboard_view(request):
         return render(request, 'patient_dashboard.html')
     else:
         return redirect('patientlogin')
+
+def appointment_view(request, doctor_id):
+    # Lấy thông tin bác sĩ từ doctor_id
+    doctor = Doctor.objects.get(id=doctor_id)
+    patient = request.user.patient
+    if request.method == "POST":
+        form = forms.AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.doctorId = doctor  # Gán bác sĩ từ URL
+            appointment.patientId = patient   # Gán bệnh nhân từ người dùng đã đăng nhập
+            appointment.patientName = patient.get_name  # Lấy tên bệnh nhân
+            appointment.doctorName = doctor.get_name  # Lấy tên bác sĩ
+            appointment.status = False  # Chưa xác nhận
+            appointment.save()
+            return redirect('index_home')  # Sau khi lưu, chuyển đến trang thành công
+
+    else:
+        form = forms.AppointmentForm()
+
+    return render(request, 'appointment_form.html', {
+        'form': form,
+        'doctor': doctor,
+        'doctor_id': doctor.id
+    })

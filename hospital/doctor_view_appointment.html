@@ -38,16 +38,20 @@
           <th>Appointment Date</th>
         </tr>
       </thead>
-      {% for a,p in appointments %}
-      <tr>
-        <td>{{a.patientName}}</td>
-        <td> <img src="{% static p.profile_pic.url %}" alt="Profile Pic" height="40px" width="40px" /></td>
-        <td>{{a.description}}</td>
-        <td>{{p.mobile}}</td>
-        <td>{{p.address}}</td>
-        <td>{{a.appointmentDate}}</td>
-      </tr>
-      {% endfor %}
+      {% for a, p in appointments %}
+        <tr>
+            <td>{{ a.doctorName }}</td>
+            <td>{{ a.description }}</td>
+            <td>{{ p.mobile }}</td>
+            <td>{{ p.address }}</td>
+            <td>{{ a.appointmentDate }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">Không có cuộc hẹn nào.</td>
+        </tr>
+        {% endfor %}
+    
     </table>
   </div>
 </div>
