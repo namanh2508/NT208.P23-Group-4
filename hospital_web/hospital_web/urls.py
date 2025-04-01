@@ -17,6 +17,9 @@ urlpatterns = [
 
     path('login/', views.login_view,name='login'),
     
+    #google login
+    path('google_login_redirect/', views.google_login_redirect, name='google_login_redirect'),
+
     path('afterlogin/', views.afterlogin_view, name='afterlogin'),
     path('logout/', views.logout_view, name='logout'),
     

@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'api',
     'django.contrib.sites',  # Required for allauth
     'allauth', # Required for allauth
     'allauth.account', # Required for allauth
@@ -157,12 +158,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/afterlogin/'
 LOGOUT_REDIRECT_URL = '/'
 
- #allauth setup
+ #--------------------------allauth setup
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 SITE_ID = 1 #allauth required
+SITE_URL = 'http://127.0.0.1:8000'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
@@ -173,7 +175,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {'access_type': 'online'},
     }
 }
-
+#------------------------------------------------
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True

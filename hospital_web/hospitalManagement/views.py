@@ -13,10 +13,12 @@ from hospitalManagement import forms, models
 from django.contrib import messages
 from django.urls import reverse
 
+#oauth setup
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.models import SocialApp
 # Create your views here.
 def home_view(request):
-    if request.user.is_authenticated:
-        return redirect('afterlogin')
     return render(request,'index.html')
 def aboutus_view(request):
     return render(request, 'aboutus.html')
@@ -95,6 +97,26 @@ def doctor_signup_view(request):
         return redirect('doctorlogin')
     return render(request,'doctorsignup.html',context=mydict)
 
+#google login
+def google_login_redirect(request):
+    try:
+        google_app = SocialApp.objects.get(provider='google')
+        client_id = google_app.client_id
+    except SocialApp.DoesNotExist:
+        client_id = '956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com'
+
+    redirect_uri = settings.SITE_URL + "/accounts/google/login/callback/"
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={client_id}&"
+        f"redirect_uri={redirect_uri}&"
+        "scope=email%20profile&"
+        "response_type=code&"
+        f"state=randomstring&"
+        "access_type=online"
+    )
+    
+    return redirect(google_auth_url)
 #login view
 def login_view(request):
     if request.method == "POST":
