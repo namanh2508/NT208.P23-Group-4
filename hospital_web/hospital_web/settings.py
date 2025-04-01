@@ -104,9 +104,9 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_database',  # Tên cơ sở dữ liệu
-        'USER': 'postgres',      # Tên người dùng root
-        'PASSWORD': 'PhuongGiang2803',   # Mật khẩu root_pw
+        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
+        'USER': '',      # Tên người dùng root
+        'PASSWORD': '',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
@@ -148,8 +148,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-MEDIA_URL = '/'
-MEDIA_ROOT = r"C:\UIT\Lập trình Web\NT208.P23-Group-4\hospital_web"
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'hospital', 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
