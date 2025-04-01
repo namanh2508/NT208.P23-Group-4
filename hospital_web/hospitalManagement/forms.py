@@ -4,6 +4,7 @@ from django.contrib.auth.models import User, Group
 from . import models
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.validators import RegexValidator
+from .models import departments
 
 
 #for signup
@@ -83,6 +84,89 @@ class AdminSignupForm(forms.ModelForm):
             # Thêm vào group Admin
             admin_group, created = Group.objects.get_or_create(name='Admin')
             user.groups.add(admin_group)
+        
+        return user
+
+class DoctorSignupForm(forms.ModelForm):
+    username = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your username'
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'}),
+        required=True
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm your password'}),
+        required=True
+    )
+    full_name = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your full name'})
+    )
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'})
+    )
+    date_of_birth = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Select your date of birth'})
+    )
+    mobile = forms.CharField(
+        max_length=20,
+        required=True,
+        validators=[RegexValidator(r'^[0-9]{10,11}$', 'Phone number must be 10-11 digits')],
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your mobile number'})
+    )
+    biological_sex = forms.ChoiceField(
+        choices=[('M', 'Male'), ('F', 'Female')],
+        required=True,
+        widget=forms.RadioSelect,
+        initial='M'
+    )
+    department = forms.ChoiceField(  # Thêm trường department
+        choices=departments,  # Sử dụng biến đã import
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'}),  # Sửa dấu ] thành }
+        initial='bac_si_tim_mach'
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your username'})
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            raise forms.ValidationError("Passwords do not match")
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        
+        if commit:
+            user.save()
+            # Tạo profile doctor
+            doctor = models.Doctor.objects.create(
+                user=user,
+                mobile=self.cleaned_data['mobile'],
+                department=self.cleaned_data['department'],
+                # Thêm các trường khác nếu cần
+                status=False  # Mặc định chưa được kích hoạt
+            )
+            # Thêm vào group Doctor
+            doctor_group, created = Group.objects.get_or_create(name='Doctor')
+            user.groups.add(doctor_group)
         
         return user
     
