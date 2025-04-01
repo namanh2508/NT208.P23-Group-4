@@ -4,26 +4,19 @@ from . import models
 from django.contrib.auth.forms import AuthenticationForm
 
 
-#for admin signup
-class AdminSignupForm(forms.ModelForm):
-    # class Meta:
-    #     model=User
-    #     fields=['first_name','last_name','username','password']
-    #     widgets = {
-    #     'password': forms.PasswordInput()
-    #     }
+#for signup
+class SignupForm(forms.ModelForm):
     full_name = forms.CharField(max_length=100, required=True, label="Full Name")
     email = forms.EmailField(required=True)
     date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     phone_number = forms.CharField(max_length=15, required=True, label="Phone Number")
-    biological_sex = forms.ChoiceField(choices=[('M', 'Male'), ('F', 'Female'), ('O', 'Other')], required=True)
+    biological_sex = forms.ChoiceField(choices=[('M', 'Male'), ('F', 'Female')], required=True)
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])  # Mã hóa mật khẩu
         if commit:
             user.save()
-            # Tạo profile Admin
-            AdminSignupForm.objects.create(
+            SignupForm.objects.create(
                 user=user,
                 full_name=self.cleaned_data['full_name'],
                 email=self.cleaned_data['email'],

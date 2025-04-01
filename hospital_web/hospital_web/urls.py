@@ -13,15 +13,12 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('',views.home_view,name='index'),
 
-    path('adminsignup/', views.admin_signup_view,name='adminsignup'),
+    path('signup/', views.signup_view,name='signup'),
 
-    path('adminlogin/', views.adminlogin_view,name='adminlogin'),
-    path('login/', views.doctorlogin_view,name='login'),
+    path('login/', views.login_view,name='login'),
     
     path('afterlogin/', views.afterlogin_view, name='afterlogin'),
     path('logout/', views.logout_view, name='logout'),
-    
-    path('doctor-dashboard/', LoginView.as_view(template_name='doctor_dashboard.html'),name='doctor-dashboard'),
     
     path('accounts/', include('allauth.urls')), #google authentication
 

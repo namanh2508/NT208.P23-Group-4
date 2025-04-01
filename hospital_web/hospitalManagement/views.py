@@ -46,25 +46,15 @@ def patientclick_view(request):
 
 #----------Signup Views----------------
 
-def admin_signup_view(request):
-    # if request.method=='POST':
-    #     form=forms.AdminSignupForm(request.POST)
-    #     if form.is_valid():
-    #         user=form.save(commit=False)
-    #         user.set_password(form.cleaned_data["password"])
-    #         user.save()
-    #         my_admin_group = Group.objects.get_or_create(name='ADMIN')
-    #         my_admin_group[0].user_set.add(user)
-    #         return redirect('adminlogin')
-    # return render(request,'adminsignup.html',{'form':form})
+def signup_view(request):
     if request.method == "POST":
-        form = forms.AdminSignupForm(request.POST)
+        form = forms.SignupForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('adminlogin.html')  # Chuyển hướng sau khi đăng ký thành công
+            return redirect('login.html') 
     else:
-        form = forms.AdminSignupForm()
-    return render(request, 'adminsignup.html', {'form': form})
+        form = forms.SignupForm()
+    return render(request, 'signup.html', {'form': form})
 
 def patient_signup_view(request):
     userForm=forms.PatientUserForm()
@@ -106,7 +96,7 @@ def doctor_signup_view(request):
     return render(request,'doctorsignup.html',context=mydict)
 
 #login view
-def adminlogin_view(request):
+def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)  # Django�s built-in login form
         if form.is_valid():
@@ -120,23 +110,8 @@ def adminlogin_view(request):
     else:
         form = AuthenticationForm()
 
-    return render(request, "adminlogin.html", {"form": form})
-
-def doctorlogin_view(request):
-    if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)  # Django�s built-in login form
-        if form.is_valid():
-            user = form.get_user()
-            if user.groups.filter(name="DOCTOR").exists():
-                login(request, user)
-                return redirect("doctor-dashboard")
-            else:
-                form.add_error(None, "Access Denied: You are not a DOCTOR.")
-
-    else:
-        form = AuthenticationForm()
-
     return render(request, "login.html", {"form": form})
+
 #-----------for checking user is doctor , patient or admin(by sumit)
 def is_admin(user):
     return user.groups.filter(name='ADMIN').exists()
@@ -196,20 +171,20 @@ def admin_dashboard_view(request):
     return render(request,'admin_dashboard.html',context=mydict)
 
 #-------click vào mục doctor----------------------------------------------------
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_doctor_view(request):
     return render(request,'admin_doctor.html')
 
 #xem thẻ doctor
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_view_doctor_view(request):
     doctors=models.Doctor.objects.all().filter(status=True)
     return render(request,'admin_view_doctor.html',{'doctors':doctors})
 
 #chức năng xóa doctor
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def delete_doctor_from_hospital_view(request,pk):
     doctor=models.Doctor.objects.get(id=pk)
@@ -219,7 +194,7 @@ def delete_doctor_from_hospital_view(request,pk):
     return redirect('admin-view-doctor')
 
 #chức năng chỉnh sửa doctor
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def update_doctor_view(request,pk):
     doctor=models.Doctor.objects.get(id=pk)
@@ -243,7 +218,7 @@ def update_doctor_view(request,pk):
 
 #xem thẻ doctor add
 #chức năng thêm doctor
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_add_doctor_view(request):
     userForm=forms.DoctorUserForm()
@@ -269,7 +244,7 @@ def admin_add_doctor_view(request):
     return render(request,'admin_add_doctor.html',context=mydict)
 
 #xem thẻ doctor approve
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_approve_doctor_view(request):
     #those whose approval are needed
@@ -277,7 +252,7 @@ def admin_approve_doctor_view(request):
     return render(request,'admin_approve_doctor.html',{'doctors':doctors})
 
 #chức năng approve doctor
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def approve_doctor_view(request,pk):
     doctor=models.Doctor.objects.get(id=pk)
@@ -286,7 +261,7 @@ def approve_doctor_view(request,pk):
     return redirect(reverse('admin-approve-doctor'))
 #chức năng reject doctor
 
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def reject_doctor_view(request,pk):
     doctor=models.Doctor.objects.get(id=pk)
@@ -297,21 +272,21 @@ def reject_doctor_view(request,pk):
 
 #xem thẻ specialist doctor
 #xem thong tin các khoa của doctor
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_view_doctor_specialisation_view(request):
     doctors=models.Doctor.objects.all().filter(status=True)
     return render(request,'admin_view_doctor_specialisation.html',{'doctors':doctors})
 
 # Hàm hiển thị trang quản lý bệnh nhân cho admin
-@login_required(login_url='adminlogin')  # Chỉ cho phép người đã đăng nhập
+@login_required(login_url='login')  # Chỉ cho phép người đã đăng nhập
 @user_passes_test(is_admin)  # Kiểm tra xem người dùng có phải admin không
 def admin_patient_view(request):
     return render(request, 'admin_patient.html')
 
 
 # Hàm hiển thị danh sách bệnh nhân đã được duyệt
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_view_patient_view(request):
     patients = models.Patient.objects.all().filter(status=True)
@@ -319,7 +294,7 @@ def admin_view_patient_view(request):
 
 
 # Hàm xóa bệnh nhân khỏi hệ thống
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def delete_patient_from_hospital_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
@@ -330,7 +305,7 @@ def delete_patient_from_hospital_view(request, pk):
 
 
 # Hàm cập nhật thông tin bệnh nhân
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def update_patient_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
@@ -357,7 +332,7 @@ def update_patient_view(request, pk):
 
 
 # Hàm thêm bệnh nhân mới vào hệ thống
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_add_patient_view(request):
     userForm = forms.PatientUserForm()
@@ -387,7 +362,7 @@ def admin_add_patient_view(request):
 
 
 # Hàm hiển thị danh sách bệnh nhân cần phê duyệt
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_approve_patient_view(request):
     patients = models.Patient.objects.all().filter(status=False)
@@ -395,7 +370,7 @@ def admin_approve_patient_view(request):
 
 
 # Hàm phê duyệt bệnh nhân
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def approve_patient_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
@@ -405,7 +380,7 @@ def approve_patient_view(request, pk):
 
 
 # Hàm từ chối bệnh nhân và xóa họ khỏi hệ thống
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def reject_patient_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
@@ -416,7 +391,7 @@ def reject_patient_view(request, pk):
 
 
 # Hàm hiển thị danh sách bệnh nhân chuẩn bị xuất viện
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_discharge_patient_view(request):
     patients = models.Patient.objects.all().filter(status=True)
@@ -424,7 +399,7 @@ def admin_discharge_patient_view(request):
 
 
 # Hàm xử lý xuất viện bệnh nhân và tạo hóa đơn
-@login_required(login_url='adminlogin')
+@login_required(login_url='login')
 @user_passes_test(is_admin)
 def discharge_patient_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
