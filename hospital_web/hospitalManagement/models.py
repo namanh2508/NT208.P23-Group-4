@@ -13,13 +13,13 @@ departments = [
 ]
 class Admin (models.Model):
     user = models.OneToOneField (User, on_delete=models.CASCADE)
-    full_name= models.CharField(max_length=100)
-    email = models.EmailField()
+    username= models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
     date_of_birth = models.DateField()
     mobile = models.CharField (max_length=11)
     biological_sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
     def __str__(self):
-        return self.full_name
+        return self.username
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_pic = models.ImageField(upload_to='profile_pic/DoctorProfilePic/', null=True, blank=True)
