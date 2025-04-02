@@ -14,17 +14,23 @@ departments = [
 class Admin (models.Model):
     user = models.OneToOneField (User, on_delete=models.CASCADE)
     username= models.CharField(max_length=100)
+    full_name = models.CharField(max_length=100, default="")
     email = models.EmailField(unique=True)
     date_of_birth = models.DateField()
     mobile = models.CharField (max_length=11)
     biological_sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
     def __str__(self):
-        return self.username
+        return self.full_name
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    username= models.CharField(max_length=100)
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    date_of_birth = models.DateField()
     profile_pic = models.ImageField(upload_to='profile_pic/DoctorProfilePic/', null=True, blank=True)
     address = models.CharField(max_length=40)
     mobile = models.CharField(max_length=20, null=True)
+    biological_sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
     department = models.CharField(max_length=50, choices=departments, default='bac_si_tim_mach')  # Đổi default
     status = models.BooleanField(default=False)
 

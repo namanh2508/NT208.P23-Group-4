@@ -54,11 +54,14 @@ def admin_signup_view(request):
     if request.method == "POST":
         form = forms.AdminSignupForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('adminlogin.html') 
+            user = form.save()
+            admin_group, created = Group.objects.get_or_create(name='ADMIN')
+            user.groups.add(admin_group)
+            return redirect('adminlogin') 
     else:
         form = forms.AdminSignupForm()
     return render(request, 'adminsignup.html', {'form': form})
+
 def doctor_signup_view(request):
     if request.method == "POST":
         form = forms.DoctorSignupForm(request.POST)

@@ -54,9 +54,9 @@ class AdminSignupForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password']
-        widgets = {
-            'username': forms.TextInput(attrs={'placeholder': 'Enter your username'})
-        }
+        # widgets = {
+        #     'username': forms.TextInput(attrs={'placeholder': 'Enter your username'})
+        # }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -72,20 +72,21 @@ class AdminSignupForm(forms.ModelForm):
         
         if commit:
             user.save()
-            # Tạo profile admin
+            # # Tạo profile admin
             admin = models.Admin.objects.create(
                 user=user,
+                username=self.cleaned_data['username'],
                 full_name=self.cleaned_data['full_name'],
                 email=self.cleaned_data['email'],
                 date_of_birth=self.cleaned_data['date_of_birth'],
                 mobile=self.cleaned_data['mobile'],
                 biological_sex=self.cleaned_data['biological_sex']
             )
-            # Thêm vào group Admin
-            admin_group, created = Group.objects.get_or_create(name='Admin')
-            user.groups.add(admin_group)
-        
         return user
+class AdminForm(forms.ModelForm):
+    class Meta:
+        model = models.Admin
+        fields = ['full_name', 'date_of_birth', 'mobile', 'biological_sex']
 
 class DoctorSignupForm(forms.ModelForm):
     username = forms.CharField(
