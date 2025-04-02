@@ -41,6 +41,11 @@
       cursor: pointer;
       color: rgb(73, 133, 133) !important;
     }
+    #google-login-btn {
+        margin-top:10px;
+        background-color: red;
+
+      }
   </style>
 </head>
 <body>
@@ -72,6 +77,8 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Login</button>
+                <hr>
+                <button type="button" id="google-login-btn" class="btn btn-primary btn-lg w-100 rounded-3">Login with Google</button>
                 <!-- Signup link -->
                 <div class="text-center mt-3">
                     <span>Don't have an account?</span>
@@ -85,13 +92,19 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-                <button onclick="loginWithGoogle('ADMIN')">Login with Google as an Admin</button>
                 <script>
+                    // Prevent form submission and trigger Google login
+                    document.getElementById("google-login-btn").addEventListener("click", function (event) {
+                        event.preventDefault();  // Stop form submission
+                        loginWithGoogle('ADMIN');
+                    });
+
                     function loginWithGoogle(role) {
                         let googleLoginUrl = `/google_login_redirect?role=${role}`;  // Send role to backend
                         window.location.href = googleLoginUrl;
                     }
                 </script>
+
 
             </form>
           </div>
