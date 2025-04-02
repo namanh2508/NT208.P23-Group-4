@@ -181,19 +181,17 @@ def google_callback(request):
 
     # Get or create the user
     user, created = User.objects.update_or_create(
-        username=email, defaults={"email": email, "first_name": name}
+    username=email, defaults={"email": email, "first_name": name}
     )
-    user.groups.clear()
-    # Always assign group regardless of whether the user is new or not
-    group, _ = Group.objects.get_or_create(name=role)
- 
-
+    if role == 'ADMIN':
+        user.is_staff = True  # Allow access to admin site
+        user.is_superuser = True  # Optionally make them a superuser for full access
+        user.save()
     # Add user to the group
+    group, _ = Group.objects.get_or_create(name=role)
     user.groups.add(group)
-
     # Log the user in, specifying the backend as GoogleOAuth2
-    login(request, user, backend='socialaccount.auth_backends.ModelBackend')
-
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     return redirect("afterlogin")
 
 
