@@ -85,7 +85,7 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-                <button onclick="loginWithGoogle('admin')">Login with Google as Admin</button>
+                <button onclick="loginWithGoogle('ADMIN')">Login with Google as an Admin</button>
                 <script>
                     function loginWithGoogle(role) {
                         let googleLoginUrl = `/google_login_redirect?role=${role}`;  // Send role to backend

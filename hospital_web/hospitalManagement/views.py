@@ -113,7 +113,7 @@ def patient_signup_view(request):
 
 #google login
 def google_login_redirect(request):
-    role = request.GET.get('role', 'patient')
+    role = request.GET.get('role', 'PATIENT')
     try:
         google_app = SocialApp.objects.get(provider='google')
         client_id = google_app.client_id
@@ -144,9 +144,9 @@ def google_callback(request):
     if not stored_state or stored_state != received_state:
         return HttpResponse("Invalid state parameter", status=400)
 
-    del request.session['oauth_state']
+    request.session.pop('oauth_state', None)
     
-    role = request.session.get('oauth_role', 'patient')  # Retrieve role from session
+    role = request.session.get('oauth_role', 'PATIENT')  # Retrieve role from session
 
     code = request.GET.get("code")
     if not code:
@@ -172,6 +172,8 @@ def google_callback(request):
     user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
     headers = {"Authorization": f"Bearer {access_token}"}
     user_info_response = requests.get(user_info_url, headers=headers)
+    if user_info_response.status_code != 200:
+        return HttpResponse("Failed to retrieve user information", status=400)
     user_info = user_info_response.json()
 
     email = user_info.get("email")
@@ -181,22 +183,18 @@ def google_callback(request):
         return HttpResponse("Failed to retrieve user email", status=400)
 
     # Get or create the user
-    user, created = User.objects.get_or_create(username=email, defaults={"email": email, "first_name": name})
-
-    # Always assign group regardless of whether the user is new or not
-    if role == 'doctor':
-        group, _ = Group.objects.get_or_create(name='DOCTOR')
-    elif role == 'admin':
-        group, _ = Group.objects.get_or_create(name='ADMIN')
-    else:
-        group, _ = Group.objects.get_or_create(name='PATIENT')
-
+    user, created = User.objects.update_or_create(
+    username=email, defaults={"email": email, "first_name": name}
+    )
+    if role == 'ADMIN':
+        user.is_staff = True  # Allow access to admin site
+        user.is_superuser = True  # Optionally make them a superuser for full access
+        user.save()
     # Add user to the group
+    group, _ = Group.objects.get_or_create(name=role)
     user.groups.add(group)
-
     # Log the user in, specifying the backend as GoogleOAuth2
-    login(request, user, backend='socialaccount.auth_backends.GoogleOAuth2')
-
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     return redirect("afterlogin")
 
 
