@@ -1,7 +1,7 @@
 # ***HỆ THỐNG CHĂM SÓC SỨC KHỎE THÔNG MINH***
 ## **I. Tổng Quan**
 ### **1. Giới thiệu đề tài** 
-Dự án Hệ thống chăm sóc sức khỏe thông minh là một giải pháp công nghệ giúp tối ưu hóa quy trình khám chữa bệnh, nâng cao chất lượng dịch vụ y tế và hỗ trợ bác sĩ trong chẩn đoán, điều trị. Hệ thống ứng dụng các công nghệ như hồ sơ sức khỏe điện tử và các công cụ hỗ trợ chẩn đoán để nâng cao hiệu quả chăm sóc sức khỏe.
+Đồ án Hệ thống chăm sóc sức khỏe thông minh là một giải pháp công nghệ giúp tối ưu hóa quy trình khám chữa bệnh, nâng cao chất lượng dịch vụ y tế và hỗ trợ bác sĩ trong chẩn đoán, điều trị. Hệ thống ứng dụng các công nghệ như hồ sơ sức khỏe điện tử và các công cụ hỗ trợ chẩn đoán để nâng cao hiệu quả chăm sóc sức khỏe.
 ### **2. Mục tiêu đề tài** 
 - Tối ưu quy trình khám chữa bệnh: Giảm thời gian chờ, đơn giản hóa thủ tục.
 
@@ -11,7 +11,7 @@ Dự án Hệ thống chăm sóc sức khỏe thông minh là một giải pháp
 
 - Kết nối hệ thống y tế: Liên kết dữ liệu giữa bệnh viện, phòng khám, bảo hiểm y tế để tạo ra một hệ sinh thái thống nhất.
 ### **3. Các tính năng chính của đề tài**
-✔️ Đặt lịch khám trực tuyến, trưc tiếp 
+✔️ Đặt lịch khám trực tuyến, trực tiếp 
 
 ✔️ Theo dõi hồ sơ bệnh án   
 
