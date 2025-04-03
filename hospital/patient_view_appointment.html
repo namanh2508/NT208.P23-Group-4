@@ -99,75 +99,10 @@
 </head>
 <body>
   <div class="wrapper">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container">
-        <a class="navbar-brand fw-bold" href="/IV-Medical">IV MEDICAL</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" href="/IV-Medical">HOME</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">ALL DOCTORS</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">ABOUT</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">CONTACT</a>
-            </li>
-            <li class="nav-item">
-              <button class="btn-profile" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-icon" alt="Profile">
-              </button>
-              <div class="collapse" id="sidebarMenu">
-                <div class="sidebar">
-                  <div class="sidebar-nav">
-                    <a href="/IV-Medical" style="color: black;" class="nav-link d-block">My Profile</a>
-                    <a href="{% url 'patient_appointments' request.user.first_name %}" style="color: black;" class="nav-link d-block">My Appointments</a>
-                    <a href="logout" style="color: black;" class="nav-link d-block">Logout</a>
-                  </div>
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    {% include 'patient_navbar.html' %} 
 
     <div class="container mt-4">
-      <h2>My Appointments</h2>
-      <!-- <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Appointment ID</th>
-            <th>Doctor Name</th>
-            <th>Appointment Date</th>
-            <th>Appointment Time</th>
-            <th>Description</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for appointment in appointments %}
-          <tr>
-            <td>{{ appointment.appointmentID }}</td>
-            <td>{{ appointment.doctorName }}</td>
-            <td>{{ appointment.appointmentDate }}</td>
-            <td>{{ appointment.appointmentTime }}</td>
-            <td>{{ appointment.description }}</td>
-            <td>{{ appointment.status|yesno:"Confirmed,Pending" }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6" class="text-center">No appointments found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table> -->
+      <h2>Cuộc hẹn của tôi</h2>
       <div>
         <hr>
           <div class="row">
@@ -175,27 +110,28 @@
               <div class="row">
                 {% for appointment in appointments %}
                   <div class="col-6">
-                    <img src="{{ appointment.doctorPicture }}" alt="Doctor Picture" class="img-fluid rounded" style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                    
+                    <img src="{{ appointment.doctorId.profile_pic.url }}" alt="Doctor Picture" class="img-fluid rounded" style="max-width: 100px; max-height: 100px; object-fit: cover;">
                   </div>
                   <div class="col-6"> 
-                    <p><span style="font-weight: 800; font-size: medium;">Appointment ID:</span> {{ appointment.appointmentID }}</p>
-                    <p><span style="font-weight: 800; font-size: medium;">Doctor Name:</span> {{ appointment.doctorName }}</p>
-                    <p><span style="font-weight: 800; font-size: medium;">Date & Time:</span> {{ appointment.appointmentDate }} | {{ appointment.appointmentTime }} </p>
-                    <p><span style="font-weight: 800; font-size: medium;">Description:</span> {{ appointment.description }}</p>
-                    <p><span style="font-weight: 800; font-size: medium;">Status:</span> {{ appointment.status|yesno:"Confirmed,Pending" }}</p>
+                    <p><span style="font-weight: 800; font-size: medium;">Tên bác sĩ:</span> {{ appointment.doctorName }}</p>
+                    <p><span style="font-weight: 800; font-size: medium;">Ngày và giờ:</span> {{ appointment.appointmentDate }} | {{ appointment.appointmentTime }} </p>
+                    <p><span style="font-weight: 800; font-size: medium;">Tình trạng:</span> {{ appointment.status|yesno:"Đã xác nhận,Đang chờ xác nhận" }}</p>
+                    <div class="col-6 d-grid justify-content-end align-items-end">
+                      <button class="btn btn-primary btn-pay-online mb-5">Thanh toán</button>
+                      <button class="btn btn-danger btn-cancel-appointment mb-5">Hủy cuộc hẹn</button>
+                    </div>
                   </div>
+                  
                 {% empty %}
                 <tr>
-                  <td colspan="6" class="text-center">No appointments found.</td>
+                  <td colspan="6" class="text-center">Bạn chưa có cuộc hẹn nào.</td>
                 </tr>
                 {% endfor %}
                 
               </div> 
             </div>
-            <div class="col-6 d-grid justify-content-end align-items-end">
-              <button class="btn btn-primary btn-pay-online mb-5">Pay Online</button>
-              <button class="btn btn-danger btn-cancel-appointment mb-5">Cancel Appointment</button>
-            </div>
+            
           </div>
         <hr>
       </div>

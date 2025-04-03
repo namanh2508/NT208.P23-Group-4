@@ -16,7 +16,12 @@ from hospitalManagement.models import PatientDischargeDetails
 def index_view(request):
     if request.user.is_authenticated:
         return redirect('afterlogin')
-    return render(request, 'index_home.html')
+    doctors = Doctor.objects.all()
+    return render(request, 'index_home.html', {'doctors': doctors})
+
+def all_doctors_view(request):
+    doctors = Doctor.objects.all()  # Lấy tất cả bác sĩ từ database
+    return render(request, 'all_doctors.html', {'doctors': doctors})
 
 def patient_signup_view(request):
     userForm=forms.PatientUserForm()
@@ -64,10 +69,12 @@ def is_patient(user):
 @user_passes_test(is_patient)
 def patient_dashboard_view(request):
     if request.user.is_authenticated:
-        return render(request, 'patient_dashboard.html')
+        doctors = Doctor.objects.all() 
+        return render(request, 'patient_dashboard.html', {'doctors': doctors})
     else:
         return redirect('patientlogin')
 
+@login_required(login_url='/IV-Medical/patientsignup')
 def appointment_view(request, doctor_id):
     # Lấy thông tin bác sĩ từ doctor_id
     doctor = Doctor.objects.get(id=doctor_id)
@@ -122,4 +129,9 @@ class GetAppointmentByPatientName(generics.ListAPIView):
 def get_appointment_by_patient_name(request, name):
     # Lấy danh sách các cuộc hẹn dựa trên tên bệnh nhân
     appointments = Appointment.objects.filter(patientId__user__first_name=name)
-    return render(request, 'patient_view_appointment.html', {'appointments': appointments})    
+    return render(request, 'patient_view_appointment.html', {'appointments': appointments})
+
+@login_required(login_url='patientlogin')
+def patient_view_profile(request):
+    patient = request.user.patient
+    return render(request, 'patient_profile.html', {'patient': patient})

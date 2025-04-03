@@ -25,24 +25,22 @@
 <div class="container">
   <div class="panel panel-primary">
     <div class="panel-heading">
-      <h6 class="panel-title">Delete Your Appointments</h6>
+      <h6 class="panel-title">Xóa cuộc hẹn</h6>
     </div>
     <table class="table table-hover" id="dev-table">
       <thead>
         <tr>
-          <th>Patient Name</th>
-          <th>Date</th>
-          <th>Time</th>
-          <th>Description</th>
-          <th>Delete</th>
+          <th>Tên bệnh nhân</th>
+          <th>Ngày</th>
+          <th>Thời gian</th>
+          <th>Xóa</th>
         </tr>
       </thead>
       {% for a,p in appointments %}
       <tr>
-        <td>{{a.patientName}}</td>
-        <td>{{a.appointmentDate}}</td>
-        <td>{{a.appointmentTime}}</td>
-        <td>{{a.description}}</td>
+        <td>{{a.patientId.get_name}}</td>
+        <td>{{a.get_date}}</td>
+        <td>{{a.get_time}}</td>
         <td><a class="btn btn-danger btn-xs" href="{% url 'delete-appointment' a.appointmentID  %}"><span class="glyphicon glyphicon-trash"></span></a></td>
       </tr>
       {% endfor %}

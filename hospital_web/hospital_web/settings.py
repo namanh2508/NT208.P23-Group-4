@@ -105,7 +105,7 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
+        'NAME': '',  # Tên cơ sở dữ liệu
         'USER': '',      # Tên người dùng root
         'PASSWORD': '',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
@@ -150,6 +150,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 MEDIA_ROOT = os.path.join(BASE_DIR, 'hospital', 'media')
 
 

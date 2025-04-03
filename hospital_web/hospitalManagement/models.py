@@ -6,19 +6,31 @@ from django.contrib.auth.models import User
 departments = [
     ('bac_si_tim_mach', 'Bác sĩ Tim mạch'),
     ('bac_si_da_lieu', 'Bác sĩ Da liễu'),
-    ('bac_si_cap_cuu', 'Bác sĩ Cấp cứu'),
+    ('bac_si_khoa_noi', 'Bác sĩ Nội Tổng quát'),
+    ('bac_si_khoa_ngoai', 'Bác sĩ Ngoại Tổng quát'),
     ('bac_si_di_ung_mien_dich', 'Bác sĩ Dị ứng/ Miễn dịch'),
     ('bac_si_gay_me', 'Bác sĩ Gây mê'),
-    ('bac_si_ngoai_tieu_hoa', 'Bác sĩ Ngoại tiêu hóa')
+    ('bac_si_tai_mui_hong', 'Bác sĩ Tai Mũi Họng'),
+    ('bac_si_nhi_khoa', 'Bác sĩ Nhi khoa'),
+    ('bac_si_phu_san', 'Bác sĩ Phụ sản'),
+    ('bac_si_tieu_duong', 'Bác sĩ Tiểu đường'),
+    ('bac_si_tieu_hoa', 'Bác sĩ Tiêu hóa'),
+    ('bac_si_x_quang', 'Bác sĩ X-quang'),
+    ('bac_si_phau_thuat', 'Bác sĩ Phẫu thuật'),
+    ('bac_si_tam_ly', 'Bác sĩ Tâm lý'),
+    ('bac_si_khoa_hoc', 'Bác sĩ Khoa học'),
+    ('bac_si_khoa_khac', 'Bác sĩ Khoa khác')
 ]
 class Admin (models.Model):
     user = models.OneToOneField (User, on_delete=models.CASCADE)
+<<<<<<< Updated upstream
     username= models.CharField(max_length=100)
     full_name = models.CharField(max_length=100, default="")
+=======
+>>>>>>> Stashed changes
     email = models.EmailField(unique=True)
     date_of_birth = models.DateField()
     mobile = models.CharField (max_length=11)
-    biological_sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
     def __str__(self):
         return self.full_name
 class Doctor(models.Model):
@@ -33,7 +45,7 @@ class Doctor(models.Model):
     biological_sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
     department = models.CharField(max_length=50, choices=departments, default='bac_si_tim_mach')  # Đổi default
     status = models.BooleanField(default=False)
-
+    about = models.TextField(max_length=500, null=True, blank=True)
     @property
     def get_name(self):
         return self.user.last_name + " " +  self.user.first_name 
@@ -52,13 +64,14 @@ class Doctor(models.Model):
 
 class Patient(models.Model):
     user=models.OneToOneField(User,on_delete=models.CASCADE)
+    profile_pic = models.ImageField(upload_to='profile_pic/PatientProfilePic/', null=True, blank=True)
     address = models.CharField(max_length=40)
     mobile = models.CharField(max_length=20,null=False)
     admitDate=models.DateField(auto_now=True)
     status=models.BooleanField(default=False)
     @property
     def get_name(self):
-        return self.user.first_name+" "+self.user.last_name
+        return self.user.last_name + " " +  self.user.first_name 
     @property
     def get_id(self):
         return self.user.id
@@ -77,8 +90,22 @@ class Appointment(models.Model):
     @property
     def get_patient_name(self):
         return self.patientId.get_name if self.patientId else None
+    @property
+    def get_time(self):
+        return self.appointmentTime.strftime("%H:%M") if self.appointmentTime else None
+    def get_date(self):
+        return self.appointmentDate.strftime("%d/%m/%Y") if self.appointmentDate else None
     
-     
+class timeSlot(models.Model):
+    appointmentID=models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name="timeSlots")
+    timeSlot=models.TimeField(null=True, blank=True)
+    status=models.BooleanField(default=False)
+    @property
+    def get_time_slot(self):
+        return self.timeSlot.strftime("%H:%M") if self.timeSlot else None
+
+
+
 class PatientDischargeDetails(models.Model):
     patientId=models.PositiveIntegerField(null=True)
     patientName=models.CharField(max_length=40)

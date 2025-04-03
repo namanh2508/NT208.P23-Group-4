@@ -176,14 +176,14 @@ class DoctorSignupForm(forms.ModelForm):
 class DoctorUserForm(forms.ModelForm):
     class Meta:
         model=User
-        fields=['username','password']
+        fields = ['first_name', 'last_name', 'username', 'password']
         widgets = {
         'password': forms.PasswordInput()
         }
 class DoctorForm(forms.ModelForm):
     class Meta:
         model=models.Doctor
-        fields=['mobile','department','status','profile_pic']
+        fields=['mobile','department','status','profile_pic','address', 'about']
 
 
 
@@ -191,26 +191,18 @@ class DoctorForm(forms.ModelForm):
 class PatientUserForm(forms.ModelForm):
     class Meta:
         model=User
-        fields=['username','password']
+        fields = ['first_name', 'last_name', 'username', 'password']
         widgets = {
         'password': forms.PasswordInput()
         }
 class PatientForm(forms.ModelForm):
-    #this is the extrafield for linking patient and their assigend doctor
-    #this will show dropdown __str__ method doctor model is shown on html so override it
-    #to_field_name this will fetch corresponding value  user_id present in Doctor model and return it
     class Meta:
         model=models.Patient
-        fields=['mobile','status']
+        fields=['mobile','status', 'profile_pic', 'address']
 
 
 
-class AppointmentForm(forms.ModelForm):
-    doctorId=forms.ModelChoiceField(queryset=models.Doctor.objects.all().filter(status=True),empty_label="Doctor Name and Department", to_field_name="user_id")
-    patientId=forms.ModelChoiceField(queryset=models.Patient.objects.all().filter(status=True),empty_label="Patient Name and Symptoms", to_field_name="user_id")
-    class Meta:
-        model=models.Appointment
-        fields=['description','status']
+
 
 
 class PatientAppointmentForm(forms.ModelForm):
@@ -234,14 +226,13 @@ class AppointmentForm(forms.ModelForm):
     for i in range(6):
         available_dates.append(today + timedelta(days=i))
         
-    appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn')
-
+    appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn', widget=forms.RadioSelect)
     # Lấy các giờ hẹn trong ngày, mỗi 30 phút
     available_times = [
         '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
         '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
     ]
-    appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn')
+    appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn',  widget=forms.RadioSelect)
 
     description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
 

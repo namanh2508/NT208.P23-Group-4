@@ -14,4 +14,6 @@ urlpatterns = [
     path('discharge/',views.GetAllPatientDischargeDetail.as_view(), name="All patient discharge"),
     path('appointment/patient/<str:name>/', views.get_appointment_by_patient_name, name='patient_appointments'),
     path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
+    path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+    path('my_profile/', views.patient_view_profile, name='my_profile'),
  ]

@@ -669,29 +669,23 @@ def reject_appointment_view(request,pk):
 @login_required(login_url='login')
 @user_passes_test(is_doctor)
 def doctor_dashboard_view(request):
-    # Lấy số lượng cuộc hẹn chưa hoàn thành của bác sĩ
-    doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
+
+    doctor = request.user.doctor 
     appointmentcount = models.Appointment.objects.filter(status=True, doctorId=doctor).count()
-
-    # Số lượng bệnh nhân đã xuất viện (nếu có, nếu không cần có thể bỏ phần này)
+    appointments = models.Appointment.objects.filter(status=True, doctorId=doctor).order_by('-appointmentID')
     patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
-
-    # Lấy danh sách các cuộc hẹn của bác sĩ đã được xác nhận
-    appointments = models.Appointment.objects.filter(status=True, doctorId_id=request.user.id).order_by('-appointmentID')
-    
-    # Lấy danh sách bệnh nhân đã có cuộc hẹn với bác sĩ
-    patientid = [appointment.patientId_id for appointment in appointments]  # Tạo danh sách id bệnh nhân
-    patients = models.Patient.objects.filter(status=True, id__in=patientid).order_by('-id')
-    
-    # Kết hợp các cuộc hẹn và bệnh nhân lại với nhau
+    patient_ids = [a.patientId.id for a in appointments]
+    patients = models.Patient.objects.filter(id__in=patient_ids)
+    patientcount = models.Patient.objects.filter(id__in=patient_ids).count()
     appointments_and_patients = zip(appointments, patients)
-
+    
     # Gửi dữ liệu vào template
     mydict = {
         'appointmentcount': appointmentcount,  # Tổng số cuộc hẹn chưa hoàn thành
         'patientdischarged': patientdischarged,  # Số lượng bệnh nhân đã xuất viện
         'appointments_and_patients': appointments_and_patients,  # Các cuộc hẹn kèm bệnh nhân
-        'doctor': models.Doctor.objects.get(user_id=request.user.id),  # Thông tin bác sĩ (bao gồm ảnh đại diện)
+        'doctor': doctor,  # Thông tin bác sĩ (bao gồm ảnh đại diện)
+        'patientcount': patientcount,  # Tổng số bệnh nhân đã khám  
     }
     
     return render(request, 'doctor_dashboard.html', context=mydict)
@@ -716,13 +710,6 @@ def doctor_view_patient_view(request):
     appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
     patient_ids = [a.patientId.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
-    print("Appointments:")
-    for a in appointments:
-        print(f"Appointment ID: {a.appointmentID}, Doctor: {a.doctorName}, Patient: {a.patientName}, Date: {a.appointmentDate}")
-    print("Patients:")
-    for p in patients:
-        print(f"Patient ID: {p.id}, Name: {p.user.first_name} {p.user.last_name}, Mobile: {p.mobile}")
-        p.num_appointments_with_doctor = appointments.filter(patientId=p).count()
     # Tính toán số lượng cuộc hẹn của mỗi bệnh nhân với bác sĩ
     for p in patients:
         p.num_appointments_with_doctor = appointments.filter(patientId=p).count()
@@ -755,12 +742,6 @@ def doctor_view_appointment_view(request):
     appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
     patient_ids = [a.patientId.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
-    print("Appointments:")
-    for a in appointments:
-        print(f"Appointment ID: {a.appointmentID}, Doctor: {a.doctorName}, Patient: {a.patientName}, Date: {a.appointmentDate}")
-    print("Patients:")
-    for p in patients:
-        print(f"Patient ID: {p.id}, Name: {p.user.first_name} {p.user.last_name}, Mobile: {p.mobile}")
     appointments = zip(appointments, patients)
     return render(request,'doctor_view_appointment.html',{'appointments': appointments, 'doctor': doctor})
 
