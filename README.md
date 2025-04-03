@@ -89,3 +89,5 @@
 *   **Xem thông tin thuốc** Client -> External API
 
 *   **Nhắc nhở tập luyện** Client -> API Gateway -> Database -> Google Calendar API
+## **III. Phân công**
+## [Bảng phân công](https://docs.google.com/spreadsheets/d/1WHjiuY4fgUMsBKskFfWrQ4nhuX5jWF9kYpFMSTdWC9E/edit?gid=0#gid=0)
