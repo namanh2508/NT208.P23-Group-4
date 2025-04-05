@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User,Permission,Group
 from decimal import Decimal
 
 DEPARTMENT= [
@@ -35,6 +36,22 @@ APPOINTMENT_METHOD= [
 ]
 # ---------- Custom User ----------
 class CustomUser(AbstractUser):
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        related_name='customuser_set',  # Đổi tên để tránh xung đột với auth.User.groups
+        related_query_name='customuser',
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name='user permissions',
+        blank=True,
+        related_name='customuser_permissions',  # Đổi tên để tránh xung đột
+        help_text='Specific permissions for this user.',
+        related_query_name='customuser',
+    )
     picture = models.URLField(blank=True, null=True) # ảnh pfp người dùng
     phone = models.CharField(max_length=20, blank=True, null=True) # số điện thoại
     gender = models.CharField(max_length=10, blank=True, null=True,choices=GENDER) # giới tính
@@ -90,6 +107,23 @@ class Record(models.Model):
     record_date = models.DateField() # ngày khám 
     def __str__(self):
         return f"Record for {self.patient} on {self.record_date}" 
+
+# -------------------- AI_Record --------------------
+class AI_Record (models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='ai_record') # khóa ngoại liên kết với patient
+    symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
+    description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
+    record_date = models.DateField() # ngày khám
+    weight = models.PositiveIntegerField(blank=True, null=True) # cân nặng
+    height = models.PositiveIntegerField(blank=True, null=True) # chiều cao
+    glucose = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    blood_pressure = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    blood_group = models.CharField(max_length=5, blank=True, null=True)
+    liver_enzymes = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    cretinine = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    acid_uric = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    cholesterol = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    
     
 # -------------------- Appointment --------------------
 class Appointment(models.Model):
@@ -152,6 +186,7 @@ class Bill(models.Model):
     method = models.CharField(max_length=50,blank=True, null=True) # Phương thức thanh toán
     def __str__(self):
         return f"Bill for {self.patient.user.get_full_name()} on {self.release_date}"
+
 
 
 
