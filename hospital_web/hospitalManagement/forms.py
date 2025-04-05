@@ -4,8 +4,6 @@ from django.contrib.auth.models import User, Group
 from . import models
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.validators import RegexValidator
-from .models import departments
-
 
 #for signup
 class AdminSignupForm(forms.ModelForm):
@@ -130,7 +128,7 @@ class DoctorSignupForm(forms.ModelForm):
         initial='M'
     )
     department = forms.ChoiceField(  # Thêm trường department
-        choices=departments,  # Sử dụng biến đã import
+        choices=models.departments,  # Sử dụng biến đã import
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'}),  # Sửa dấu ] thành }
         initial='bac_si_tim_mach'
