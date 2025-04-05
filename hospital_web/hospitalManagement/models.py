@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
 from decimal import Decimal
 
@@ -21,23 +20,35 @@ DEPARTMENT= [
     ('bac_si_khoa_hoc', 'Bác sĩ Khoa học'),
     ('bac_si_khoa_khac', 'Bác sĩ Khoa khác')
 ]
-
+GENDER= [
+    ('nam', 'Nam'),
+    ('nu','Nữ')
+]
+SERVICE_STATUS= [
+    ('accepted','Accepted'),
+    ('rejected','Rejected'),
+    ('pending','Pending')
+]
+APPOINTMENT_METHOD= [
+    ('online','Tư vấn online'),
+    ('offline'),('Khám bệnh trực tiếp')
+]
 # ---------- Custom User ----------
 class CustomUser(AbstractUser):
-    picture = models.URLField(blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    gender = models.CharField(max_length=10, blank=True, null=True)
-    birthday = models.DateField(blank=True, null=True)
-    multi_factor_enabled = models.BooleanField(default=False)
-    ip_address_last_login = models.GenericIPAddressField(blank=True, null=True)
+    picture = models.URLField(blank=True, null=True) # ảnh pfp người dùng
+    phone = models.CharField(max_length=20, blank=True, null=True) # số điện thoại
+    gender = models.CharField(max_length=10, blank=True, null=True,choices=GENDER) # giới tính
+    birthday = models.DateField(blank=True, null=True) # ngày sinh
+    multi_factor_enabled = models.BooleanField(default=False) # option để bật chức năng 2 factor authentication
+    ip_address_last_login = models.GenericIPAddressField(blank=True, null=True) # lưu địa chỉ ip đăng nhập gần nhất cho chức năng 2FA
     def __str__(self):
-        return self.user.get_full_name()
+        return self.get_full_name()
 
 # ---------- Doctor ----------
 class Doctor(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    department = models.CharField(max_length=100, blank=True, null=True,choices=DEPARTMENT)
-    description = models.TextField(blank=True, null=True)
+    department = models.CharField(max_length=100, blank=True, null=True,choices=DEPARTMENT) # khoa
+    description = models.TextField(blank=True, null=True) # mô tả
     def get_department(self):
         return dict(DEPARTMENT).get(self.department, 'Unknown')
     def __str__(self):
@@ -52,87 +63,93 @@ class Admin(models.Model):
 # ---------- Patient ----------
 class Patient(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    family_phone = models.CharField(max_length=20, blank=True, null=True)
-    weight = models.PositiveIntegerField(blank=True, null=True)
-    height = models.PositiveIntegerField(blank=True, null=True)
-    symptom = models.TextField(blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    picture = models.URLField(blank=True, null=True)
+    family_phone = models.CharField(max_length=20, blank=True, null=True) # số điện thoại người thân
+    weight = models.PositiveIntegerField(blank=True, null=True) # cân nặng
+    height = models.PositiveIntegerField(blank=True, null=True) # chiều cao
+    description = models.TextField(blank=True, null=True) # mô tả ngoại hình hay gì đó cũng được
     def __str__(self):
         return self.user.get_full_name()
+# ---------- Service ----------
+class Service(models.Model): 
+    patient = models.ForeignKey(Patient, on_delete=models.PROTECT, related_name='service') # không cho phép xóa tk doctor hay patient khi service chưa hoàn tất
+    doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT, related_name='service')
+    appointmentDate = models.DateField() # ngày hẹn
+    appointmentTime = models.TimeField() # thời gian hẹn
+    description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
+    status=models.CharField(max_length=10, choices=SERVICE_STATUS, default='pending') # trạng thái đặt hẹn
+    def __str__(self):
+        return f"Service #{self.service_id} for {self.patient}"
 
 # ---------- Record ----------
 class Record(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='record')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-    family_phone = models.CharField(max_length=20, blank=True, null=True)
-    weight = models.PositiveIntegerField(blank=True, null=True)
-    height = models.PositiveIntegerField(blank=True, null=True)
-    symptom = models.TextField(blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    record_date = models.DateField()   
+    service= models.OnetoOneField(Service, on_delete=models.SET_NULL, null=True, blank=True) # 1 bản record sẽ được tạo sau khi khám xong, nếu service bị xóa thì biến này thành null
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='record') # khóa ngoại liên kết với patient
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='record') # khóa ngoại liên kết với doctor
+    symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
+    description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
+    record_date = models.DateField() # ngày khám 
     def __str__(self):
-        return f"Record for {self.patient} on {self.record_date}"
-
-# ---------- Service ----------
-class Service(models.Model):
-    record=models.OneToOneField(Record, on_delete=models.CASCADE)
-    service_id = models.AutoField(primary_key=True)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='service')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='service')
-    appointmentDate = models.DateField()
-    appointmentTime = models.TimeField()
-    description = models.TextField(blank=True, null=True)
-    status = models.BooleanField(default=False)
-    def __str__(self):
-        return f"Service #{self.service_id} for {self.patient}"
+        return f"Record for {self.patient} on {self.record_date}" 
     
 # -------------------- Appointment --------------------
 class Appointment(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='appointment')
-    method = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    method = models.CharField(max_length=100, blank=True, null=True, choices=APPOINTMENT_METHOD) # khám trực tiếp hoặc tư vấn online
+    price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # giá tiền
     def __str__(self):
         return f"Appointment for {self.service.patient.user.get_full_name()} with {self.service.doctor.user.get_full_name()}"
 
 # -------------------- Test --------------------
 class Test(models.Model):
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='test')
-    glucose = models.DecimalField(max_digits=5, decimal_places=2)
-    blood_pressure = models.DecimalField(max_digits=5, decimal_places=2)
-    blood_group = models.CharField(max_length=5)
-    men_gan = models.DecimalField(max_digits=5, decimal_places=2)
-    cretinine = models.DecimalField(max_digits=5, decimal_places=2)
-    acid_uric = models.DecimalField(max_digits=5, decimal_places=2)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    glucose = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    blood_pressure = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    blood_group = models.CharField(max_length=5, blank=True, null=True)
+    liver_enzymes = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    cretinine = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    acid_uric = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    cholesterol = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True) # giá tiền
 
     def __str__(self):
         return f"Test for Service #{self.service.service_id}"
 
 # -------------------- Medicine --------------------
 class Medicine(models.Model):
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='medicine')
-    medicine_name = models.CharField(max_length=100)
-    instruction = models.TextField()
-    times_per_day = models.CharField(max_length=50)
-    effect = models.TextField()
-    amount = models.PositiveIntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    name = models.CharField(max_length=100, blank=True, null=True) # tên thuốc
+    brand = models.CharField(max_length=100, blank=True, null=True) # tên công ty sản xuất
+    description= models.TextField(blank=True, null=True) # chức năng  thuốc
+    times_per_day = models.DecimalField(max_digits=10, blank=True, null=True) # uống bao nhiêu lần 1 ngày
+    price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # giá tiền 1 viên thuốc
+
+# -------------------- Prescription --------------------
+class Prescription(models.Model):
+    medicine= models.ForeignKey(Medicine, on_delete=models.SET_NULL, blank=True, null=True)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField(blank=True, null=True) # số lượng viên thuốc
+    total_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # tổng giá tiền
+    def get_total_price(self):
+        if self.medicine and self.amount:
+            return self.medicine.price * self.amount
+        return 0  # or None if you prefer
+    def save(self, *args, **kwargs):
+        self.total_price = self.get_total_price()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.medicine_name} for Service #{self.service.service_id}"
 
 # -------------------- Bill --------------------
 class Bill(models.Model):
-    service= models.OneToOneField(Service,on_delete=models.CASCADE)
-    patient = models.ForeignKey('Patient', on_delete=models.CASCADE, related_name='bill')
-    release_date = models.DateField()
-    release_time = models.TimeField()
-    pay_date = models.DateField(blank=True, null=True)
+    service= models.OneToOneField(Service,on_delete=models.SET_NULL, blank=True, null=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    release_date = models.DateField(blank=True, null=True) #thời gian xuất đơn
+    release_time = models.TimeField(blank=True, null=True)
+    pay_date = models.DateField(blank=True, null=True) # thời gian thanh toán
     pay_time = models.TimeField(blank=True, null=True)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=50)
-    method = models.CharField(max_length=50)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # tổng tiền thanh toán từ TẤT CẢ các dịch vụ con
+    status = models.BooleanField(default=False) # Thanh toán rồi hay chưa
+    method = models.CharField(max_length=50,blank=True, null=True) # Phương thức thanh toán
     def __str__(self):
         return f"Bill for {self.patient.user.get_full_name()} on {self.release_date}"
 
