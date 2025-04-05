@@ -52,7 +52,7 @@ class CustomUser(AbstractUser):
         help_text='Specific permissions for this user.',
         related_query_name='customuser',
     )
-    picture = models.URLField(blank=True, null=True) # ảnh pfp người dùng
+    picture = models.ImageField(upload_to='profile_pic/', blank=True, null=True)# ảnh pfp người dùng
     phone = models.CharField(max_length=20, blank=True, null=True) # số điện thoại
     gender = models.CharField(max_length=10, blank=True, null=True,choices=GENDER) # giới tính
     birthday = models.DateField(blank=True, null=True) # ngày sinh
@@ -99,7 +99,7 @@ class Service(models.Model):
 
 # ---------- Record ----------
 class Record(models.Model):
-    service= models.OnetoOneField(Service, on_delete=models.SET_NULL, null=True, blank=True) # 1 bản record sẽ được tạo sau khi khám xong, nếu service bị xóa thì biến này thành null
+    service= models.OneToOneField(Service, on_delete=models.SET_NULL, null=True, blank=True) # 1 bản record sẽ được tạo sau khi khám xong, nếu service bị xóa thì biến này thành null
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='record') # khóa ngoại liên kết với patient
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='record') # khóa ngoại liên kết với doctor
     symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
@@ -123,7 +123,7 @@ class AI_Record (models.Model):
     cretinine = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     acid_uric = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     cholesterol = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    
+
     
 # -------------------- Appointment --------------------
 class Appointment(models.Model):

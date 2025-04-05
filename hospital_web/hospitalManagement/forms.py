@@ -6,199 +6,261 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.core.validators import RegexValidator
 
 #for signup
-class AdminSignupForm(forms.ModelForm):
-    username = forms.CharField(
-        max_length=150,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your username'
-        })
-    )
+class CustomUserSignupForm(forms.ModelForm):
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nhập mật khẩu'}),
         required=True
     )
     confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm your password'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Xác nhận mật khẩu'}),
         required=True
-    )
-    full_name = forms.CharField(
-        max_length=100,
-        required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your full name'})
-    )
-    email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'})
-    )
-    date_of_birth = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'form-control','type': 'date', 'placeholder': 'Select your date of birth'})
-    )
-    mobile = forms.CharField(
-        max_length=11,
-        required=True,
-        label="Mobile Number",
-        validators=[RegexValidator(r'^[0-9]{10,11}$', 'Phone number must be 10-11 digits')],
-        widget=forms.TextInput(attrs={'class': 'form-control','placeholder': 'Enter your mobile number'})
-    )
-    biological_sex = forms.ChoiceField(
-        choices=[('M', 'Male'), ('F', 'Female')],
-        required=True,
-        widget=forms.RadioSelect,
-        initial='M'
     )
 
     class Meta:
-        model = User
-        fields = ['username', 'email', 'password']
-        # widgets = {
-        #     'username': forms.TextInput(attrs={'placeholder': 'Enter your username'})
-        # }
-
-    def clean(self):
-        cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        confirm_password = cleaned_data.get("confirm_password")
-
-        if password != confirm_password:
-            raise forms.ValidationError("Passwords do not match")
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])
-        
-        if commit:
-            user.save()
-            # # Tạo profile admin
-            admin = models.Admin.objects.create(
-                user=user,
-                username=self.cleaned_data['username'],
-                full_name=self.cleaned_data['full_name'],
-                email=self.cleaned_data['email'],
-                date_of_birth=self.cleaned_data['date_of_birth'],
-                mobile=self.cleaned_data['mobile'],
-                biological_sex=self.cleaned_data['biological_sex']
-            )
-        return user
-class AdminForm(forms.ModelForm):
-    class Meta:
-        model = models.Admin
-        fields = ['full_name', 'date_of_birth', 'mobile', 'biological_sex']
-
-class DoctorSignupForm(forms.ModelForm):
-    username = forms.CharField(
-        max_length=150,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your username'
-        })
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'}),
-        required=True
-    )
-    confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm your password'}),
-        required=True
-    )
-    full_name = forms.CharField(
-        max_length=100,
-        required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your full name'})
-    )
-    email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'})
-    )
-    date_of_birth = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'placeholder': 'Select your date of birth'})
-    )
-    mobile = forms.CharField(
-        max_length=20,
-        required=True,
-        validators=[RegexValidator(r'^[0-9]{10,11}$', 'Phone number must be 10-11 digits')],
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your mobile number'})
-    )
-    biological_sex = forms.ChoiceField(
-        choices=[('M', 'Male'), ('F', 'Female')],
-        required=True,
-        widget=forms.RadioSelect,
-        initial='M'
-    )
-    department = forms.ChoiceField(  # Thêm trường department
-        choices=models.departments,  # Sử dụng biến đã import
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-control'}),  # Sửa dấu ] thành }
-        initial='bac_si_tim_mach'
-    )
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password']
+        model = models.CustomUser
+        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'birthday', 'gender']
         widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your username'})
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên đăng nhập'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Nhập email'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập họ'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại'}),
+            'birthday': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'gender': forms.RadioSelect(choices=models.GENDER),
         }
 
     def clean(self):
         cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        confirm_password = cleaned_data.get("confirm_password")
-
-        if password != confirm_password:
-            raise forms.ValidationError("Passwords do not match")
+        if cleaned_data.get("password") != cleaned_data.get("confirm_password"):
+            raise forms.ValidationError("Mật khẩu xác nhận không khớp!")
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone and (not phone.isdigit() or len(phone) not in [10, 11]):
+            raise forms.ValidationError("Số điện thoại phải là 10 hoặc 11 chữ số và chỉ chứa số.")
+        return phone
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
-        
         if commit:
             user.save()
-            # Tạo profile doctor
-            doctor = models.Doctor.objects.create(
-                user=user,
-                mobile=self.cleaned_data['mobile'],
-                department=self.cleaned_data['department'],
-                # Thêm các trường khác nếu cần
-                status=False  # Mặc định chưa được kích hoạt
-            )
-            # Thêm vào group Doctor
-            doctor_group, created = Group.objects.get_or_create(name='Doctor')
-            user.groups.add(doctor_group)
-        
         return user
     
+class AdminSignupForm(CustomUserSignupForm):
+    def save(self, commit=True):
+        user = super().save(commit)
+        if commit:
+            models.Admin.objects.create(user=user)
+        return user
+class DoctorSignupForm(CustomUserSignupForm):
+    department = forms.ChoiceField(
+        choices=models.DEPARTMENT,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Nhập kinh nghiệm làm việc'}),
+        required=False
+    )
 
-#for doctor related form
-class DoctorUserForm(forms.ModelForm):
+    def save(self, commit=True):
+        user = super().save(commit)
+        if commit:
+            models.Doctor.objects.create(
+                user=user,
+                department=self.cleaned_data["department"],
+                description=self.cleaned_data["description"]
+            )
+        return user
+class PatientSignupForm(CustomUserSignupForm):
+    family_phone = forms.CharField(
+        max_length=11,
+        required=True,
+        label="Số điện thoại người thân",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại người thân'})
+    )
+    weight = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Nhập cân nặng (kg)'})
+    )
+    height = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Nhập chiều cao (cm)'})
+    )
+    def clean_family_phone(self):
+        family_phone = self.cleaned_data.get('family_phone')
+        if family_phone and (not family_phone.isdigit() or len(family_phone) not in [10, 11]):
+            raise forms.ValidationError("Số điện thoại người thân phải là 10 hoặc 11 chữ số.")
+        return family_phone
+    def save(self, commit=True):
+        user = super().save(commit)
+        if commit:
+            models.Patient.objects.create(
+                user=user,
+                family_phone=self.cleaned_data.get('family_phone'),
+                weight=self.cleaned_data.get('weight'),
+                height=self.cleaned_data.get('height')
+            )
+        return user
+#for updating profile only
+class CustomUserUpdateForm(forms.ModelForm):
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone and (not phone.isdigit() or len(phone) not in [10, 11]):
+            raise forms.ValidationError("Số điện thoại phải hợp lệ (10 hoặc 11 chữ số).")
+        return phone
     class Meta:
-        model=User
-        fields = ['first_name', 'last_name', 'username', 'password']
-        widgets = {
-        'password': forms.PasswordInput()
+        model = models.CustomUser
+        fields = ['first_name', 'last_name', 'username', 'email', 'birthday',
+                  'gender', 'phone', 'picture', 'multi_factor_enabled']
+        labels = {
+            'first_name': 'Họ',
+            'last_name': 'Tên',
+            'username': 'Tên đăng nhập',
+            'email': 'Email',
+            'birthday': 'Ngày sinh',
+            'gender': 'Giới tính',
+            'phone': 'Số điện thoại',
+            'picture': 'Ảnh đại diện',
+            'multi_factor_enabled': 'Bật xác thực hai bước',
         }
-class DoctorForm(forms.ModelForm):
-    class Meta:
-        model=models.Doctor
-        fields=['mobile','department','status','profile_pic','address', 'about']
-
-
-
-#for patient related form
-class PatientUserForm(forms.ModelForm):
-    class Meta:
-        model=User
-        fields = ['first_name', 'last_name', 'username', 'password']
         widgets = {
-        'password': forms.PasswordInput()
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'birthday': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'gender': forms.RadioSelect(choices=models.GENDER),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'multi_factor_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-class PatientForm(forms.ModelForm):
+class DoctorAdminForm(forms.ModelForm): # form để admin quản lý thông tin
     class Meta:
-        model=models.Patient
-        fields=['mobile','status', 'profile_pic', 'address']
+        model = models.Doctor
+        fields = ['user', 'department', 'description']
+        labels = {
+            'user': 'Bác sĩ (tài khoản)',
+            'department': 'Khoa',
+            'description': 'Mô tả chuyên môn',
+        }
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'department': forms.Select(choices=models.DEPARTMENT, attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+class DoctorUserForm(CustomUserUpdateForm):
+    department = forms.ChoiceField(
+        choices=models.DEPARTMENT,
+        required=False,
+        label='Khoa',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    description = forms.CharField(
+        required=False,
+        label='Mô tả công việc/Kinh nghiệm',
+        widget=forms.Textarea(attrs={'class': 'form-control'})
+    )
+    def __init__(self, *args, **kwargs):
+        # Lấy Doctor từ kwargs
+        doctor = kwargs.pop('doctor', None)
+        super().__init__(*args, **kwargs)
+        # Nếu có trong db, gán dữ liệu cũ
+        if doctor:
+            self.fields['department'].initial = doctor.department
+            self.fields['description'].initial = doctor.description
+        self.doctor_instance = doctor  # lưu lại để dùng khi save()
+    def save(self, commit=True):
+        user = super().save(commit)
+        doctor = self.doctor_instance
+        if doctor:
+            doctor.department = self.cleaned_data.get('department')
+            doctor.description = self.cleaned_data.get('description')
+            if commit:
+                doctor.save()
+        return user
+class PatientUserForm(CustomUserUpdateForm):
+    family_phone = forms.CharField(
+        max_length=11,
+        required=False,
+        label='Số điện thoại người thân',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    weight = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label='Cân nặng (kg)',
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    height = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label='Chiều cao (cm)',
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    def __init__(self, *args, **kwargs):
+        patient = kwargs.pop('patient', None)
+        super().__init__(*args, **kwargs)
+        if patient:
+            self.fields['family_phone'].initial = patient.family_phone
+            self.fields['weight'].initial = patient.weight
+            self.fields['height'].initial = patient.height
+            self.fields['description'].initial = patient.description
+        self.patient_instance = patient
+    def clean_family_phone(self):
+        family_phone = self.cleaned_data.get('family_phone')
+        if family_phone and (not family_phone.isdigit() or len(family_phone) not in [10, 11]):
+            raise forms.ValidationError("Số điện thoại người thân phải hợp lệ (10 hoặc 11 chữ số).")
+        return family_phone
+
+    def save(self, commit=True):
+        user = super().save(commit)
+        patient = self.patient_instance
+        if patient:
+            patient.family_phone = self.cleaned_data.get('family_phone')
+            patient.weight = self.cleaned_data.get('weight')
+            patient.height = self.cleaned_data.get('height')
+            patient.description = self.cleaned_data.get('description')
+            if commit:
+                patient.save()
+        return user
+
+class PatientAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.Patient
+        fields = ['user', 'family_phone', 'weight', 'height', 'description']
+        labels = {
+            'user': 'Người dùng',
+            'family_phone': 'Số điện thoại người thân',
+            'weight': 'Cân nặng (kg)',
+            'height': 'Chiều cao (cm)',
+            'description': 'Mô tả thêm',
+        }
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'family_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+        
 
 
+
+#for patient related form code cũ
+# class PatientUserForm(forms.ModelForm):
+#     class Meta:
+#         model=User
+#         fields = ['first_name', 'last_name', 'username', 'password']
+#         widgets = {
+#         'password': forms.PasswordInput()
+#         }
+# class PatientForm(forms.ModelForm):
+#     class Meta:
+#         model=models.Patient
+#         fields=['mobile','status', 'profile_pic', 'address']
 
 
 

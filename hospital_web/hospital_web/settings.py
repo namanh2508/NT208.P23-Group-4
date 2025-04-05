@@ -105,9 +105,9 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': '',  # Tên cơ sở dữ liệu
-        'USER': '',      # Tên người dùng root
-        'PASSWORD': '',   # Mật khẩu root_pw
+        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
+        'USER': 'postgres',      # Tên người dùng root
+        'PASSWORD': 'giang2005@',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }

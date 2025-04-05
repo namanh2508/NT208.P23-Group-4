@@ -4,20 +4,25 @@ from django.contrib.auth.views import LoginView,LogoutView
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from django.conf.urls.static import static
 
-from api.views import CreateUserView
+# from api.views import CreateUserView
 from hospitalManagement import views
 from hospital_web import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('IV-Medical/', include('UserManagement.urls')),
     path('api/', include('api.urls')),
-    path('',views.home_view,name='index'),
+    path('stafflogin/',views.home_view,name='index'),
+    path('',views.index_view,name='index_home'),
 
     path('adminsignup/', views.admin_signup_view,name='adminsignup'),
     path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
+    path('patientsignup/', views.patient_signup_view,name='patientsignup'),
+
     path('adminlogin/', views.admin_login_view,name='adminlogin'),
     path('doctorlogin/', views.doctor_login_view,name='doctorlogin'),
+    path('patientlogin', views.patientlogin_view, name='patientlogin'),
     
+    path('patient-dashboard', views.patient_dashboard_view, name='patient-dashboard'),
+    path('logout/', views.logout_view, name='logout'),
     #google login
     path('google_login_redirect/', views.google_login_redirect, name='google_login_redirect'),
     path('accounts/google/login/callback/', views.google_callback, name='google_callback'),
@@ -65,18 +70,12 @@ urlpatterns = [
     path('download-pdf/<int:pk>', views.download_pdf_view,name='download-pdf'),
 
 
-
-
     path('admin-appointment', views.admin_appointment_view,name='admin-appointment'),
     path('admin-view-appointment', views.admin_view_appointment_view,name='admin-view-appointment'),
     path('admin-add-appointment', views.admin_add_appointment_view,name='admin-add-appointment'),
     path('admin-approve-appointment', views.admin_approve_appointment_view,name='admin-approve-appointment'),
     path('approve-appointment/<int:pk>', views.approve_appointment_view,name='approve-appointment'),
     path('reject-appointment/<int:pk>', views.reject_appointment_view,name='reject-appointment'),
-
-
-
-
 
 
 
@@ -91,3 +90,15 @@ urlpatterns = [
     path('doctor-delete-appointment',views.doctor_delete_appointment_view,name='doctor-delete-appointment'),
     path('delete-appointment/<int:pk>', views.delete_appointment_view,name='delete-appointment'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+#url của userManagement cũ
+# urlpatterns = [ 
+#     path('doctor/<int:doctor_id>/', views.appointment_view, name='appointment_view'),
+
+#     path('discharge/',views.GetAllPatientDischargeDetail.as_view(), name="All patient discharge"),
+#     path('appointment/patient/<str:name>/', views.get_appointment_by_patient_name, name='patient_appointments'),
+#     path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
+#     path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+#     path('my_profile/', views.patient_view_profile, name='my_profile'),
+#  ]
