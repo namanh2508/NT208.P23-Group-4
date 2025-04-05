@@ -11,10 +11,14 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-TEMPLATE_DIR = ('C:\\UIT\\Lập trình Web\\đồ án cuối\\templates')
+BASE_DIR =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+TEMPLATE_DIR = os.path.join(BASE_DIR,'hospital') 
 
 
 # Quick-start development settings - unsuitable for production
@@ -26,8 +30,21 @@ SECRET_KEY = 'django-insecure-+%70bj&(=plk%op)2203yngsoseidf#0rg6*ytz@u65bk9f2^+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
 
 # Application definition
 
@@ -38,11 +55,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'api',
+    'django.contrib.sites',  # Required for allauth
+    'allauth', # Required for allauth
+    'allauth.account', # Required for allauth
+    'allauth.socialaccount', # Required for allauth
+    'allauth.socialaccount.providers.google',  # Google oauth2
     'hospitalManagement', 
     'widget_tweaks',
-    'UserManagement',
-    'DiseaseManagement',
     'rest_framework', 
+    
 ]
 
 MIDDLEWARE = [
@@ -53,6 +75,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'hospital_web.urls'
@@ -82,9 +105,9 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
-        'USER': 'postgres',      # Tên người dùng
-        'PASSWORD': 'namanh2508',  # Mật khẩu
+        'NAME': '',  # Tên cơ sở dữ liệu
+        'USER': '',      # Tên người dùng root
+        'PASSWORD': '',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
@@ -126,8 +149,48 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+MEDIA_ROOT = os.path.join(BASE_DIR, 'hospital', 'media')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+LOGIN_REDIRECT_URL = '/afterlogin/'
+LOGOUT_REDIRECT_URL = '/'
+
+ #--------------------------allauth setup
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+SITE_ID = 1 #allauth required
+SITE_URL = 'http://127.0.0.1:8000'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': '956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com',
+            'secret': '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',
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}
+# Google OAuth Settings
+GOOGLE_CLIENT_ID = "956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
+
+# Set a secure session cookie
+SESSION_COOKIE_SECURE = False  # Set to False only in local development
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict' may block OAuth redirects
+
+#------------------------------------------------
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWS_CREDENTIALS = True
+# AUTH_USER_MODEL = 'UserManagement.Users'

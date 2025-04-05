@@ -1,120 +1,98 @@
 <!DOCTYPE html>
-
 {% load widget_tweaks %}
-<html lang="en" dir="ltr">
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>HMS - Django</title>
-  <style type="text/css">
-    body {
-      color: #aa082e;
-      background-color: #b6bde7;
-      font-family: 'Roboto', sans-serif;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IV Medical</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .form-container {
+      max-width: 500px;
+      margin: auto;
     }
-
-    a:link {
-      text-decoration: none;
-    }
-
-    .note {
-      text-align: center;
-      height: 80px;
-      background: -webkit-linear-gradient(left, #0072ff, #8811c5);
-      color: #fff;
+    .btn-create-account {
+      background-color: #FFD700;
+      color: #6366F1;
       font-weight: bold;
-      line-height: 80px;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    .form-content {
-      padding: 5%;
-      border: 1px solid #ced4da;
-      margin-bottom: 2%;
+    .btn-create-account:hover {
+      background-color: #6366F1;
+      color: #FFD700;
     }
+    html, body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
 
-    .form-control {
-      border-radius: 1.5rem;
-    }
+.wrapper {
+  flex: 1;
+}
 
-    .btnSubmit {
-      border: none;
-      border-radius: 1.5rem;
-      padding: 1%;
-      width: 20%;
-      cursor: pointer;
-      background: #0062cc;
-      color: #fff;
-    }
+.footer {
+  background-color: #f8f9fa;
+  padding: 10px 0;
+  text-align: center;
+}
   </style>
-
 </head>
-
-
 <body>
-  {% include "hospital/navbar.html" %}
-  <br>
-  <br>
-  <br>
-  <br>
-
-
-
-
-  <!--- signup page for patient by admin(sumit)  ---------->
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="container register-form">
-      <div class="form">
-        <div class="note">
-          <p>Register to Hospital</p>
+  <div class="wrapper">
+    {% include "patient_navbar.html" %}
+  <div class="container my-5">
+    <div class="card shadow-lg p-4 form-container">
+      <h1 class="mb-4 text-center">IV Medical Registration</h1>
+      
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <h4 class="mb-3">Đăng kí bệnh nhân</h4>
+        
+        <div class="form-group">
+          <label for="first_name">Tên</label>
+          {% render_field userForm.first_name class="form-control" placeholder="Enter your first name" %}
         </div>
-
-        <div class="form-content">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                {% render_field userForm.first_name class="form-control" placeholder="First Name" %}
-              </div>
-              <div class="form-group">
-                {% render_field userForm.username class="form-control" placeholder="Username" %}
-              </div>
-              <div class="form-group">
-                {% render_field patientForm.address class="form-control" placeholder="Address" %}
-              </div>
-              <div class="form-group">
-                {% render_field patientForm.symptoms class="form-control" placeholder="Symptoms" %}
-              </div>
-              <div class="form-group">
-                {% render_field patientForm.profile_pic required="required" class="form-control" placeholder="Profile Picture" %}
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                {% render_field userForm.last_name class="form-control" placeholder="Last Name" %}
-              </div>
-              <div class="form-group">
-                {% render_field userForm.password class="form-control" placeholder="Password" %}
-              </div>
-              <div class="form-group">
-                {% render_field patientForm.mobile class="form-control" pattern="[6789][0-9]{9}" placeholder="Contact Number" %}
-              </div>
-              <div class="form-group">
-                {% render_field patientForm.assignedDoctorId class="form-control" placeholder="Doctor" %}
-              </div>
-
-            </div>
-          </div>
-          <button type="submit" class="btnSubmit">Register</button>
-          <div class="text-center">Already have an account? <a href="patientlogin">Login here</a></div>
+        
+        <div class="form-group">
+          <label for="last_name">Họ và tên đệm</label>
+          {% render_field userForm.last_name class="form-control" placeholder="Enter your last name" %}
         </div>
+        
+        <div class="form-group">
+          <label for="username">Username</label>
+          {% render_field userForm.username class="form-control" placeholder="Choose a username" %}
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Mật khẩu</label>
+          {% render_field userForm.password type="password" class="form-control" placeholder="Enter a secure password" %}
+        </div>       
+        <div class="form-group">
+          <label for="address">Địa chỉ</label>
+          {% render_field patientForm.address class="form-control" placeholder="Enter your address" %}
+        </div>
+        
+        <div class="form-group">
+          <label for="mobile">Số điện thoại</label>
+          {% render_field patientForm.mobile class="form-control" pattern="[0-9]{9,10}" placeholder="Enter your phone number" %}
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block mt-3">Đăng kí</button>
+      </form>
+      <div class="text-center mt-4">
+        <h5 class="mb-2">Đã có tài khoản?</h5>
+        <a href="/IV-Medical/patientlogin" class="btn btn-outline-secondary">Đăng nhập</a>
       </div>
     </div>
-
-  </form>
-
-  {% include "hospital/footer.html" %}
+  </div>
+</div>
+{%include "footer.html" %}
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
-
-
 </html>

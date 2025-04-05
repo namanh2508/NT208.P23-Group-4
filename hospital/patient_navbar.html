@@ -1,0 +1,157 @@
+{% load static %} {# Đảm bảo có dòng này ở đầu file template #}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        {# Sử dụng thẻ static để lấy đường dẫn ảnh logo #}
+        {# Thêm class navbar-logo-img để dễ dàng chỉnh CSS #}
+        {# Thêm alt text mô tả logo #}
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="/IV-Medical">
+            <img src="{% static 'images/v987-18a.jpg' %}"" alt="IV-Medical Logo" class="navbar-logo-img">
+            BỆNH VIỆN QUỐC TẾ IV MEDICAL
+            {# <span style="margin-left: 10px;">IV-Medical</span> #}
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                {# --- Các mục menu khác giữ nguyên --- #}
+                 <li class="nav-item">
+                     <a class="nav-link" href="/IV-Medical">Trang chủ</a>
+                 </li>
+                 <li class="nav-item">
+                     <a class="nav-link" href="/IV-Medical/all_doctors">Bác sĩ</a>
+                 </li>
+                 <li class="nav-item">
+                     <a class="nav-link" href="#">Về chúng tôi</a>
+                 </li>
+                 <li class="nav-item">
+                     <a class="nav-link" href="#">Liên lạc</a>
+                 </li>
+                 {% if request.user.is_authenticated %}
+                 <li class="nav-item">
+                     <button class="btn-profile" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
+                         <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-icon" alt="Profile">
+                     </button>
+                     <div class="collapse" id="sidebarMenu">
+                         <div class="sidebar">
+                             <div class="sidebar-nav">
+                                 <a href="/IV-Medical/my_profile" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
+                                  <a href="{% url 'patient_appointments' request.user.first_name %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
+                         <a href="/IV-Medical/logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>
+                 </div>
+         </div>
+     </div>
+ </li>
+ {% else %}
+ <li class="nav-item">
+     <a class="btn btn-create-account py-2 px-4" href="{% url 'patientsignup' %}">Create Account</a>
+ </li>
+{% endif %}
+                {# --- Hết các mục menu --- #}
+            </ul>
+        </div>
+    </div>
+</nav>
+<style>
+  /* --- CSS CHO LOGO --- */
+.navbar-logo-img {
+  height: 40px; /* Điều chỉnh chiều cao mong muốn cho logo */
+  width: auto; /* Chiều rộng sẽ tự động thay đổi theo tỷ lệ */
+  margin-right: 8px; /* Nếu bạn có thêm chữ bên cạnh logo, tạo khoảng cách */
+  vertical-align: middle; /* Giúp căn chỉnh logo thẳng hàng giữa dòng */
+}
+
+/* Tùy chỉnh thêm thẻ <a> chứa logo nếu cần */
+.navbar-brand {
+  padding-top: 5px; /* Giảm padding trên/dưới mặc định của Bootstrap */
+  padding-bottom: 5px;
+  /* display: flex; và align-items: center; đã thêm ở trên giúp căn giữa logo và text (nếu có) */
+}
+/* --- KẾT THÚC CSS CHO LOGO --- */
+
+/* --- CSS CŨ CỦA BẠN --- */
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ... (giữ nguyên phần còn lại của CSS cũ) ... */
+
+.wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    background-color: #f8f9fa;
+    padding: 10px 0;
+    text-align: center;
+    margin-top: auto; /* Đẩy footer xuống cuối */
+}
+
+.navbar-nav .nav-link {
+    color: white;
+    margin-right: 20px;
+    transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #FFD700;
+}
+
+.btn-profile {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.profile-icon {
+    width: 24px; /* Giảm kích thước */
+    height: 24px;
+}
+
+/* --- CSS ĐÃ SỬA CHO SIDEBAR MENU --- */
+.navbar-nav .nav-item {
+    position: relative;
+}
+
+#sidebarMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1000;
+}
+
+.sidebar {
+    background-color: #f8f9fa;
+    padding: 5px;
+    border-radius: 8px;
+    width: 120px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+/* --- KẾT THÚC CSS ĐÃ SỬA --- */
+
+.sidebar-nav .nav-link {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+/* Đoạn CSS trùng lặp đã bỏ */
+
+.btn-create-account {
+    background-color: #FFD700;
+    color: #6366F1;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-create-account:hover {
+    background-color: #6366F1;
+    color: #FFD700;
+}
+/* Đoạn CSS trùng lặp đã bỏ */
+</style>

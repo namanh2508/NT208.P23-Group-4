@@ -1,4 +1,4 @@
-{% extends 'hospital/doctor_base.html' %}
+{% extends 'doctor_base.html' %}
 {% block content %}
 {%load static%}
 
@@ -25,29 +25,34 @@
 <div class="container">
   <div class="panel panel-primary">
     <div class="panel-heading">
-      <h6 class="panel-title">Your Appointments</h6>
+      <h6 class="panel-title">Danh sách cuộc hẹn</h6>
     </div>
     <table class="table table-hover" id="dev-table">
       <thead>
         <tr>
-          <th>Patient Name</th>
-          <th>Picture</th>
-          <th>Description</th>
-          <th>Contact</th>
-          <th>Address</th>
-          <th>Appointment Date</th>
+          <th>Tên bệnh nhân</th>
+          <th>Ảnh</th>
+          <th>Triệu chứng</th>
+          <th>Liên hệ</th>
+          <th>Giờ</th>
+          <th>Ngày</th>
         </tr>
       </thead>
-      {% for a,p in appointments %}
-      <tr>
-        <td>{{a.patientName}}</td>
-        <td> <img src="{% static p.profile_pic.url %}" alt="Profile Pic" height="40px" width="40px" /></td>
-        <td>{{a.description}}</td>
-        <td>{{p.mobile}}</td>
-        <td>{{p.address}}</td>
-        <td>{{a.appointmentDate}}</td>
-      </tr>
-      {% endfor %}
+      {% for a, p in appointments %}
+        <tr>
+            <td>{{ a.patientId.get_name }}</td>
+            <td><img src="{{ a.patientId.profile_pic.url }}" height="40px" width="40px alt="></td>
+            <td>{{ a.description }}</td>
+            <td>{{a.patientId.mobile}}</td>
+            <td>{{ a.get_time }}</td>
+            <td>{{a.get_date}}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">Không có cuộc hẹn nào.</td>
+        </tr>
+        {% endfor %}
+    
     </table>
   </div>
 </div>

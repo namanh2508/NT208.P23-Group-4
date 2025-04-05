@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\hospital",
+    "\\hospital_web",
+    "\\hospital_web\\hospitalManagement",
+    "\\hospital_web\\hospital_web"
+  ],
+  "SelectedNode": "\\hospital_web\\hospitalManagement\\views.py",
+  "PreviewInSolutionExplorer": false
+}

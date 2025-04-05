@@ -1,0 +1,14 @@
+psycopg2
+django
+django-widget-tweaks
+django-cors-headers
+Pillow
+django-allauth
+django-oauth-toolkit
+asgiref
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+PyJWT
+pytz
+python-dotenv

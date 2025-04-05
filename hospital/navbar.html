@@ -1,61 +1,48 @@
-<!DOCTYPE html>
-{% load static %}
-<html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-
-  <style type="text/css">
-    .bs-example {
-      margin: 0px;
-
+  <style>
+    i {
+      margin-right: 10px;
+      font-size: 20px !important;
     }
-
-    .navbar-brand {
-      font-size: 20px;
-      font-family: sans-serif;
-
+    a {
+      font-size: 17px !important;
+    }
+    a.navbar-brand {
+      font-size: 20px !important;
     }
   </style>
 </head>
+<nav class="navbar navbar-expand-lg navbar-light bg-info shadow">
+  <div class="container">
+    <!-- Logo + Tên bệnh viện -->
+    <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+      🏥 IV-MED
+    </a>
+    
+    <!-- Nút mở menu trên mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-<body>
-
-
-
-  <div class="bs-example">
-    <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background:#337AB7;">
-      <a href="/" class="navbar-brand">Hospital Management</a>
-      <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
-        <div class="navbar-nav">
-
-          
-
-
-        </div>
-
-        <div class="navbar-nav">
-          <a href="/adminclick" class="nav-item nav-link">Admin</a>
-          <a href="/doctorclick" class="nav-item nav-link">Doctor</a>
-          <a href="/patientclick" class="nav-item nav-link">Patient</a>
-          <a href="/contactus" class="nav-item nav-link">Contact Us</a>
-        </div>
-
-      </div>
-    </nav>
+    <!-- Danh sách menu -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto d-flex align-items-center gap-3">
+        <!-- Nút đăng nhập Admin -->
+        <li class="nav-item">
+          <a class="btn btn-danger text-white fw-bold rounded-pill px-4 py-2 shadow" href="/adminlogin">
+            <i class="fa fa-lock"></i> Admin
+          </a>
+        </li>
+        <!-- Nút đăng nhập Nhân viên -->
+        <li class="nav-item">
+          <a class="btn btn-success text-white fw-bold rounded-pill px-4 py-2 shadow" href="/doctorlogin">
+            <i class="fa fa-plus"></i>Doctor
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
+</nav>
 
- 
-
-</body>
-
-</html>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
