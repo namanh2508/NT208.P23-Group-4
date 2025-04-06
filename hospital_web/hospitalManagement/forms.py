@@ -38,7 +38,19 @@ class CustomUserSignupForm(forms.ModelForm):
         if phone and (not phone.isdigit() or len(phone) not in [10, 11]):
             raise forms.ValidationError("Số điện thoại phải là 10 hoặc 11 chữ số và chỉ chứa số.")
         return phone
+    # Check if email already exists
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if models.CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email đã tồn tại. Vui lòng chọn email khác.")
+        return email
 
+    # Check if username already exists
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if models.CustomUser.objects.filter(username=username).exists():
+            raise forms.ValidationError("Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.")
+        return username
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
@@ -137,7 +149,7 @@ class CustomUserUpdateForm(forms.ModelForm):
             'picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'multi_factor_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-class DoctorAdminForm(forms.ModelForm): # form để admin quản lý thông tin
+class AdminDoctorForm(forms.ModelForm): # form để admin quản lý thông tin
     class Meta:
         model = models.Doctor
         fields = ['user', 'department', 'description']
@@ -149,6 +161,24 @@ class DoctorAdminForm(forms.ModelForm): # form để admin quản lý thông tin
         widgets = {
             'user': forms.Select(attrs={'class': 'form-control'}),
             'department': forms.Select(choices=models.DEPARTMENT, attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+class AdminPatientForm(forms.ModelForm):
+    class Meta:
+        model = models.Patient
+        fields = ['user', 'family_phone', 'weight', 'height', 'description']
+        labels = {
+            'user': 'Người dùng',
+            'family_phone': 'Số điện thoại người thân',
+            'weight': 'Cân nặng (kg)',
+            'height': 'Chiều cao (cm)',
+            'description': 'Mô tả triệu chứng',
+        }
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'family_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
         }
 class DoctorUserForm(CustomUserUpdateForm):
@@ -226,25 +256,6 @@ class PatientUserForm(CustomUserUpdateForm):
             if commit:
                 patient.save()
         return user
-
-class PatientAdminForm(forms.ModelForm):
-    class Meta:
-        model = models.Patient
-        fields = ['user', 'family_phone', 'weight', 'height', 'description']
-        labels = {
-            'user': 'Người dùng',
-            'family_phone': 'Số điện thoại người thân',
-            'weight': 'Cân nặng (kg)',
-            'height': 'Chiều cao (cm)',
-            'description': 'Mô tả thêm',
-        }
-        widgets = {
-            'user': forms.Select(attrs={'class': 'form-control'}),
-            'family_phone': forms.TextInput(attrs={'class': 'form-control'}),
-            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'height': forms.NumberInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control'}),
-        }
         
 
 
@@ -265,37 +276,37 @@ class PatientAdminForm(forms.ModelForm):
 
 
 
-class PatientAppointmentForm(forms.ModelForm):
-    doctorId=forms.ModelChoiceField(queryset=models.Doctor.objects.all().filter(status=True),empty_label="Doctor Name and Department", to_field_name="user_id")
-    class Meta:
-        model=models.Appointment
-        fields=['description','status']
+# class PatientAppointmentForm(forms.ModelForm):
+#     doctorId=forms.ModelChoiceField(queryset=models.Doctor.objects.all().filter(status=True),empty_label="Doctor Name and Department", to_field_name="user_id")
+#     class Meta:
+#         model=models.Appointment
+#         fields=['description','status']
 
 
-#for contact us page
-class ContactusForm(forms.Form):
-    Name = forms.CharField(max_length=30)
-    Email = forms.EmailField()
-    Message = forms.CharField(max_length=500,widget=forms.Textarea(attrs={'rows': 3, 'cols': 30}))
+# #for contact us page
+# class ContactusForm(forms.Form):
+#     Name = forms.CharField(max_length=30)
+#     Email = forms.EmailField()
+#     Message = forms.CharField(max_length=500,widget=forms.Textarea(attrs={'rows': 3, 'cols': 30}))
 
 
-class AppointmentForm(forms.ModelForm):
-    # Lấy các ngày hẹn trong vòng 6 ngày
-    available_dates = []
-    today = date.today()
-    for i in range(6):
-        available_dates.append(today + timedelta(days=i))
+# class AppointmentForm(forms.ModelForm):
+#     # Lấy các ngày hẹn trong vòng 6 ngày
+#     available_dates = []
+#     today = date.today()
+#     for i in range(6):
+#         available_dates.append(today + timedelta(days=i))
         
-    appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn', widget=forms.RadioSelect)
-    # Lấy các giờ hẹn trong ngày, mỗi 30 phút
-    available_times = [
-        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
-    ]
-    appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn',  widget=forms.RadioSelect)
+#     appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn', widget=forms.RadioSelect)
+#     # Lấy các giờ hẹn trong ngày, mỗi 30 phút
+#     available_times = [
+#         '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+#         '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+#     ]
+#     appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn',  widget=forms.RadioSelect)
 
-    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
+#     description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
 
-    class Meta:
-        model = models.Appointment
-        fields = ['appointmentDate', 'appointmentTime', 'description']
+#     class Meta:
+#         model = models.Appointment
+#         fields = ['appointmentDate', 'appointmentTime', 'description']

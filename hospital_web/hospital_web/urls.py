@@ -19,7 +19,7 @@ urlpatterns = [
 
     path('adminlogin/', views.admin_login_view,name='adminlogin'),
     path('doctorlogin/', views.doctor_login_view,name='doctorlogin'),
-    path('patientlogin', views.patientlogin_view, name='patientlogin'),
+    path('patientlogin', views.patient_login_view, name='patientlogin'),
     
     path('patient-dashboard', views.patient_dashboard_view, name='patient-dashboard'),
     path('logout/', views.logout_view, name='logout'),

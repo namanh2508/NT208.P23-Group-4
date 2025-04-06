@@ -32,7 +32,7 @@ SERVICE_STATUS= [
 ]
 APPOINTMENT_METHOD= [
     ('online','Tư vấn online'),
-    ('offline'),('Khám bệnh trực tiếp')
+    ('offline','Khám bệnh trực tiếp')
 ]
 # ---------- Custom User ----------
 class CustomUser(AbstractUser):
@@ -66,6 +66,7 @@ class Doctor(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     department = models.CharField(max_length=100, blank=True, null=True,choices=DEPARTMENT) # khoa
     description = models.TextField(blank=True, null=True) # mô tả
+    status = models.BooleanField(default = False) # tài khoản đã được kích hoạt hay chưa
     def get_department(self):
         return dict(DEPARTMENT).get(self.department, 'Unknown')
     def __str__(self):
@@ -74,6 +75,7 @@ class Doctor(models.Model):
 # ---------- Admin ----------
 class Admin(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    status = models.BooleanField(default = False) # tài khoản đã được kích hoạt hay chưa
     def __str__(self):
         return f"Admin {self.user.get_full_name()}"
 
@@ -153,7 +155,7 @@ class Medicine(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True) # tên thuốc
     brand = models.CharField(max_length=100, blank=True, null=True) # tên công ty sản xuất
     description= models.TextField(blank=True, null=True) # chức năng  thuốc
-    times_per_day = models.DecimalField(max_digits=10, blank=True, null=True) # uống bao nhiêu lần 1 ngày
+    times_per_day = models.IntegerField(blank=True, null=True) # uống bao nhiêu lần 1 ngày
     price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # giá tiền 1 viên thuốc
 
 # -------------------- Prescription --------------------
