@@ -13,7 +13,6 @@ from hospitalManagement import models
 from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
-from .forms import CustomUserSignupFormm,AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
 from django.template.loader import get_template
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
@@ -21,7 +20,6 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.models import SocialApp
 import secrets
 import requests
-from .models import CustomUser,Admin,Doctor,Patient,Appointment
 # Create your views here.
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -175,7 +173,7 @@ def google_callback(request):
 
     # Get or create the user
     user, _ = models.CustomUser.objects.get_or_create(
-    username=name, defaults={"email": email, "first_name": name}
+    username=email, defaults={"email": email, "first_name": name}
     )
     if role == 'ADMIN':
         admin, _ = models.Admin.objects.get_or_create(user=user)
@@ -189,9 +187,12 @@ def google_callback(request):
     # Add user to the group
     group, _ = Group.objects.get_or_create(name=role)
     user.groups.add(group)
+    user.is_active=True
     # Log the user in
-    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-    return redirect("afterlogin")
+    user.backend = 'django.contrib.auth.backends.ModelBackend'
+    user.save()
+    login(request, user)
+    return redirect('afterlogin')
 
 
 #login view
@@ -273,14 +274,14 @@ def admin_dashboard_view(request):
     doctors=models.Doctor.objects.all().order_by('-id')
     patients=models.Patient.objects.all().order_by('-id')
     #for three cards
-    doctorcount=models.Doctor.objects.all().filter(status=True).count()
-    pendingdoctorcount=models.Doctor.objects.all().filter(status=False).count()
+    doctorcount = models.Doctor.objects.filter(user__status=True).count()
+    pendingdoctorcount=models.Doctor.objects.all().filter(user__status=False).count()
 
-    patientcount=models.Patient.objects.all().filter(status=True).count()
-    pendingpatientcount=models.Patient.objects.all().filter(status=False).count()
+    patientcount=models.Patient.objects.all().filter(user__status=True).count()
+    pendingpatientcount=models.Patient.objects.all().filter(user__status=False).count()
 
-    appointmentcount=models.Appointment.objects.all().filter(status=True).count()
-    pendingappointmentcount=models.Appointment.objects.all().filter(status=False).count()
+    appointmentcount=models.Appointment.objects.all().filter(status='accepted').count()
+    pendingappointmentcount=models.Appointment.objects.all().filter(status='pending').count()
     mydict={
     'doctors':doctors,
     'patients':patients,

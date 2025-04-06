@@ -59,6 +59,8 @@ class CustomUser(AbstractUser):
     multi_factor_enabled = models.BooleanField(default=False) # option để bật chức năng 2 factor authentication
     ip_address_last_login = models.GenericIPAddressField(blank=True, null=True) # lưu địa chỉ ip đăng nhập gần nhất cho chức năng 2FA
     status = models.BooleanField(default = False) # tài khoản đã được kích hoạt hay chưa
+    USERNAME_FIELD = 'username' 
+    REQUIRED_FIELDS = ['email']  
     def __str__(self):
         return self.get_full_name()
 

@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     'rest_framework', 
     
 ]
-
+AUTH_USER_MODEL = 'hospitalManagement.CustomUser'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -167,7 +167,6 @@ LOGOUT_REDIRECT_URL = '/'
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 SITE_ID = 1 #allauth required
 SITE_URL = 'http://127.0.0.1:8000'
