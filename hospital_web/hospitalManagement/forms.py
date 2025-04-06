@@ -5,6 +5,10 @@ from . import models
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.validators import RegexValidator
 
+from .models import Service, Doctor, Patient 
+from django.utils import timezone
+import datetime
+
 #for signup
 class CustomUserSignupForm(forms.ModelForm):
     password = forms.CharField(
@@ -294,26 +298,26 @@ class PatientUserForm(CustomUserUpdateForm):
                 patient.save()
         return user
         
-class AppointmentForm(forms.ModelForm):
-    # Lấy các ngày hẹn trong vòng 6 ngày
-    available_dates = []
-    today = date.today()
-    for i in range(6):
-        available_dates.append(today + timedelta(days=i))
+# class AppointmentForm(forms.ModelForm):
+#     # Lấy các ngày hẹn trong vòng 6 ngày
+#     available_dates = []
+#     today = date.today()
+#     for i in range(6):
+#         available_dates.append(today + timedelta(days=i))
         
-    appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn', widget=forms.RadioSelect)
-    # Lấy các giờ hẹn trong ngày, mỗi 30 phút
-    available_times = [
-        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
-    ]
-    appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn',  widget=forms.RadioSelect)
+#     appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn', widget=forms.RadioSelect)
+#     # Lấy các giờ hẹn trong ngày, mỗi 30 phút
+#     available_times = [
+#         '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+#         '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+#     ]
+#     appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn',  widget=forms.RadioSelect)
 
-    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
+#     description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
 
-    class Meta:
-        model = models.Appointment
-        fields = ['appointmentDate', 'appointmentTime', 'description']
+#     class Meta:
+#         model = models.Appointment
+#         fields = ['appointmentDate', 'appointmentTime', 'description']
     
     
 
@@ -371,10 +375,7 @@ class AppointmentForm(forms.ModelForm):
 
 # your_app_name/forms.py
 
-from django import forms
-from .models import Service, Doctor, Patient 
-from django.utils import timezone
-import datetime
+
 
 class AppointmentBookingForm(forms.ModelForm):
     # Customize the Doctor field to show readable names

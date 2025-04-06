@@ -11,14 +11,17 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from hospitalManagement import models
 from django.contrib import messages
-from django.urls import reverse
+from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
+from .forms import CustomUserSignupFormm,AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
+from django.template.loader import get_template
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.models import SocialApp
 import secrets
 import requests
+from .models import CustomUser,Admin,Doctor,Patient,Appointment
 # Create your views here.
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -914,3 +917,46 @@ def get_appointment_by_patient_name(request, name):
 # def patient_view_profile(request):
 #     patient = request.user.patient
 #     return render(request, 'patient_profile.html', {'patient': patient})
+
+
+@login_required (login_url='patientlogin')
+@user_passes_test(is_patient)
+def book_appointment(request):
+    try:
+        # Get the patient profile associated with the logged-in user
+        # Assumes a OneToOne relationship exists and profile is created
+        patient = request.user.patient
+    except Patient.DoesNotExist:
+        # Handle cases where the user doesn't have a Patient profile
+        messages.error(request, "You need a patient profile to book appointments.")
+        # Redirect to a profile creation page or dashboard
+        return redirect('patient-dashboard')
+
+    if request.method == 'POST':
+        form = AppointmentBookingForm(request.POST)
+        if form.is_valid():
+            # Create Service instance but don't save to DB yet
+            service = form.save(commit=False)
+            # Assign the logged-in patient
+            service.patient = patient
+            # Set initial status (as defined in model default, but explicit is fine)
+            service.status = 'pending'
+            # Now save the Service instance to the database
+            service.save()
+
+            messages.success(request, f"Appointment requested successfully for {service.appointmentDate.strftime('%Y-%m-%d')} at {service.appointmentTime.strftime('%H:%M')} with {service.doctor}. You will be notified upon confirmation.")
+            # Redirect to a success page or the patient's appointment list
+            return redirect('patient-view-appointment') # CHANGE THIS to your success/list URL name
+
+        else:
+            # Form is invalid, errors will be displayed in the template
+            messages.error(request, "Please correct the errors below.")
+    else:
+        # GET request, display a blank form
+        form = AppointmentBookingForm()
+
+    context = {
+        'form': form,
+        'page_title': 'Book an Appointment' # Optional: for template title
+    }
+    return render(request, 'patient_book_appointment.html', context) # CHANGE THIS template path
