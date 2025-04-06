@@ -69,15 +69,19 @@ class CustomUserSignupForm(forms.ModelForm):
         return username
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.is_active = True
         user.set_password(self.cleaned_data["password"])
+        user.gender = self.cleaned_data.get("gender")
         if commit:
             user.save()
         return user
     
 class AdminSignupForm(CustomUserSignupForm):
     def save(self, commit=True):
-        user = super().save(commit)
+        user = super().save(commit=False)
+        user.is_staff = True
         if commit:
+            user.save ()
             models.Admin.objects.create(user=user)
         return user
 class DoctorSignupForm(CustomUserSignupForm):
