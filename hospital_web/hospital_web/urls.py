@@ -90,6 +90,9 @@ urlpatterns = [
     path('doctor-delete-appointment',views.doctor_delete_appointment_view,name='doctor-delete-appointment'),
     path('delete-appointment/<int:pk>', views.delete_appointment_view,name='delete-appointment'),
 
+    path('doctor-dashboard/', views.doctor_dashboard_view,name='doctor-dashboard'),
+    path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
+
     path('appointment/patient/<str:name>/', views.get_appointment_by_patient_name, name='patient_appointments'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

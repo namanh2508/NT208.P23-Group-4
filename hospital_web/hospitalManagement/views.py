@@ -267,14 +267,14 @@ def admin_dashboard_view(request):
     doctors=models.Doctor.objects.all().order_by('-id')
     patients=models.Patient.objects.all().order_by('-id')
     #for three cards
-    doctorcount=models.Doctor.objects.all().filter(status=True).count()
-    pendingdoctorcount=models.Doctor.objects.all().filter(status=False).count()
+    doctorcount=models.Doctor.objects.all().filter(user__status=True).count()
+    pendingdoctorcount=models.Doctor.objects.all().filter(user__status=False).count()
 
-    patientcount=models.Patient.objects.all().filter(status=True).count()
-    pendingpatientcount=models.Patient.objects.all().filter(status=False).count()
+    patientcount=models.Patient.objects.all().filter(user__status=True).count()
+    pendingpatientcount=models.Patient.objects.all().filter(user__status=False).count()
 
-    appointmentcount=models.Appointment.objects.all().filter(status=True).count()
-    pendingappointmentcount=models.Appointment.objects.all().filter(status=False).count()
+    appointmentcount=models.Appointment.objects.all().filter(status='accepted').count()
+    pendingappointmentcount=models.Appointment.objects.all().filter(status='pending').count()
     mydict={
     'doctors':doctors,
     'patients':patients,
@@ -666,12 +666,11 @@ def reject_appointment_view(request,pk):
 
 #--------doctor
 @login_required(login_url='login')
-@user_passes_test(is_doctor)
+@user_passes_test(is_doctor,login_url='login')
 def doctor_dashboard_view(request):
-
     doctor = request.user.doctor 
-    appointmentcount = models.Appointment.objects.filter(status=True, doctorId=doctor).count()
-    appointments = models.Appointment.objects.filter(status=True, doctorId=doctor).order_by('-appointmentID')
+    appointmentcount = models.Appointment.objects.filter(status='accepted', doctorId=doctor).count()
+    appointments = models.Appointment.objects.filter(status='accepted', doctorId=doctor).order_by('-appointmentID')
     patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
     patient_ids = [a.patientId.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
@@ -781,13 +780,13 @@ def delete_appointment_view(request,pk):
 #------------------------ DOCTOR RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
 def doctor_dashboard_view(request):
-    return None
+    return render(request, 'doctor_dashboard.html')
 
 #---------------------------------------------------------------------------------
 #------------------------ PATIENT RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
 def patient_dashboard_view(request):
-    return None
+    return render(request, 'patient_dashboard.html')
 #view của UserManagement
 # def index_view(request):
 #     if request.user.is_authenticated:

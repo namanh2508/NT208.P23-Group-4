@@ -25,7 +25,7 @@ GENDER= [
     ('nam', 'Nam'),
     ('nu','Nữ')
 ]
-SERVICE_STATUS= [
+STATUS= [
     ('accepted','Accepted'),
     ('rejected','Rejected'),
     ('pending','Pending')
@@ -58,6 +58,7 @@ class CustomUser(AbstractUser):
     birthday = models.DateField(blank=True, null=True) # ngày sinh
     multi_factor_enabled = models.BooleanField(default=False) # option để bật chức năng 2 factor authentication
     ip_address_last_login = models.GenericIPAddressField(blank=True, null=True) # lưu địa chỉ ip đăng nhập gần nhất cho chức năng 2FA
+    status = models.BooleanField(default = False) # tài khoản đã được kích hoạt hay chưa
     def __str__(self):
         return self.get_full_name()
 
@@ -66,7 +67,6 @@ class Doctor(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     department = models.CharField(max_length=100, blank=True, null=True,choices=DEPARTMENT) # khoa
     description = models.TextField(blank=True, null=True) # mô tả
-    status = models.BooleanField(default = False) # tài khoản đã được kích hoạt hay chưa
     def get_department(self):
         return dict(DEPARTMENT).get(self.department, 'Unknown')
     def __str__(self):
@@ -75,7 +75,6 @@ class Doctor(models.Model):
 # ---------- Admin ----------
 class Admin(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    status = models.BooleanField(default = False) # tài khoản đã được kích hoạt hay chưa
     def __str__(self):
         return f"Admin {self.user.get_full_name()}"
 
@@ -95,7 +94,7 @@ class Service(models.Model):
     appointmentDate = models.DateField() # ngày hẹn
     appointmentTime = models.TimeField() # thời gian hẹn
     description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
-    status=models.CharField(max_length=10, choices=SERVICE_STATUS, default='pending') # trạng thái đặt hẹn
+    status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
     def __str__(self):
         return f"Service #{self.service_id} for {self.patient}"
 
@@ -132,6 +131,7 @@ class Appointment(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='appointment')
     method = models.CharField(max_length=100, blank=True, null=True, choices=APPOINTMENT_METHOD) # khám trực tiếp hoặc tư vấn online
     price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # giá tiền
+    status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
     def __str__(self):
         return f"Appointment for {self.service.patient.user.get_full_name()} with {self.service.doctor.user.get_full_name()}"
 
