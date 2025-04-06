@@ -73,16 +73,29 @@ def admin_signup_view(request):
 
 def doctor_signup_view(request):
     if request.method == "POST":
-        form = forms.DoctorSignupForm(request.POST)
+        form = forms.AdminSignupForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            doctor_group, _ = Group.objects.get_or_create(name='DOCTOR')
+            user.groups.add(doctor_group)
+            messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
             return redirect('doctorlogin')
     else:
         form = forms.DoctorSignupForm()
     return render(request, 'doctorsignup.html', {'form': form})
 
 def patient_signup_view(request):
-    return None
+    if request.method == "POST":
+        form = forms.AdminSignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            patient_group, _ = Group.objects.get_or_create(name='PATIENT')
+            user.groups.add(patient_group)
+            messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
+            return redirect('patientlogin')
+    else:
+        form = forms.DoctorSignupForm()
+    return render(request, 'patientsignup.html', {'form': form})
 
 
 #google login
@@ -157,17 +170,22 @@ def google_callback(request):
         return HttpResponse("Failed to retrieve user email", status=400)
 
     # Get or create the user
-    user, created = User.objects.update_or_create(
-    username=email, defaults={"email": email, "first_name": name}
+    user, _ = models.CustomUser.objects.get_or_create(
+    username=name, defaults={"email": email, "first_name": name}
     )
     if role == 'ADMIN':
+        admin, _ = models.Admin.objects.get_or_create(user=user)
         user.is_staff = True  # Allow access to admin site
         user.is_superuser = True  # Optionally make them a superuser for full access
         user.save()
+    if role == 'PATIENT':
+        patient, _ = models.Patient.objects.get_or_create(user=user)
+    if role == 'DOCTOR':
+        doctor, _ = models.Doctor.objects.get_or_create(user=user)
     # Add user to the group
     group, _ = Group.objects.get_or_create(name=role)
     user.groups.add(group)
-    # Log the user in, specifying the backend as GoogleOAuth2
+    # Log the user in
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     return redirect("afterlogin")
 
@@ -204,7 +222,20 @@ def doctor_login_view(request):
     return render(request, "doctorlogin.html", {"form": form})
 
 def patient_login_view(request):
-    return None;
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if is_patient(user):
+                login(request, user)
+                return redirect("patient-dashboard")
+            else:
+                form.add_error(None, "Access Denied: You are not a patient.")
+
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "patientlogin.html", {"form": form})
 
 #---------AFTER ENTERING CREDENTIALS WE CHECK WHETHER USERNAME AND PASSWORD IS OF ADMIN,DOCTOR OR PATIENT
 def afterlogin_view(request):
