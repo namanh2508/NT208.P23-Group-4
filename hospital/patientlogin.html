@@ -33,37 +33,50 @@
   <div class="wrapper">
     {% include "patient_navbar.html" %}
   <div class="container my-5">
-    <div class="card shadow-lg p-4 form-container">
-      <h1 class="mb-4 text-center">Đăng nhập</h1>
-      
-      <form method="post">
-        {% csrf_token %}
-        
-        <div class="form-group">
-          <label for="username">Username</label>
-          {% render_field form.username class="form-control" placeholder="Enter your username" %}
-        </div>
-        
-        <div class="form-group">
-          <label for="password">Mật khẩu</label>
-          {% render_field form.password type="password" class="form-control" placeholder="Enter your password" %}
-        </div>
-        
-        <button type="submit" class="btn btn-primary btn-block mt-3">Login</button>
-        {% if form.non_field_errors %}
-        <div class="alert alert-danger mt-3">
-          {% for error in form.non_field_errors %}
-            <p class="mb-0">{{ error }}</p>
-          {% endfor %}
-        </div>
-        {% endif %}
-      </form>
-      
-      <div class="text-center mt-3">
-        <p>Không có tài khoản?<p>
-        <a href="/IV-Medical/patientsignup" class="btn btn-outline-secondary">Đăng ký</a>
+      <div class="card shadow-lg p-4 form-container">
+          <h1 class="mb-4 text-center">Đăng nhập</h1>
+
+          <form method="post">
+              {% csrf_token %}
+
+              <div class="form-group">
+                  <label for="username">Username</label>
+                  {% render_field form.username class="form-control" placeholder="Enter your username" %}
+              </div>
+
+              <div class="form-group">
+                  <label for="password">Mật khẩu</label>
+                  {% render_field form.password type="password" class="form-control" placeholder="Enter your password" %}
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block mt-3">Login</button>
+              {% if form.non_field_errors %}
+              <div class="alert alert-danger mt-3">
+                  {% for error in form.non_field_errors %}
+                  <p class="mb-0">{{ error }}</p>
+                  {% endfor %}
+              </div>
+              {% endif %}
+          </form>
+
+          <div class="text-center mt-3">
+              <p>Không có tài khoản?<p>
+                  <a href="/IV-Medical/patientsignup" class="btn btn-outline-secondary">Đăng ký</a>
+          </div>
+          <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
+          <script>
+              // Prevent form submission and trigger Google login
+              document.getElementById("google-login-btn").addEventListener("click", function (event) {
+                  event.preventDefault();  // Stop form submission
+                  loginWithGoogle('ADMIN');
+              });
+
+              function loginWithGoogle(role) {
+                  let googleLoginUrl = `/google_login_redirect?role=${role}`;  // Send role to backend
+                  window.location.href = googleLoginUrl;
+              }
+          </script>
       </div>
-    </div>
   </div>
 </div>
   {%include "footer.html" %}

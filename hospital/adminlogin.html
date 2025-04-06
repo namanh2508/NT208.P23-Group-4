@@ -92,7 +92,7 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-                <button onclick="loginWithGoogle('admin')"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
+                <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
                 <script>
                     // Prevent form submission and trigger Google login
                     document.getElementById("google-login-btn").addEventListener("click", function (event) {

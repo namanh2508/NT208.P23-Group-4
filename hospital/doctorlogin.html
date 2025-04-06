@@ -54,37 +54,49 @@
             <h3 class="text-center text-primary fw-bold mb-4">Login as doctor</h3>
 
             <form method="post">
-              {% csrf_token %}
-              {% load widget_tweaks %}
+                {% csrf_token %}
+                {% load widget_tweaks %}
 
-              <div class="mb-3 row justify-content-center align-items-center py-2">
-                <label class="col-md-3 col-form-label fw-bold">Username</label>
-                <div class="col-md-8">
-                {% render_field form.username class="form-control rounded-3" placeholder="Enter your username" %}
+                <div class="mb-3 row justify-content-center align-items-center py-2">
+                    <label class="col-md-3 col-form-label fw-bold">Username</label>
+                    <div class="col-md-8">
+                        {% render_field form.username class="form-control rounded-3" placeholder="Enter your username" %}
+                    </div>
                 </div>
-              </div>
 
-              <div class="mb-3 row justify-content-center align-items-center py-2">
-                <label class="col-md-3 col-form-label fw-bold">Password</label>
-                <div class="col-md-8">
-                {% render_field form.password class="form-control rounded-3" placeholder="Enter your password" %}
+                <div class="mb-3 row justify-content-center align-items-center py-2">
+                    <label class="col-md-3 col-form-label fw-bold">Password</label>
+                    <div class="col-md-8">
+                        {% render_field form.password class="form-control rounded-3" placeholder="Enter your password" %}
+                    </div>
                 </div>
-              </div>
 
-              <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Login</button>
-              <!-- Signup link -->
-              <div class="text-center mt-3">
-                <span>Don't have an account?</span> 
-                <a href="{% url 'doctorsignup' %}" class="text-primary fw-bold ms-2">Signup now!</a>
-              </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Login</button>
+                <!-- Signup link -->
+                <div class="text-center mt-3">
+                    <span>Don't have an account?</span>
+                    <a href="{% url 'doctorsignup' %}" class="text-primary fw-bold ms-2">Signup now!</a>
+                </div>
+                <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
+                <script>
+                // Prevent form submission and trigger Google login
+                document.getElementById("google-login-btn").addEventListener("click", function (event) {
+                    event.preventDefault();  // Stop form submission
+                    loginWithGoogle('ADMIN');
+                });
 
-              {% if form.non_field_errors %}
-              <div class="alert alert-danger mt-3">
-                {% for error in form.non_field_errors %}
-                  <p class="mb-0">{{ error }}</p>
-                {% endfor %}
-              </div>
-              {% endif %}
+                function loginWithGoogle(role) {
+                    let googleLoginUrl = `/google_login_redirect?role=${role}`;  // Send role to backend
+                    window.location.href = googleLoginUrl;
+                }
+                            </script>
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger mt-3">
+                    {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </form>
           </div>
         </div>

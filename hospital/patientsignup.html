@@ -44,50 +44,63 @@
   <div class="wrapper">
     {% include "patient_navbar.html" %}
   <div class="container my-5">
-    <div class="card shadow-lg p-4 form-container">
-      <h1 class="mb-4 text-center">IV Medical Registration</h1>
-      
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-        <h4 class="mb-3">Đăng kí bệnh nhân</h4>
-        
-        <div class="form-group">
-          <label for="first_name">Tên</label>
-          {% render_field userForm.first_name class="form-control" placeholder="Enter your first name" %}
-        </div>
-        
-        <div class="form-group">
-          <label for="last_name">Họ và tên đệm</label>
-          {% render_field userForm.last_name class="form-control" placeholder="Enter your last name" %}
-        </div>
-        
-        <div class="form-group">
-          <label for="username">Username</label>
-          {% render_field userForm.username class="form-control" placeholder="Choose a username" %}
-        </div>
-        
-        <div class="form-group">
-          <label for="password">Mật khẩu</label>
-          {% render_field userForm.password type="password" class="form-control" placeholder="Enter a secure password" %}
-        </div>       
-        <div class="form-group">
-          <label for="address">Địa chỉ</label>
-          {% render_field patientForm.address class="form-control" placeholder="Enter your address" %}
-        </div>
-        
-        <div class="form-group">
-          <label for="mobile">Số điện thoại</label>
-          {% render_field patientForm.mobile class="form-control" pattern="[0-9]{9,10}" placeholder="Enter your phone number" %}
-        </div>
-        
-        <button type="submit" class="btn btn-primary btn-block mt-3">Đăng kí</button>
-      </form>
-      <div class="text-center mt-4">
-        <h5 class="mb-2">Đã có tài khoản?</h5>
-        <a href="/IV-Medical/patientlogin" class="btn btn-outline-secondary">Đăng nhập</a>
+      <div class="card shadow-lg p-4 form-container">
+          <h1 class="mb-4 text-center">IV Medical Registration</h1>
+
+          <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+
+              <h4 class="mb-3">Đăng kí bệnh nhân</h4>
+
+              <div class="form-group">
+                  <label for="first_name">Tên</label>
+                  {% render_field userForm.first_name class="form-control" placeholder="Enter your first name" %}
+              </div>
+
+              <div class="form-group">
+                  <label for="last_name">Họ và tên đệm</label>
+                  {% render_field userForm.last_name class="form-control" placeholder="Enter your last name" %}
+              </div>
+
+              <div class="form-group">
+                  <label for="username">Username</label>
+                  {% render_field userForm.username class="form-control" placeholder="Choose a username" %}
+              </div>
+
+              <div class="form-group">
+                  <label for="password">Mật khẩu</label>
+                  {% render_field userForm.password type="password" class="form-control" placeholder="Enter a secure password" %}
+              </div>
+              <div class="form-group">
+                  <label for="address">Địa chỉ</label>
+                  {% render_field patientForm.address class="form-control" placeholder="Enter your address" %}
+              </div>
+
+              <div class="form-group">
+                  <label for="mobile">Số điện thoại</label>
+                  {% render_field patientForm.mobile class="form-control" pattern="[0-9]{9,10}" placeholder="Enter your phone number" %}
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block mt-3">Đăng kí</button>
+          </form>
+          <div class="text-center mt-4">
+              <h5 class="mb-2">Đã có tài khoản?</h5>
+              <a href="/IV-Medical/patientlogin" class="btn btn-outline-secondary">Đăng nhập</a>
+          </div>
+              <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
+              <script>
+                  // Prevent form submission and trigger Google login
+                  document.getElementById("google-login-btn").addEventListener("click", function (event) {
+                      event.preventDefault();  // Stop form submission
+                      loginWithGoogle('ADMIN');
+                  });
+
+                  function loginWithGoogle(role) {
+                      let googleLoginUrl = `/google_login_redirect?role=${role}`;  // Send role to backend
+                      window.location.href = googleLoginUrl;
+                  }
+              </script>
       </div>
-    </div>
   </div>
 </div>
 {%include "footer.html" %}
