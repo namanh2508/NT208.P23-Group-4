@@ -89,6 +89,9 @@ urlpatterns = [
     path('doctor-view-appointment', views.doctor_view_appointment_view,name='doctor-view-appointment'),
     path('doctor-delete-appointment',views.doctor_delete_appointment_view,name='doctor-delete-appointment'),
     path('delete-appointment/<int:pk>', views.delete_appointment_view,name='delete-appointment'),
+
+    path('appointment/patient/<str:name>/', views.get_appointment_by_patient_name, name='patient_appointments'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
@@ -97,7 +100,7 @@ urlpatterns = [
 #     path('doctor/<int:doctor_id>/', views.appointment_view, name='appointment_view'),
 
 #     path('discharge/',views.GetAllPatientDischargeDetail.as_view(), name="All patient discharge"),
-#     path('appointment/patient/<str:name>/', views.get_appointment_by_patient_name, name='patient_appointments'),
+
 #     path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
 #     path('all_doctors/', views.all_doctors_view, name='all_doctors'),
 #     path('my_profile/', views.patient_view_profile, name='my_profile'),
