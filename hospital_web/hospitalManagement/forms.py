@@ -8,17 +8,33 @@ from django.core.validators import RegexValidator
 #for signup
 class CustomUserSignupForm(forms.ModelForm):
     password = forms.CharField(
+        label="Mật khẩu",
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nhập mật khẩu'}),
         required=True
     )
     confirm_password = forms.CharField(
+        label="Xác nhận mật khẩu",
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Xác nhận mật khẩu'}),
+        required=True
+    )
+    gender = forms.ChoiceField(
+        choices=models.GENDER,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-inline'}),
+        label="Giới tính",
         required=True
     )
 
     class Meta:
         model = models.CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'birthday', 'gender']
+        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'birthday']
+        labels = {
+            'username': 'Tên đăng nhập',
+            'email': 'Email',
+            'first_name': 'Họ',
+            'last_name': 'Tên',
+            'phone': 'Số điện thoại',
+            'birthday': 'Ngày sinh',
+        }
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên đăng nhập'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Nhập email'}),
@@ -26,7 +42,7 @@ class CustomUserSignupForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại'}),
             'birthday': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'gender': forms.RadioSelect(choices=models.GENDER),
+            # 'gender': forms.RadioSelect(choices=models.GENDER),
         }
 
     def clean(self):
@@ -66,11 +82,13 @@ class AdminSignupForm(CustomUserSignupForm):
         return user
 class DoctorSignupForm(CustomUserSignupForm):
     department = forms.ChoiceField(
+        label="Khoa",
         choices=models.DEPARTMENT,
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     description = forms.CharField(
+        label="Mô tả kinh nghiệm",
         widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Nhập kinh nghiệm làm việc'}),
         required=False
     )
@@ -92,11 +110,13 @@ class PatientSignupForm(CustomUserSignupForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại người thân'})
     )
     weight = forms.IntegerField(
+        label="Cân nặng (kg)",
         required=False,
         min_value=0,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Nhập cân nặng (kg)'})
     )
     height = forms.IntegerField(
+        label="Chiều cao (cm)",
         required=False,
         min_value=0,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Nhập chiều cao (cm)'})

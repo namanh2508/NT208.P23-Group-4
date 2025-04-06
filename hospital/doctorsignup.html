@@ -124,16 +124,89 @@
       cursor: pointer;
       color: rgb(73, 133, 133) !important;
     }
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+    .divider hr {
+      flex: 1;
+      border: none;
+      height: 1px;
+      background-color: #ccc;
+    }
+    .divider span {
+      padding: 0 1rem;
+      color: #888;
+      font-weight: 500;
+      font-style: italic;
+    }
+    #google-login-btn:hover {
+      transform: scale(1.05);
+      transition: all 0.2s ease-in-out;
+    }
   </style>
 </head>
 <body>
   {% include "navbar.html" %}
   <div class="form-container">
-    <h2>Doctor Registration</h2>
+    <h2>Đăng ký làm bác sĩ</h2>
     <form method="post" novalidate>
         {% csrf_token %}
-
-        <!-- Username -->
+        <!-- First Name -->
+        <div class="form-group">
+          {{ form.first_name.label_tag }}
+          {{ form.first_name }}
+          {% if form.first_name.errors %}
+          <div class="text-danger">
+              {{ form.first_name.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Last Name -->
+        <div class="form-group">
+          {{ form.last_name.label_tag }}
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+          <div class="text-danger">
+              {{ form.last_name.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Birthday -->
+        <div class="form-group">
+          {{ form.birthday.label_tag }}
+          {{ form.birthday }}
+          {% if form.birthday.errors %}
+          <div class="text-danger">
+              {{ form.birthday.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Gender -->
+        <div class="form-group">
+          {{ form.gender.label_tag }}
+            <div class="radio-group">
+            {% for radio in form.gender %}
+              <div class="form-check form-check-inline">
+              {{ radio.tag }}
+              <label class="form-check-label">{{ radio.choice_label }}</label>
+              </div>
+            {% endfor %}
+            </div>
+        </div>
+        <!-- Phone -->
+        <div class="form-group">
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+            {% if form.phone.errors %}
+            <div class="text-danger">
+                {{ form.phone.errors }}
+            </div>
+            {% endif %}
+        </div>
+         <!-- Username -->
         <div class="form-group">
             {{ form.username.label_tag }}
             {{ form.username }}
@@ -143,111 +216,76 @@
             </div>
             {% endif %}
         </div>
-
-        <!-- Full Name -->
-        <div class="form-group">
-            {{ form.full_name.label_tag }}
-            {{ form.full_name }}
-            {% if form.full_name.errors %}
-            <div class="text-danger">
-                {{ form.full_name.errors }}
-            </div>
-            {% endif %}
-        </div>
-
         <!-- Email -->
         <div class="form-group">
-            {{ form.email.label_tag }}
-            {{ form.email }}
-            {% if form.email.errors %}
-            <div class="text-danger">
-                {{ form.email.errors }}
-            </div>
-            {% endif %}
+          {{ form.email.label_tag }}
+          {{ form.email }}
+          {% if form.email.errors %}
+          <div class="text-danger">
+              {{ form.email.errors }}
+          </div>
+          {% endif %}
         </div>
-
         <!-- Password -->
         <div class="form-group">
-            {{ form.password.label_tag }}
-            {{ form.password }}
-            {% if form.password.errors %}
-            <div class="text-danger">
-                {{ form.password.errors }}
-            </div>
-            {% endif %}
+          {{ form.password.label_tag }}
+          {{ form.password }}
+          {% if form.password.errors %}
+          <div class="text-danger">
+              {{ form.password.errors }}
+          </div>
+          {% endif %}
         </div>
-
         <!-- Confirm Password -->
         <div class="form-group">
-            {{ form.confirm_password.label_tag }}
-            {{ form.confirm_password }}
-            {% if form.confirm_password.errors %}
-            <div class="text-danger">
-                {{ form.confirm_password.errors }}
-            </div>
-            {% endif %}
+          {{ form.confirm_password.label_tag }}
+          {{ form.confirm_password }}
+          {% if form.confirm_password.errors %}
+          <div class="text-danger">
+              {{ form.confirm_password.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Department -->
+        <div class="form-group">
+          {{ form.department.label_tag }}
+          {{ form.department }}
+          {% if form.department.errors %}
+          <div class="text-danger">
+              {{ form.department.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Description -->
+        <div class="form-group">
+          {{ form.description.label_tag }}
+          {{ form.description }}
+          {% if form.description.errors %}
+          <div class="text-danger">
+              {{ form.description.errors }}
+          </div>
+          {% endif %}
         </div>
 
-        <!-- Date of Birth -->
-        <div class="form-group">
-            {{ form.date_of_birth.label_tag }}
-            {{ form.date_of_birth }}
-            {% if form.date_of_birth.errors %}
-            <div class="text-danger">
-                {{ form.date_of_birth.errors }}
-            </div>
-            {% endif %}
+        <button type="submit" class="btn btn-register">Đăng ký</button>
+        <div class="divider">
+          <hr><span>hoặc</span><hr>
         </div>
-
-        <!-- Mobile -->
-        <div class="form-group">
-            {{ form.mobile.label_tag }}
-            {{ form.mobile }}
-            {% if form.mobile.errors %}
-            <div class="text-danger">
-                {{ form.mobile.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Biological sex -->
-        <div class="form-group">
-            <label>Biological sex:</label>
-            <div class="radio-group">
-                {% for radio in form.biological_sex %}
-                <div class="form-check form-check-inline">
-                    {{ radio }}
-                </div>
-                {% endfor %}
-            </div>
-            {% if form.biological_sex.errors %}
-            <div class="text-danger">
-                {{ form.biological_sex.errors }}
-            </div>
-            {% endif %}
-        </div>
-        <div class="form-group">
-            {{ form.department.label_tag }}
-            {{ form.department }}
-            {% if form.department.errors %}
-            <div class="text-danger">
-                {{ form.department.errors }}
-            </div>
-            {% endif %}
-        </div>
-
-        <button type="submit" class="btn btn-register">Register</button>
+        <div class="text-center mt-3">
+          <button id="google-login-btn" class="btn btn-outline-light border rounded-circle p-2">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="32" height="32">
+          </button>
+        </div>  
         <!-- Login link -->
         <div class="text-center mt-3">
-            <span>Already have an account?</span>
-            <a href="{% url 'adminlogin' %}" class="text-primary fw-bold ms-2">Login now!</a>
+          <span>Đã có tài khoản?</span>
+          <a href="{% url 'doctorlogin' %}" class="text-primary fw-bold ms-2">Đăng nhập ngay!</a>
         </div>
-            <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
-            <script>
+        <script>
         // Prevent form submission and trigger Google login
         document.getElementById("google-login-btn").addEventListener("click", function (event) {
             event.preventDefault();  // Stop form submission
-            loginWithGoogle('ADMIN');
+            loginWithGoogle('DOCTOR');
         });
 
         function loginWithGoogle(role) {

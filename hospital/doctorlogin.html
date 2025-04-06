@@ -41,6 +41,28 @@
       cursor: pointer;
       color: rgb(73, 133, 133) !important;
     }
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+    .divider hr {
+      flex: 1;
+      border: none;
+      height: 1px;
+      background-color: #ccc;
+    }
+    .divider span {
+      padding: 0 1rem;
+      color: #888;
+      font-weight: 500;
+      font-style: italic;
+    }
+    #google-login-btn:hover {
+      transform: scale(1.05);
+      transition: all 0.2s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -51,38 +73,45 @@
       <div class="col-md-6">
         <div class="card shadow-lg p-4 rounded-3">
           <div class="card-body">
-            <h3 class="text-center text-primary fw-bold mb-4">Login as doctor</h3>
+            <h3 class="text-center text-primary fw-bold mb-4">Đăng nhập bác sĩ</h3>
 
             <form method="post">
                 {% csrf_token %}
                 {% load widget_tweaks %}
 
                 <div class="mb-3 row justify-content-center align-items-center py-2">
-                    <label class="col-md-3 col-form-label fw-bold">Username</label>
+                    <label class="col-md-3 col-form-label fw-bold">Tên đăng nhập</label>
                     <div class="col-md-8">
-                        {% render_field form.username class="form-control rounded-3" placeholder="Enter your username" %}
+                        {% render_field form.username class="form-control rounded-3" placeholder="Nhập tên đăng nhập" %}
                     </div>
                 </div>
 
                 <div class="mb-3 row justify-content-center align-items-center py-2">
-                    <label class="col-md-3 col-form-label fw-bold">Password</label>
+                    <label class="col-md-3 col-form-label fw-bold">Mật khẩu</label>
                     <div class="col-md-8">
-                        {% render_field form.password class="form-control rounded-3" placeholder="Enter your password" %}
+                        {% render_field form.password class="form-control rounded-3" placeholder="Nhập mật khẩu" %}
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Login</button>
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3">Đăng nhập</button>
+                <div class="divider">
+                  <hr><span>hoặc</span><hr>
+                </div>
+                <div class="text-center mt-3">
+                  <button type="button" id="google-login-btn" class="btn btn-outline-light border rounded-circle p-2">
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="32" height="32">
+                  </button>
+                </div>
                 <!-- Signup link -->
                 <div class="text-center mt-3">
-                    <span>Don't have an account?</span>
-                    <a href="{% url 'doctorsignup' %}" class="text-primary fw-bold ms-2">Signup now!</a>
+                    <span>Chưa có tài khoản?</span>
+                    <a href="{% url 'doctorsignup' %}" class="text-primary fw-bold ms-2">Đăng ký ngay!</a>
                 </div>
-                <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
                 <script>
                 // Prevent form submission and trigger Google login
                 document.getElementById("google-login-btn").addEventListener("click", function (event) {
                     event.preventDefault();  // Stop form submission
-                    loginWithGoogle('ADMIN');
+                    loginWithGoogle('DOCTOR');
                 });
 
                 function loginWithGoogle(role) {
