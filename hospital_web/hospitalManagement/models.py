@@ -124,6 +124,9 @@ class AI_Record (models.Model):
     cretinine = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     acid_uric = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     cholesterol = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    class Meta:
+        verbose_name = "AI Record"
+        verbose_name_plural = "AI Records"
 
     
 # -------------------- Appointment --------------------
