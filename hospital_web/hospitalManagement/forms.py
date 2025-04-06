@@ -277,7 +277,28 @@ class PatientUserForm(CustomUserUpdateForm):
                 patient.save()
         return user
         
+class AppointmentForm(forms.ModelForm):
+    # Lấy các ngày hẹn trong vòng 6 ngày
+    available_dates = []
+    today = date.today()
+    for i in range(6):
+        available_dates.append(today + timedelta(days=i))
+        
+    appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn', widget=forms.RadioSelect)
+    # Lấy các giờ hẹn trong ngày, mỗi 30 phút
+    available_times = [
+        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+    ]
+    appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn',  widget=forms.RadioSelect)
 
+    description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
+
+    class Meta:
+        model = models.Appointment
+        fields = ['appointmentDate', 'appointmentTime', 'description']
+    
+    
 
 
 #for patient related form code cũ
@@ -330,3 +351,125 @@ class PatientUserForm(CustomUserUpdateForm):
 #     class Meta:
 #         model = models.Appointment
 #         fields = ['appointmentDate', 'appointmentTime', 'description']
+
+# your_app_name/forms.py
+
+from django import forms
+from .models import Service, Doctor, Patient 
+from django.utils import timezone
+import datetime
+
+class AppointmentBookingForm(forms.ModelForm):
+    # Customize the Doctor field to show readable names
+    # Use ModelChoiceField to get a dropdown of doctors
+    doctor = forms.ModelChoiceField(
+        queryset=Doctor.objects.select_related('user').all(), # Optimize query
+        label="Select Doctor",
+        empty_label="-- Choose a Doctor --",
+        widget=forms.Select(attrs={'class': 'form-control'}) # Add CSS class if using Bootstrap etc.
+    )
+
+    # Customize appointmentDate field
+    appointmentDate = forms.DateField(
+        label="Appointment Date",
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date',       # Use HTML5 date input
+                'class': 'form-control',
+                'min': timezone.now().strftime('%Y-%m-%d') # Prevent selecting past dates
+            }
+        )
+    )
+
+    # Customize appointmentTime field
+    appointmentTime = forms.TimeField(
+        label="Appointment Time",
+        widget=forms.TimeInput(
+            attrs={
+                'type': 'time',       # Use HTML5 time input
+                'class': 'form-control',
+                'min': '08:00',      # Example: Clinic opens at 8 AM
+                'max': '17:00',      # Example: Clinic closes at 5 PM
+                'step': '1800'       # Example: Allow 30-minute intervals (1800 seconds)
+            }
+        )
+    )
+
+    # Customize description field (optional, for patient's notes)
+    description = forms.CharField(
+        label="Reason for Visit / Symptoms (Optional)",
+        required=False, # Make it optional for the patient during booking
+        widget=forms.Textarea(
+            attrs={
+                'rows': 4,
+                'class': 'form-control',
+                'placeholder': 'Briefly describe your reason for the appointment or any symptoms you are experiencing.'
+            }
+        )
+    )
+
+    class Meta:
+        model = Service
+        # Fields the PATIENT needs to fill out when booking
+        fields = ['doctor', 'appointmentDate', 'appointmentTime', 'description']
+        # Note: 'patient' will be set automatically in the view based on the logged-in user.
+        # 'status' will be set to 'pending' automatically.
+
+    def __init__(self, *args, **kwargs):
+        # You could potentially pass the user here if needed for filtering doctors, etc.
+        # user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        # You can add further customizations here if needed
+        # Example: Filter doctors based on department passed in kwargs if needed
+
+    # --- Custom Validation (Examples) ---
+
+    def clean_appointmentDate(self):
+        """Ensure appointment date is not in the past."""
+        date = self.cleaned_data.get('appointmentDate')
+        if date and date < timezone.now().date():
+            raise forms.ValidationError("You cannot book an appointment in the past.")
+        # Optional: Add validation for weekends/holidays if needed
+        # if date and date.weekday() >= 5: # 5 = Saturday, 6 = Sunday
+        #     raise forms.ValidationError("Appointments cannot be booked on weekends.")
+        return date
+
+    def clean_appointmentTime(self):
+        """Ensure appointment time is within allowed hours."""
+        time = self.cleaned_data.get('appointmentTime')
+        if time:
+            # Define allowed time range (adjust as needed)
+            min_time = datetime.time(8, 0)  # 8:00 AM
+            max_time = datetime.time(17, 0) # 5:00 PM (exclusive if checking strictly, maybe 16:30 is last slot?)
+
+            if not (min_time <= time < max_time):
+                 raise forms.ValidationError(f"Appointments can only be booked between {min_time.strftime('%I:%M %p')} and {max_time.strftime('%I:%M %p')}.")
+        return time
+
+    def clean(self):
+        """
+        Check for potential conflicts (e.g., doctor already booked at that time).
+        This is a more complex validation requiring database lookups.
+        """
+        cleaned_data = super().clean()
+        doctor = cleaned_data.get('doctor')
+        appointment_date = cleaned_data.get('appointmentDate')
+        appointment_time = cleaned_data.get('appointmentTime')
+
+        # Only proceed if all relevant fields are valid so far
+        if doctor and appointment_date and appointment_time:
+            # Combine date and time for easier comparison if needed, or check separately
+            # Check if another service exists for this doctor at the exact same date and time
+            existing_appointments = Service.objects.filter(
+                doctor=doctor,
+                appointmentDate=appointment_date,
+                appointmentTime=appointment_time,
+                status__in=['pending', 'accepted'] # Check pending and accepted appointments
+            ).exists() # Use exists() for efficiency
+
+            if existing_appointments:
+                raise forms.ValidationError(
+                    f"Dr. {doctor.user.get_full_name()} is already booked at this date and time. Please choose another slot."
+                )
+
+        return cleaned_data
