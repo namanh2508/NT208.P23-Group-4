@@ -12,7 +12,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from hospitalManagement import models
 from django.contrib import messages
 from django.urls import reverse
-
+import forms
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -50,12 +50,12 @@ def patientclick_view(request):
 
 #----------Signup Views----------------
 
-def admin_signup_view(request):
-    return None
+# def admin_signup_view(request):
+#     return None
 
 
-def doctor_signup_view(request):
-    return None
+# def doctor_signup_view(request):
+#     return None
 
 
 def patient_signup_view(request):
