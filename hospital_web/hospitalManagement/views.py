@@ -68,12 +68,13 @@ def admin_signup_view(request):
             return redirect('adminlogin')
     else:
         form = forms.AdminSignupForm()
+        print(form.errors)
     return render(request, 'adminsignup.html', {'form': form})
 
 
 def doctor_signup_view(request):
     if request.method == "POST":
-        form = forms.AdminSignupForm(request.POST)
+        form = forms.DoctorSignupForm(request.POST)
         if form.is_valid():
             user = form.save()
             doctor_group, _ = Group.objects.get_or_create(name='DOCTOR')
@@ -86,7 +87,7 @@ def doctor_signup_view(request):
 
 def patient_signup_view(request):
     if request.method == "POST":
-        form = forms.AdminSignupForm(request.POST)
+        form = forms.PatientSignupForm(request.POST)
         if form.is_valid():
             user = form.save()
             patient_group, _ = Group.objects.get_or_create(name='PATIENT')
@@ -201,6 +202,8 @@ def admin_login_view(request):
                 return redirect("admin-dashboard")
             else:
                 form.add_error(None, "Access Denied: You are not an Admin.")
+        else:
+            form.add_error(None, "Thông tin đăng nhập không chính xác.")
 
     else:
         form = AuthenticationForm()
@@ -267,14 +270,14 @@ def admin_dashboard_view(request):
     doctors=models.Doctor.objects.all().order_by('-id')
     patients=models.Patient.objects.all().order_by('-id')
     #for three cards
-    doctorcount=models.Doctor.objects.all().filter(user__status=True).count()
-    pendingdoctorcount=models.Doctor.objects.all().filter(user__status=False).count()
+    doctorcount=models.Doctor.objects.all().filter(status=True).count()
+    pendingdoctorcount=models.Doctor.objects.all().filter(status=False).count()
 
-    patientcount=models.Patient.objects.all().filter(user__status=True).count()
-    pendingpatientcount=models.Patient.objects.all().filter(user__status=False).count()
+    patientcount=models.Patient.objects.all().filter(status=True).count()
+    pendingpatientcount=models.Patient.objects.all().filter(status=False).count()
 
-    appointmentcount=models.Appointment.objects.all().filter(status='accepted').count()
-    pendingappointmentcount=models.Appointment.objects.all().filter(status='pending').count()
+    appointmentcount=models.Appointment.objects.all().filter(status=True).count()
+    pendingappointmentcount=models.Appointment.objects.all().filter(status=False).count()
     mydict={
     'doctors':doctors,
     'patients':patients,
@@ -666,11 +669,12 @@ def reject_appointment_view(request,pk):
 
 #--------doctor
 @login_required(login_url='login')
-@user_passes_test(is_doctor,login_url='login')
+@user_passes_test(is_doctor)
 def doctor_dashboard_view(request):
+
     doctor = request.user.doctor 
-    appointmentcount = models.Appointment.objects.filter(status='accepted', doctorId=doctor).count()
-    appointments = models.Appointment.objects.filter(status='accepted', doctorId=doctor).order_by('-appointmentID')
+    appointmentcount = models.Appointment.objects.filter(status=True, doctorId=doctor).count()
+    appointments = models.Appointment.objects.filter(status=True, doctorId=doctor).order_by('-appointmentID')
     patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
     patient_ids = [a.patientId.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
@@ -780,13 +784,13 @@ def delete_appointment_view(request,pk):
 #------------------------ DOCTOR RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
 def doctor_dashboard_view(request):
-    return render(request, 'doctor_dashboard.html')
+    return None
 
 #---------------------------------------------------------------------------------
 #------------------------ PATIENT RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
 def patient_dashboard_view(request):
-    return render(request, 'patient_dashboard.html')
+    return None
 #view của UserManagement
 # def index_view(request):
 #     if request.user.is_authenticated:
@@ -900,11 +904,11 @@ def patient_dashboard_view(request):
 #         return Appointment.objects.filter(patientId__user__first_name=name)  
     
 # # trả ra  html
-# @login_required(login_url='patientlogin')
-# def get_appointment_by_patient_name(request, name):
-#     # Lấy danh sách các cuộc hẹn dựa trên tên bệnh nhân
-#     appointments = Appointment.objects.filter(patientId__user__first_name=name)
-#     return render(request, 'patient_view_appointment.html', {'appointments': appointments})
+@login_required(login_url='patientlogin')
+def get_appointment_by_patient_name(request, name):
+    # Lấy danh sách các cuộc hẹn dựa trên tên bệnh nhân
+    appointments = models.Appointment.objects.filter(patientId__user__first_name=name)
+    return render(request, 'patient_view_appointment.html', {'appointments': appointments})
 
 # @login_required(login_url='patientlogin')
 # def patient_view_profile(request):
