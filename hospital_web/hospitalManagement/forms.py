@@ -140,6 +140,19 @@ class PatientSignupForm(CustomUserSignupForm):
                 height=self.cleaned_data.get('height')
             )
         return user
+
+#login form
+class LoginForm(forms.ModelForm):
+    username = forms.CharField(
+        label="Tên đăng nhập",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Tên đăng nhập'}),
+        required=True
+    )
+    password = forms.CharField(
+        label="Mật khẩu",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nhập mật khẩu'}),
+        required=True
+    )
 #for updating profile only
 class CustomUserUpdateForm(forms.ModelForm):
     def clean_phone(self):
