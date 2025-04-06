@@ -13,7 +13,7 @@ from hospitalManagement import models
 from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
-from .forms import CustomUserSignupFormm,AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
+from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
 from django.template.loader import get_template
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
