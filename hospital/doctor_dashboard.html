@@ -25,11 +25,11 @@
         <tr>
           <td>{{p.get_name}}</td>
           <td> <img src="{{p.profile_pic.url}}" alt="Không có" height="40px" width="40px" /></td>
-          <td>{{a.description}}</td>
+          <td>{{ a.service.description|default:"Chưa ghi chú" }}</td>
           <td>{{p.mobile}}</td>
           <td>{{p.address}}</td>
-          <td>{{ a.appointmentTime|date:"H:i" }}</td>
-          <td>{{ a.appointmentDate|date:"d/m/Y" }}</td>
+          <td>{{ a.service.appointmentTime|time:"H:i" }}</td>
+          <td>{{ a.service.appointmentDate|date:"d/m/Y" }}</td>
         </tr>
         {% endfor %}
       </table>

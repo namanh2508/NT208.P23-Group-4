@@ -672,29 +672,32 @@ def reject_appointment_view(request,pk):
     return redirect('admin-approve-appointment')
 
 #--------doctor
-@login_required(login_url='login')
-@user_passes_test(is_doctor)
-def doctor_dashboard_view(request):
+# @login_required(login_url='doctorlogin')
+# @user_passes_test(is_doctor, login_url='doctorlogin')
+# def doctor_dashboard_view(request):
 
-    doctor = request.user.doctor 
-    appointmentcount = models.Appointment.objects.filter(status=True, doctorId=doctor).count()
-    appointments = models.Appointment.objects.filter(status=True, doctorId=doctor).order_by('-appointmentID')
-    patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
-    patient_ids = [a.patientId.id for a in appointments]
-    patients = models.Patient.objects.filter(id__in=patient_ids)
-    patientcount = models.Patient.objects.filter(id__in=patient_ids).count()
-    appointments_and_patients = zip(appointments, patients)
+#     try:
+#         doctor = request.user.doctor
+#     except models.Doctor.DoesNotExist:
+#         return HttpResponse("Tài khoản này chưa có thông tin bác sĩ!", status=404)
+#     appointmentcount = models.Appointment.objects.filter(status=True, doctorId=doctor).count()
+#     appointments = models.Appointment.objects.filter(status=True, doctorId=doctor).order_by('-appointmentID')
+#     patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
+#     patient_ids = [a.service.patient.id for a in appointments if a.service and a.service.patient]
+#     patients = models.Patient.objects.filter(id__in=patient_ids)
+#     patientcount = models.Patient.objects.filter(id__in=patient_ids).count()
+#     appointments_and_patients = zip(appointments, patients)
     
-    # Gửi dữ liệu vào template
-    mydict = {
-        'appointmentcount': appointmentcount,  # Tổng số cuộc hẹn chưa hoàn thành
-        'patientdischarged': patientdischarged,  # Số lượng bệnh nhân đã xuất viện
-        'appointments_and_patients': appointments_and_patients,  # Các cuộc hẹn kèm bệnh nhân
-        'doctor': doctor,  # Thông tin bác sĩ (bao gồm ảnh đại diện)
-        'patientcount': patientcount,  # Tổng số bệnh nhân đã khám  
-    }
+#     # Gửi dữ liệu vào template
+#     mydict = {
+#         'appointmentcount': appointmentcount,  # Tổng số cuộc hẹn chưa hoàn thành
+#         'patientdischarged': patientdischarged,  # Số lượng bệnh nhân đã xuất viện
+#         'appointments_and_patients': appointments_and_patients,  # Các cuộc hẹn kèm bệnh nhân
+#         'doctor': doctor,  # Thông tin bác sĩ (bao gồm ảnh đại diện)
+#         'patientcount': patientcount,  # Tổng số bệnh nhân đã khám  
+#     }
     
-    return render(request, 'doctor_dashboard.html', context=mydict)
+#     return render(request, 'doctor_dashboard.html', context=mydict)
 
 
 
@@ -787,8 +790,35 @@ def delete_appointment_view(request,pk):
 #---------------------------------------------------------------------------------
 #------------------------ DOCTOR RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
+@login_required(login_url='doctorlogin')
+@user_passes_test(is_doctor)
 def doctor_dashboard_view(request):
-    return None
+    try:
+        doctor = request.user.doctor
+    except models.Doctor.DoesNotExist:
+        return HttpResponse("Tài khoản này chưa có thông tin bác sĩ!", status=404)
+
+    appointments = models.Appointment.objects.filter(status='approved', service__doctor=doctor).order_by('-id')
+    appointmentcount = appointments.count()
+    patientdischarged = models.Record.objects.filter(doctor=doctor).count()
+
+    patients = []
+    for a in appointments:
+        if a.service and a.service.patient:
+            patients.append(a.service.patient)
+
+    patientcount = len(patients)
+    appointments_and_patients = zip(appointments, patients)
+
+    mydict = {
+        'appointmentcount': appointmentcount,
+        'patientdischarged': patientdischarged,
+        'appointments_and_patients': appointments_and_patients,
+        'doctor': doctor,
+        'patientcount': patientcount,
+    }
+
+    return render(request, 'doctor_dashboard.html', context=mydict)
 
 #---------------------------------------------------------------------------------
 #------------------------ PATIENT RELATED VIEWS START ------------------------------
@@ -927,14 +957,14 @@ def book_appointment(request):
         # Get the patient profile associated with the logged-in user
         # Assumes a OneToOne relationship exists and profile is created
         patient = request.user.patient
-    except Patient.DoesNotExist:
+    except models.Patient.DoesNotExist:
         # Handle cases where the user doesn't have a Patient profile
         messages.error(request, "You need a patient profile to book appointments.")
         # Redirect to a profile creation page or dashboard
         return redirect('patient-dashboard')
 
     if request.method == 'POST':
-        form = AppointmentBookingForm(request.POST)
+        form = forms.AppointmentBookingForm(request.POST)
         if form.is_valid():
             # Create Service instance but don't save to DB yet
             service = form.save(commit=False)
@@ -954,7 +984,7 @@ def book_appointment(request):
             messages.error(request, "Please correct the errors below.")
     else:
         # GET request, display a blank form
-        form = AppointmentBookingForm()
+        form = forms.AppointmentBookingForm()
 
     context = {
         'form': form,

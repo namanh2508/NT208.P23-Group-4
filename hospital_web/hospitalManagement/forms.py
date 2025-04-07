@@ -102,8 +102,9 @@ class DoctorSignupForm(CustomUserSignupForm):
     )
 
     def save(self, commit=True):
-        user = super().save(commit)
+        user = super().save(commit=False)
         if commit:
+            user.save ()
             models.Doctor.objects.create(
                 user=user,
                 department=self.cleaned_data["department"],
