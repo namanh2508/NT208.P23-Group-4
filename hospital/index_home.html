@@ -2,7 +2,6 @@
 <html lang="vi"> {# Thay lang="en" thành lang="vi" cho tiếng Việt #}
 
 <head>
-<<<<<<< Updated upstream
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IV-Medical</title>
@@ -18,24 +17,6 @@
       font-family: Arial, Helvetica, sans-serif;
       font-weight: bold;
     }
-=======
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IV Medical - Trang Chủ</title> {# Cập nhật title #}
-    {# Link tới Bootstrap CSS #}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
-    {# Toàn bộ CSS tổng hợp #}
-    <style>
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            font-family: Arial, sans-serif; /* Có thể chọn font khác */
-            scroll-behavior: smooth; /* Cuộn trang mượt hơn */
-        }
->>>>>>> Stashed changes
 
         .wrapper {
             flex: 1;
@@ -360,7 +341,7 @@
                                  <h3>{{ doctor.user.last_name }} {{ doctor.user.first_name }}</h3>
                                  <p class="specialty">{{ doctor.get_department_display }}</p>
                                  <p class="desc">{{ doctor.about }}</p>
-                                 <a href="/IV-Medical/doctor/{{doctor.id}}" class="profile-link">Đăt lịch ngay</a> 
+                                 <a href="/doctor/{{doctor.id}}" class="profile-link">Đăt lịch ngay</a> 
                              </div>
                          </div>
                          {% endfor %}

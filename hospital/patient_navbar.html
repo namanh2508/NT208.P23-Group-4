@@ -5,7 +5,7 @@
         {# Sử dụng thẻ static để lấy đường dẫn ảnh logo #}
         {# Thêm class navbar-logo-img để dễ dàng chỉnh CSS #}
         {# Thêm alt text mô tả logo #}
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="/IV-Medical">
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
             <img src="{% static 'images/v987-18a.jpg' %}"" alt="IV-Medical Logo" class="navbar-logo-img">
             BỆNH VIỆN QUỐC TẾ IV MEDICAL
             {# <span style="margin-left: 10px;">IV-Medical</span> #}
@@ -17,16 +17,16 @@
             <ul class="navbar-nav">
                 {# --- Các mục menu khác giữ nguyên --- #}
                  <li class="nav-item">
-                     <a class="nav-link" href="/IV-Medical">Trang chủ</a>
+                     <a class="nav-link" href="/">Trang chủ</a>
                  </li>
                  <li class="nav-item">
-                     <a class="nav-link" href="/IV-Medical/all_doctors">Bác sĩ</a>
+                     <a class="nav-link" href="all_doctors">Bác sĩ</a>
                  </li>
                  <li class="nav-item">
-                     <a class="nav-link" href="#">Về chúng tôi</a>
+                     <a class="nav-link" href="aboutus">Về chúng tôi</a>
                  </li>
                  <li class="nav-item">
-                     <a class="nav-link" href="#">Liên lạc</a>
+                     <a class="nav-link" href="contactus">Liên lạc</a>
                  </li>
                  {% if request.user.is_authenticated %}
                  <li class="nav-item">
@@ -36,9 +36,9 @@
                      <div class="collapse" id="sidebarMenu">
                          <div class="sidebar">
                              <div class="sidebar-nav">
-                                 <a href="/IV-Medical/my_profile" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
+                                 <a href="my_profile" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
                                   <a href="{% url 'patient_appointments' request.user.first_name %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
-                         <a href="/IV-Medical/logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>
+                         <a href="logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>
                  </div>
          </div>
      </div>

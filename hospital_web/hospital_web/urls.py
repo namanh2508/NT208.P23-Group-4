@@ -19,7 +19,7 @@ urlpatterns = [
 
     path('adminlogin/', views.admin_login_view,name='adminlogin'),
     path('doctorlogin/', views.doctor_login_view,name='doctorlogin'),
-    path('patientlogin', views.patient_login_view, name='patientlogin'),
+    path('patientlogin/', views.patient_login_view, name='patientlogin'),
     
     path('patient-dashboard', views.patient_dashboard_view, name='patient-dashboard'),
     path('logout/', views.logout_view, name='logout'),
@@ -31,7 +31,8 @@ urlpatterns = [
     
     path('accounts/', include('allauth.urls')), #google authentication
 
-
+    path('aboutus/', views.aboutus_view, name='aboutus'),
+    path('contactus/', views.contactus_view, name='aboutus'),
     # --------------------for admin dasboard:--------------------
     path('admin-dashboard/', views.admin_dashboard_view,name='admin-dashboard'),
     #----------------------thanh doctor--------------------------
@@ -94,7 +95,7 @@ urlpatterns = [
     path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
     path('book-appointment/', views.book_appointment,name='book-appointment'),
     path('patient-view-appointment', views.get_appointment_by_patient_name, name='patient-view-appointments'),
-    
+    path('all_doctors/', views.all_doctors_view, name='all_doctors'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
@@ -105,6 +106,6 @@ urlpatterns = [
 #     path('discharge/',views.GetAllPatientDischargeDetail.as_view(), name="All patient discharge"),
 
 #     path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
-#     path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+
 #     path('my_profile/', views.patient_view_profile, name='my_profile'),
 #  ]
