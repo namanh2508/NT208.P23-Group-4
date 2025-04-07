@@ -166,7 +166,7 @@ LOGOUT_REDIRECT_URL = '/'
  #--------------------------allauth setup
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend'
 ]
 SITE_ID = 1 #allauth required
 SITE_URL = 'http://127.0.0.1:8000'
