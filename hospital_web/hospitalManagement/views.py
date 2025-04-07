@@ -98,7 +98,7 @@ def patient_signup_view(request):
             messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
             return redirect('patientlogin')
     else:
-        form = forms.DoctorSignupForm()
+        form = forms.PatientSignupForm()
     return render(request, 'patientsignup.html', {'form': form})
 
 
@@ -270,7 +270,7 @@ def logout_view(request):
 #---------------------------------------------------------------------------------
 # trang chủ admin
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, login_url='adminlogin')
 def admin_dashboard_view(request):
     #for both table in admin dashboard
     doctors=models.Doctor.objects.all().order_by('-id')
@@ -767,7 +767,7 @@ def delete_appointment_view(request,pk):
 #------------------------ DOCTOR RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(is_doctor, login_url='doctorlogin')
 def doctor_dashboard_view(request):
     try:
         doctor = request.user.doctor
@@ -826,7 +826,7 @@ def doctor_dashboard_view(request):
 #------------------------ PATIENT RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
 @login_required(login_url='patientlogin')
-@user_passes_test(is_patient)
+@user_passes_test(is_patient, login_url='patientlogin')
 def patient_dashboard_view(request):
         doctors = models.Doctor.objects.all() 
         return render(request, 'patient_dashboard.html', {'doctors': doctors})

@@ -8,8 +8,12 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
     .form-container {
-      max-width: 500px;
-      margin: auto;
+      max-width: 600px;
+      margin: 1rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     .btn-create-account {
       background-color: #FFD700;
@@ -23,21 +27,113 @@
       color: #FFD700;
     }
     html, body {
-  height: 100%;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .wrapper {
+      flex: 1;
+    }
 
-.wrapper {
-  flex: 1;
-}
+    .footer {
+      background-color: #f8f9fa;
+      padding: 10px 0;
+      text-align: center;
+    }
+    h1 {
+      color: #4f8cd1;
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 40px;
+      font-weight: bold;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      align-items: center;
+      gap: 1rem;
+    }
+    label {
+      font-weight: 500;
+      color: #34495e;
+      text-align: left;
+    }
 
-.footer {
-  background-color: #f8f9fa;
-  padding: 10px 0;
-  text-align: center;
-}
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-bottom: 2px solid #69a1c7;
+      border-radius: 8px;
+      transition: border-color 0.3s ease;
+    }
+    .form-control:focus {
+      box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+      border-color: #0056b3;
+    }
+
+    /* Radio group */
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .form-check {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .btn-primary:hover {
+      color: white;
+      background: #2980b9;
+      transform: scale(1.05);
+      transition: all 0.3s ease-in-out;
+    }
+    a {
+      font-size: 17px!important;
+      font-weight: bold !important;
+    }
+    a:hover {
+      cursor: pointer !important; 
+      color: rgb(73, 133, 133) !important;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+    .divider hr {
+      flex: 1;
+      border: none;
+      height: 1px;
+      background-color: #ccc;
+    }
+    .divider span {
+      padding: 0 1rem;
+      color: #888;
+      font-weight: 500;
+      font-style: italic;
+    }
+    #google-login-btn:hover {
+      transform: scale(1.05);
+      transition: all 0.2s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -45,21 +141,143 @@
     {% include "patient_navbar.html" %}
   <div class="container my-5">
       <div class="card shadow-lg p-4 form-container">
-          <h1 class="mb-4 text-center">IV Medical Registration</h1>
+          <h1 class="mb-4 text-center">Đăng ký tài khoản</h1>
 
           <form method="post" enctype="multipart/form-data">
               {% csrf_token %}
 
-              <h4 class="mb-3">Đăng kí bệnh nhân</h4>
-
-              <div class="form-group">
+              <!-- <h4 class="mb-3">Đăng kí bệnh nhân</h4> -->
+              <!-- First Name -->
+        <div class="form-group">
+          {{ form.first_name.label_tag }}
+          {{ form.first_name }}
+          {% if form.first_name.errors %}
+          <div class="text-danger">
+              {{ form.first_name.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Last Name -->
+        <div class="form-group">
+          {{ form.last_name.label_tag }}
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+          <div class="text-danger">
+              {{ form.last_name.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Birthday -->
+        <div class="form-group">
+          {{ form.birthday.label_tag }}
+          {{ form.birthday }}
+          {% if form.birthday.errors %}
+          <div class="text-danger">
+              {{ form.birthday.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Gender -->
+        <div class="form-group">
+          {{ form.gender.label_tag }}
+            <div class="radio-group">
+            {% for radio in form.gender %}
+              <div class="form-check form-check-inline">
+              {{ radio.tag }}
+              <label class="form-check-label">{{ radio.choice_label }}</label>
+              </div>
+            {% endfor %}
+            </div>
+        </div>
+        <!-- Phone -->
+        <div class="form-group">
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+            {% if form.phone.errors %}
+            <div class="text-danger">
+                {{ form.phone.errors }}
+            </div>
+            {% endif %}
+        </div>
+        <!-- Family Phone-->
+        <div class="form-group">
+            {{ form.family_phone.label_tag }}
+            {{ form.family_phone }}
+            {% if form.family_phone.errors %}
+            <div class="text-danger">
+                {{ form.family_phone.errors }}
+            </div>
+            {% endif %}
+        </div>
+        <!--Weight-->
+        <div class="form-group">
+          {{ form.weight.label_tag }}
+          {{ form.weight }}
+          {% if form.weight.errors %}
+          <div class="text-danger">
+              {{ form.weight.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!--Height-->
+        <div class="form-group">
+          {{ form.height.label_tag }}
+          {{ form.height }}
+          {% if form.height.errors %}
+          <div class="text-danger">
+              {{ form.height.errors }}
+          </div>
+          {% endif %}
+        </div>
+         <!-- Username -->
+        <div class="form-group">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {% if form.username.errors %}
+            <div class="text-danger">
+                {{ form.username.errors }}
+            </div>
+            {% endif %}
+        </div>
+        <!-- Email -->
+        <div class="form-group">
+          {{ form.email.label_tag }}
+          {{ form.email }}
+          {% if form.email.errors %}
+          <div class="text-danger">
+              {{ form.email.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Password -->
+        <div class="form-group">
+          {{ form.password.label_tag }}
+          {{ form.password }}
+          {% if form.password.errors %}
+          <div class="text-danger">
+              {{ form.password.errors }}
+          </div>
+          {% endif %}
+        </div>
+        <!-- Confirm Password -->
+        <div class="form-group">
+          {{ form.confirm_password.label_tag }}
+          {{ form.confirm_password }}
+          {% if form.confirm_password.errors %}
+          <div class="text-danger">
+              {{ form.confirm_password.errors }}
+          </div>
+          {% endif %}
+          
+        </div>
+              <!-- <div class="form-group">
                   <label for="first_name">Tên</label>
-                  {% render_field userForm.first_name class="form-control" placeholder="Enter your first name" %}
+                  {% render_field form.first_name class="form-control" placeholder="Enter your first name" %}
               </div>
 
               <div class="form-group">
                   <label for="last_name">Họ và tên đệm</label>
-                  {% render_field userForm.last_name class="form-control" placeholder="Enter your last name" %}
+                  {% render_field form.last_name class="form-control" placeholder="Enter your last name" %}
               </div>
 
               <div class="form-group">
@@ -69,25 +287,38 @@
 
               <div class="form-group">
                   <label for="password">Mật khẩu</label>
-                  {% render_field userForm.password type="password" class="form-control" placeholder="Enter a secure password" %}
+                  {% render_field form.password type="password" class="form-control" placeholder="Enter a secure password" %}
               </div>
               <div class="form-group">
                   <label for="address">Địa chỉ</label>
-                  {% render_field patientForm.address class="form-control" placeholder="Enter your address" %}
+                  {% render_field form.address class="form-control" placeholder="Enter your address" %}
               </div>
 
               <div class="form-group">
                   <label for="mobile">Số điện thoại</label>
-                  {% render_field patientForm.mobile class="form-control" pattern="[0-9]{9,10}" placeholder="Enter your phone number" %}
-              </div>
+                  {% render_field form.mobile class="form-control" pattern="[0-9]{9,10}" placeholder="Enter your phone number" %}
+              </div> -->
 
-              <button type="submit" class="btn btn-primary btn-block mt-3">Đăng kí</button>
+              <button type="submit" class="btn btn-primary btn-block mt-3">Đăng ký</button>
+              <div class="divider">
+                <hr><span>hoặc</span><hr>
+              </div>
+              <div class="text-center mt-3">
+                <button id="google-login-btn" class="btn btn-outline-light border rounded-circle p-2">
+                  <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="32" height="32">
+                </button>
+              </div> 
+              <!-- Login link -->
+        <div class="text-center mt-3">
+          <span>Đã có tài khoản?</span>
+          <a href="{% url 'patientlogin' %}" class="fw-bold ms-2">Đăng nhập ngay!</a>
+        </div>
           </form>
-          <div class="text-center mt-4">
+          <!-- <div class="text-center mt-4">
               <h5 class="mb-2">Đã có tài khoản?</h5>
               <a href="/IV-Medical/patientlogin" class="btn btn-outline-secondary">Đăng nhập</a>
           </div>
-              <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
+              <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button> -->
               <script>
                   // Prevent form submission and trigger Google login
                   document.getElementById("google-login-btn").addEventListener("click", function (event) {
