@@ -1,4 +1,7 @@
-# from django.shortcuts import render,get_object_or_404
+from django.shortcuts import render,get_object_or_404
+from requests import models
+import hospitalManagement.models
+from django.http import HttpResponseForbidden
 # from django.contrib.auth.models import User
 # from rest_framework import generics
 # from .serializers import UserSerializer, NoteSerializer,PatientDischargeDetailsSerializer,DoctorSerializer,PatientSerializer,DoctorDetailSerializer
@@ -7,7 +10,7 @@
 # from .models import Note
 # from hospitalManagement.models import Appointment,Doctor,Patient
 # from hospitalManagement.models import PatientDischargeDetails
-# from django.http import HttpResponseForbidden
+
 # from rest_framework.decorators import api_view, permission_classes
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework.response import Response
@@ -72,13 +75,13 @@
 #     def get_queryset(self):
 #         name = self.kwargs['name']
 #         return Doctor.objects.filter(user__first_name=name)  # Lọc theo tên bác sĩ trong User model
-# def patient_appointments_view(request,patientID):
-#     patient = get_object_or_404(User, pk=patientID)
-#     appointments = Appointment.objects.filter(patient_id=patientID).order_by('-appointmentDate')
-#     if not (request.user.is_staff or request.user.pk == patientID):
-#         return HttpResponseForbidden("Bạn không có quyền xem lịch hẹn này.")
-#     context = {
-#         'patient': patient,
-#         'appointments': appointments,
-#     }
-#     return render(request, '' , context) # thêm file.html để hiển thị các lịch hẹn của 1 patient
+def patient_appointments_view(request,patientID):
+    patient = get_object_or_404(models.Patient, pk=patientID)
+    if not (request.user.is_staff or request.user == patient.user):
+        return HttpResponseForbidden("Bạn không có quyền xem lịch hẹn này.")
+    appointments = models.Appointment.objects.filter(patient=patient).order_by('-appointmentDate')
+    context = {
+        'patient': patient,
+        'appointments': appointments,
+    }
+    return render(request, '' , context) # thêm file.html để hiển thị các lịch hẹn của 1 patient

@@ -253,7 +253,7 @@ def afterlogin_view(request):
     elif is_doctor(request.user):
         return redirect('doctor-dashboard')
     elif is_patient(request.user):
-        accountapproval=models.Patient.objects.all().filter(user_id=request.user.id,status=True)
+        accountapproval = models.Patient.objects.filter(user=request.user, user__status=True)
         if accountapproval:
             return redirect('patient-dashboard')
         else:

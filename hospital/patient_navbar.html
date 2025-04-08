@@ -16,38 +16,42 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 {# --- Các mục menu khác giữ nguyên --- #}
-                 <li class="nav-item">
-                     <a class="nav-link" href="/">Trang chủ</a>
-                 </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="all_doctors">Bác sĩ</a>
-                 </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="aboutus">Về chúng tôi</a>
-                 </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="contactus">Liên lạc</a>
-                 </li>
-                 {% if request.user.is_authenticated %}
-                 <li class="nav-item">
-                     <button class="btn-profile" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
-                         <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-icon" alt="Profile">
-                     </button>
-                     <div class="collapse" id="sidebarMenu">
-                         <div class="sidebar">
-                             <div class="sidebar-nav">
-                                 <a href="my_profile" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
-                                  <a href="{% url 'patient_appointments' request.user.first_name %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
-                         <a href="logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>
-                 </div>
-         </div>
-     </div>
- </li>
- {% else %}
- <li class="nav-item">
-     <a class="btn btn-create-account py-2 px-4" href="{% url 'patientsignup' %}">Create Account</a>
- </li>
-{% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="all_doctors">Bác sĩ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="aboutus">Về chúng tôi</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="contactus">Liên lạc</a>
+                </li>
+                {% if request.user.is_authenticated %}
+                <li class="nav-item">
+                    <button class="btn-profile" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-icon" alt="Profile">
+                    </button>
+                    <div class="collapse" id="sidebarMenu">
+                        <div class="sidebar">
+                            <div class="sidebar-nav">
+                                <a href="{% url 'my_profile' %}" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
+
+                                {% if is_patient and patient and patient.id %}
+                                <a href="{% url 'patient_appointments' patient.id %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
+                                {% endif %}
+
+                                <a href="{% url 'logout' %}" style="color: black;" class="nav-link d-block">Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="btn btn-create-account py-2 px-4" href="{% url 'patientsignup' %}">Create Account</a>
+                </li>
+                {% endif %}
                 {# --- Hết các mục menu --- #}
             </ul>
         </div>

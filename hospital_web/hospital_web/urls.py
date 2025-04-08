@@ -3,6 +3,7 @@ from django.urls import path,include
 from django.contrib.auth.views import LoginView,LogoutView
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from django.conf.urls.static import static
+from api import views
 
 # from api.views import CreateUserView
 from hospitalManagement import views
@@ -59,6 +60,7 @@ urlpatterns = [
     path('admin-view-patient', views.admin_view_patient_view,name='admin-view-patient'),
     path('delete-patient-from-hospital/<int:pk>', views.delete_patient_from_hospital_view,name='delete-patient-from-hospital'),
     path('update-patient/<int:pk>', views.update_patient_view,name='update-patient'),
+    
     #nút 2
     path('admin-add-patient', views.admin_add_patient_view,name='admin-add-patient'),
     #nút 3
@@ -96,6 +98,7 @@ urlpatterns = [
     path('book-appointment/', views.book_appointment,name='book-appointment'),
     path('patient-view-appointment', views.get_appointment_by_patient_name, name='patient-view-appointments'),
     path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+    # path('my_profile/', views.patient_view_profile, name='my_profile'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
@@ -107,5 +110,5 @@ urlpatterns = [
 
 #     path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
 
-#     path('my_profile/', views.patient_view_profile, name='my_profile'),
+#     
 #  ]
