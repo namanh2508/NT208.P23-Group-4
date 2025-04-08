@@ -42,7 +42,11 @@
 </head>
 <body>
     <div class="wrapper">
-        {% include 'patient_navbar.html' %}
+        <div class="container mt-3">
+            <a href="{% url 'afterlogin' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Quay lại trang chính
+            </a>
+        </div>
         <div class="container mt-4">
             <h2 style="margin-bottom: 20px;">Danh Sách Thuốc</h2>
             <div class="row" id="medicine-list">
