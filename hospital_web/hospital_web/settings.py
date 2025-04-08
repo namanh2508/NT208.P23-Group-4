@@ -107,7 +107,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
         'USER': 'postgres',      # Tên người dùng root
-        'PASSWORD': 'PhuongGiang2803',   # Mật khẩu root_pw
+        'PASSWORD': 'giang2005@',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
@@ -166,7 +166,7 @@ LOGOUT_REDIRECT_URL = '/'
  #--------------------------allauth setup
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend'
 ]
 SITE_ID = 1 #allauth required
 SITE_URL = 'http://127.0.0.1:8000'

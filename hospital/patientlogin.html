@@ -8,25 +8,105 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
     .form-container {
-      max-width: 500px;
-      margin: auto;
+      /* max-width: 500px;
+      margin: auto; */
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     html, body {
-  height: 100%;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
 
-.wrapper {
-  flex: 1;
-}
+    .wrapper {
+      flex: 1;
+    }
 
-.footer {
-  background-color: #f8f9fa;
-  padding: 10px 0;
-  text-align: center;
-}
+    .footer {
+      background-color: #f8f9fa;
+      padding: 10px 0;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .form-control {
+      border: none;
+      border-bottom: 2px solid #007bff;
+      transition: all 0.3s ease-in-out;
+      border-radius: 10px;
+    }
+    .form-control:focus {
+      box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+      border-color: #0056b3;
+    }
+    label {
+      font-weight: 500;
+      color: #34495e;
+      text-align: left;
+    }
+    h2 {
+      font-size: 40px !important;
+      font-weight: bold !important;
+      text-align: center !important;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .btn-primary:hover {
+      color: white;
+      background: #2980b9;
+      transform: scale(1.05);
+      transition: all 0.3s ease-in-out;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+    .divider hr {
+      flex: 1;
+      border: none;
+      height: 1px;
+      background-color: #ccc;
+    }
+    .divider span {
+      padding: 0 1rem;
+      color: #888;
+      font-weight: 500;
+      font-style: italic;
+    }
+    #google-login-btn:hover {
+      transform: scale(1.05);
+      transition: all 0.2s ease-in-out;
+    }
+    a {
+      font-size: 17px!important;
+      font-weight: bold !important;
+    }
+    a:hover {
+      cursor: pointer !important; 
+      color: rgb(73, 133, 133) !important;
+    }
   </style>
 </head>
 <body>
@@ -34,22 +114,35 @@
     {% include "patient_navbar.html" %}
   <div class="container my-5">
       <div class="card shadow-lg p-4 form-container">
-          <h1 class="mb-4 text-center">Đăng nhập</h1>
+        <h2 class="text-center text-primary fw-bold mb-4">Đăng nhập</h2>
 
           <form method="post">
               {% csrf_token %}
 
               <div class="form-group">
-                  <label for="username">Username</label>
-                  {% render_field form.username class="form-control" placeholder="Enter your username" %}
+                  <label for="username">Tên đăng nhập</label>
+                  {% render_field form.username class="form-control" placeholder="Nhập tên đăng nhập" %}
               </div>
 
               <div class="form-group">
                   <label for="password">Mật khẩu</label>
-                  {% render_field form.password type="password" class="form-control" placeholder="Enter your password" %}
+                  {% render_field form.password type="password" class="form-control" placeholder="Nhập mật khẩu" %}
               </div>
 
-              <button type="submit" class="btn btn-primary btn-block mt-3">Login</button>
+              <button type="submit" class="btn btn-primary btn-block mt-3">Đăng nhập</button>
+              <div class="divider">
+                <hr><span>hoặc</span><hr>
+              </div>
+              <div class="text-center mt-3">
+                <button type="button" id="google-login-btn" class="btn btn-outline-light border rounded-circle p-2">
+                  <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="32" height="32">
+                </button>
+              </div>
+              <!-- Signup link -->
+              <div class="text-center mt-3">
+                <span>Chưa có tài khoản?</span>
+                <a href="{% url 'patientsignup' %}" class="fw-bold ms-2">Đăng ký ngay!</a>
+            </div>
               {% if form.non_field_errors %}
               <div class="alert alert-danger mt-3">
                   {% for error in form.non_field_errors %}
@@ -58,12 +151,6 @@
               </div>
               {% endif %}
           </form>
-
-          <div class="text-center mt-3">
-              <p>Không có tài khoản?<p>
-                  <a href="/IV-Medical/patientsignup" class="btn btn-outline-secondary">Đăng ký</a>
-          </div>
-          <button id="google-login-btn"><img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="40"></button>
           <script>
               // Prevent form submission and trigger Google login
               document.getElementById("google-login-btn").addEventListener("click", function (event) {
