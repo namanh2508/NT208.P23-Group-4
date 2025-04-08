@@ -492,3 +492,20 @@ class AppointmentBookingForm(forms.ModelForm):
                 )
 
         return cleaned_data
+    
+class PatientProfileForm(forms.ModelForm):
+    class Meta:
+        model = models.Patient
+        fields = ['family_phone', 'weight', 'height', 'description']
+        labels = {
+            'family_phone': 'Số điện thoại người thân',
+            'weight': 'Cân nặng (kg)',
+            'height': 'Chiều cao (cm)',
+            'description': 'Mô tả triệu chứng',
+        }
+        widgets = {
+            'family_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+        }

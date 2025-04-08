@@ -989,3 +989,9 @@ def book_appointment(request):
         'page_title': 'Book an Appointment' # Optional: for template title
     }
     return render(request, 'patient_book_appointment.html', context) # CHANGE THIS template path
+
+def GetPatient(request,name):
+    patient = models.Patient.objects.get(user__first_name=name)
+    if not patient:
+        return HttpResponse("Patient not found", status=404)
+    return render(request, 'patient_profile.html', {'patient': patient})

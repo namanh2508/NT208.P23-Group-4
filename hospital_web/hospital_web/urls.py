@@ -96,6 +96,7 @@ urlpatterns = [
     path('book-appointment/', views.book_appointment,name='book-appointment'),
     path('patient-view-appointment/<str:name>', views.get_appointment_by_patient_name, name='patient-view-appointments'),
     path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+    path('patient_view_profile/<str:name>', views.GetPatient, name='patient_view_profile'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

@@ -36,7 +36,7 @@
                      <div class="collapse" id="sidebarMenu">
                          <div class="sidebar">
                              <div class="sidebar-nav">
-                                 <a href="my_profile" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
+                                 <a href="{% url 'patient_view_profile' request.user.first_name %}" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
                                   <a href="{% url 'patient-view-appointments' request.user.first_name %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
                          <a href="logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>
                  </div>
