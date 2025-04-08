@@ -2,7 +2,7 @@ from django.contrib.auth import logout
 from django.shortcuts import render,redirect
 from django.db.models import Sum
 from django.contrib.auth.models import Group,User
-from django.http import HttpResponseRedirect,HttpResponse
+from django.http import HttpResponseRedirect,HttpResponse,HttpResponseForbidden
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
@@ -836,7 +836,19 @@ def patient_dashboard_view(request):
 #         return redirect('afterlogin')
 #     doctors = Doctor.objects.all()
 #     return render(request, 'index_home.html', {'doctors': doctors})
+def medicine_list_view(request):
+    user = request.user
+    if is_doctor(user):
+        # Doctor: see all medicines in the system
+        medicines = models.Medicine.objects.all()
+    elif is_patient(user):
+        # Patient: see only medicines from their prescriptions
+        prescriptions = models.Prescription.objects.filter(service__patient__user=user).select_related('medicine')
+        medicines = [p.medicine for p in prescriptions if p.medicine]
+    else:
+        return HttpResponseForbidden("Bạn không có quyền truy cập trang này.")
 
+    return render(request, 'medicine_list.html', {'medicines': medicines})
 def all_doctors_view(request):
     doctors = models.Doctor.objects.all()  # Lấy tất cả bác sĩ từ database
     return render(request, 'all_doctors.html', {'doctors': doctors})

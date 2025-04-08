@@ -98,7 +98,7 @@ class Service(models.Model):
     description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
     status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
     def __str__(self):
-        return f"Service #{self.service_id} for {self.patient}"
+        return f"Service #{self.id} for {self.patient}"
 
 # ---------- Record ----------
 class Record(models.Model):
@@ -166,7 +166,7 @@ class Medicine(models.Model):
 # -------------------- Prescription --------------------
 class Prescription(models.Model):
     medicine= models.ForeignKey(Medicine, on_delete=models.SET_NULL, blank=True, null=True)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE,related_name='prescriptions')
     amount = models.PositiveIntegerField(blank=True, null=True) # số lượng viên thuốc
     total_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # tổng giá tiền
     def get_total_price(self):
