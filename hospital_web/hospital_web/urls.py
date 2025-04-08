@@ -94,7 +94,7 @@ urlpatterns = [
     path('doctor-dashboard/', views.doctor_dashboard_view,name='doctor-dashboard'),
     path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
     path('book-appointment/', views.book_appointment,name='book-appointment'),
-    path('patient-view-appointment', views.get_appointment_by_patient_name, name='patient-view-appointments'),
+    path('patient-view-appointment/<str:name>', views.get_appointment_by_patient_name, name='patient-view-appointments'),
     path('all_doctors/', views.all_doctors_view, name='all_doctors'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

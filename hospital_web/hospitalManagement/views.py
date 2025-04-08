@@ -939,7 +939,7 @@ def all_doctors_view(request):
 @login_required(login_url='patientlogin')
 def get_appointment_by_patient_name(request, name):
     # Lấy danh sách các cuộc hẹn dựa trên tên bệnh nhân
-    appointments = models.Appointment.objects.filter(patientId__user__first_name=name)
+    appointments = models.Appointment.objects.filter(service__patient__user__first_name =name)
     return render(request, 'patient_view_appointment.html', {'appointments': appointments})
 
 # @login_required(login_url='patientlogin')
