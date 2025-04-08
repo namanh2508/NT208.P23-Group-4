@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     'rest_framework', 
     
 ]
-
+AUTH_USER_MODEL = 'hospitalManagement.CustomUser'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -107,7 +107,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
         'USER': 'postgres',      # Tên người dùng root
-        'PASSWORD': 'giang2005@',   # Mật khẩu root_pw
+        'PASSWORD': 'PhuongGiang2803',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
@@ -167,7 +167,6 @@ LOGOUT_REDIRECT_URL = '/'
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 SITE_ID = 1 #allauth required
 SITE_URL = 'http://127.0.0.1:8000'
