@@ -1,3 +1,4 @@
+import io
 from django.contrib.auth import logout
 from django.shortcuts import render,redirect
 from django.db.models import Sum
@@ -21,6 +22,7 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.models import SocialApp
 import secrets
 import requests
+from xhtml2pdf import pisa
 # Create your views here.
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -725,7 +727,7 @@ def doctor_appointment_view(request):
 @user_passes_test(is_doctor)
 def doctor_view_appointment_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
+    appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
     patient_ids = [a.patientId.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
     appointments = zip(appointments, patients)
@@ -736,7 +738,7 @@ def doctor_view_appointment_view(request):
 @user_passes_test(is_doctor)
 def doctor_delete_appointment_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
+    appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
     patient_ids = [a.patientId.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
     print("Appointments:")
@@ -756,10 +758,10 @@ def delete_appointment_view(request,pk):
     appointment=models.Appointment.objects.get(id=pk)
     appointment.delete()
     doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=request.user.id)
+    appointments=models.Appointment.objects.all().filter(status=True,service__doctor__id=request.user.id)
     patientid=[]
     for a in appointments:
-        patientid.append(a.patientId)
+        patientid.append(a.service__patient.id)
     patients=models.Patient.objects.all().filter(status=True,user_id__in=patientid)
     appointments=zip(appointments,patients)
     return render(request,'doctor_delete_appointment.html',{'appointments':appointments,'doctor':doctor})
