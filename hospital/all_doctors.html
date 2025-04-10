@@ -44,7 +44,7 @@
         <div class="row" id="doctor-list">
           {% for doctor in doctors %}
     <div class="col-md-3 mb-4">
-        <a href="/IV-Medical/doctor/{{ doctor.id }}/" class="doctor-card-link" style="text-decoration: none; color: inherit;"> 
+        <a href="{% url 'doctor_detail' doctor.id %}" class="doctor-card-link" style="text-decoration: none; color: inherit;"> 
             <div class="doctor-card">
                 <img src="{{ doctor.profile_pic.url }}" alt="Doctor Image">
                 <h5>{{ doctor.user.last_name }} {{ doctor.user.first_name }}</h5>

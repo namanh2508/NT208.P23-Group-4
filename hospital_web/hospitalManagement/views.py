@@ -1,6 +1,6 @@
 import io
 from django.contrib.auth import logout
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from django.db.models import Sum
 from django.contrib.auth.models import Group,User
 from django.http import HttpResponseRedirect,HttpResponse
@@ -16,6 +16,8 @@ from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
 from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
 from django.template.loader import get_template
+from .models import Doctor,Patient
+
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -633,20 +635,36 @@ def admin_view_appointment_view(request):
 @login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_add_appointment_view(request):
-    appointmentForm=forms.AppointmentForm()
-    mydict={'appointmentForm':appointmentForm,}
-    if request.method=='POST':
-        appointmentForm=forms.AppointmentForm(request.POST)
-        if appointmentForm.is_valid():
-            appointment=appointmentForm.save(commit=False)
-            appointment.doctorId=request.POST.get('doctorId')
-            appointment.patientId=request.POST.get('patientId')
-            appointment.doctorName=models.User.objects.get(id=request.POST.get('doctorId')).first_name
-            appointment.patientName=models.User.objects.get(id=request.POST.get('patientId')).first_name
-            appointment.status=True
-            appointment.save()
-        return HttpResponseRedirect('admin-view-appointment')
-    return render(request,'admin_add_appointment.html',context=mydict)
+    if request.method == 'POST':
+        # Create service first
+        doctor = models.Doctor.objects.get(id=request.POST.get('doctor'))
+        patient = models.Patient.objects.get(id=request.POST.get('patient'))
+        
+        service = models.Service.objects.create(
+            doctor=doctor,
+            patient=patient,
+            appointmentDate=request.POST.get('appointmentDate'),
+            appointmentTime=request.POST.get('appointmentTime'),
+            status='pending'
+        )
+        
+        # Then create appointment linked to the service
+        appointment = models.Appointment.objects.create(
+            service=service,
+            method=request.POST.get('method', 'offline'),
+            price=request.POST.get('price', 0),
+            status=True
+        )
+        
+        return redirect('admin-view-appointment')
+    
+    # GET request - show form
+    doctors = models.Doctor.objects.all()
+    patients = models.Patient.objects.all()
+    return render(request, 'admin_add_appointment.html', {
+        'doctors': doctors,
+        'patients': patients
+    })
 
 
 
@@ -695,7 +713,7 @@ def doctor_patient_view(request):
 @user_passes_test(is_doctor)
 def doctor_view_patient_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
+    appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
     patient_ids = [a.patientId.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
     # Tính toán số lượng cuộc hẹn của mỗi bệnh nhân với bác sĩ
@@ -997,3 +1015,7 @@ def GetPatient(request,name):
     if not patient:
         return HttpResponse("Patient not found", status=404)
     return render(request, 'patient_profile.html', {'patient': patient})
+
+def Get_Doctor_Detail(request, doctor_id):
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    return render(request, 'doctor_detail.html', {'doctor': doctor})

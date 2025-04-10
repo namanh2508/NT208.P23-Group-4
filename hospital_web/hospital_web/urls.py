@@ -92,10 +92,13 @@ urlpatterns = [
     path('delete-appointment/<int:pk>', views.delete_appointment_view,name='delete-appointment'),
 
     path('doctor-dashboard/', views.doctor_dashboard_view,name='doctor-dashboard'),
+
     path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
     path('book-appointment/', views.book_appointment,name='book-appointment'),
     path('patient-view-appointment/<str:name>', views.get_appointment_by_patient_name, name='patient-view-appointments'),
     path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+    
+    path('doctor/<int:doctor_id>/', views.Get_Doctor_Detail, name='doctor_detail'),
     path('patient_view_profile/<str:name>', views.GetPatient, name='patient_view_profile'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

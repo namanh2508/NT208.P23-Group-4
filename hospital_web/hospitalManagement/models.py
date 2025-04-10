@@ -73,6 +73,13 @@ class Doctor(models.Model):
         return dict(DEPARTMENT).get(self.department, 'Unknown')
     def __str__(self):
         return f"Dr. {self.user.get_full_name()}"
+    @property
+    def get_picture(self):
+        return self.user.picture.url if self.user.picture else None
+    
+    @property
+    def get_department(self):
+        return dict(DEPARTMENT).get(self.department, 'Unknown')
 
 # ---------- Admin ----------
 class Admin(models.Model):
