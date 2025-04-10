@@ -971,16 +971,7 @@ def get_appointment_by_patient_name(request, name):
 @login_required (login_url='patientlogin')
 @user_passes_test(is_patient)
 def book_appointment(request):
-    try:
-        # Get the patient profile associated with the logged-in user
-        # Assumes a OneToOne relationship exists and profile is created
-        patient = request.user.patient
-    except models.Patient.DoesNotExist:
-        # Handle cases where the user doesn't have a Patient profile
-        messages.error(request, "You need a patient profile to book appointments.")
-        # Redirect to a profile creation page or dashboard
-        return redirect('patient-dashboard')
-
+    patient = request.user.patient
     if request.method == 'POST':
         form = forms.AppointmentBookingForm(request.POST)
         if form.is_valid():
@@ -1006,6 +997,7 @@ def book_appointment(request):
 
     context = {
         'form': form,
+        'request': request,
         'page_title': 'Book an Appointment' # Optional: for template title
     }
     return render(request, 'patient_book_appointment.html', context) # CHANGE THIS template path

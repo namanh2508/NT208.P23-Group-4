@@ -1,84 +1,64 @@
 {% extends 'patient_base.html' %}
-{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}Book Appointment{% endblock %}
+
 {% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Book an Appointment</h2>
 
-<head>
-  <style media="screen">
-    a:link {
-      text-decoration: none;
-    }
+  <form method="post" class="card shadow-sm p-4">
+    {% csrf_token %}
 
-    .note {
-      text-align: center;
-      height: 80px;
-      background: -webkit-linear-gradient(left, #0072ff, #8811c5);
-      color: #fff;
-      font-weight: bold;
-      line-height: 80px;
-    }
+    <table class="table table-borderless align-middle">
+      <tbody>
 
-    .form-content {
-      padding: 5%;
-      border: 1px solid #ced4da;
-      margin-bottom: 2%;
-    }
+        <tr>
+          <th><label for="id_doctor" class="form-label">Select Doctor</label></th>
+          <td>
+            {{ form.doctor }}
+            {% if request.method == "POST" and form.doctor.errors %}
+              <div class="text-danger small mt-1">{{ form.doctor.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
 
-    .form-control {
-      border-radius: 1.5rem;
-    }
+        <tr>
+          <th><label for="id_appointmentDate" class="form-label">Appointment Date</label></th>
+          <td>
+            {{ form.appointmentDate }}
+            {% if request.method == "POST" and form.appointmentDate.errors %}
+              <div class="text-danger small mt-1">{{ form.appointmentDate.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
 
-    .btnSubmit {
-      border: none;
-      border-radius: 1.5rem;
-      padding: 1%;
-      width: 20%;
-      cursor: pointer;
-      background: #0062cc;
-      color: #fff;
-    }
+        <tr>
+          <th><label for="id_appointmentTime" class="form-label">Appointment Time</label></th>
+          <td>
+            {{ form.appointmentTime }}
+            {% if request.method == "POST" and form.appointmentTime.errors %}
+              <div class="text-danger small mt-1">{{ form.appointmentTime.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
 
-    .menu {
-      top: 50px;
-    }
-  </style>
+        <tr>
+          <th><label for="id_description" class="form-label">Reason / Symptoms</label></th>
+          <td>
+            {{ form.description }}
+            {% if request.method == "POST" and form.description.errors %}
+              <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
 
-  <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-  <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-</head>
-<br><br>
-{% if message %}
-<script>
-  var a = "{{message}}";
-  alert(a);
-</script>
+      </tbody>
+    </table>
 
-{% endif %}
-
-
-<!------ add appointment page by patient(sumit)  ---------->
-<form method="post">
-  {% csrf_token %}
-  <div class="container register-form">
-    <div class="form">
-      <div class="note">
-        <p>Book Appointment Details</p>
-      </div>
-      <div class="form-content">
-        <div class="row">
-          <div class="col-md-12">
-            <div class="form-group">
-              {% render_field appointmentForm.description class="form-control" placeholder="Description" %}
-            </div>
-            <div class="form-group">
-              {% render_field appointmentForm.doctorId class="form-control" placeholder="doctor" %}
-            </div>
-          </div>
-
-        </div>
-        <button type="submit" class="btnSubmit">Book</button>
-      </div>
+    <div class="text-end mt-3">
+      <button type="submit" class="btn btn-primary px-4">Book Appointment</button>
     </div>
-  </div>
-</form>
-{% endblock content %}
+  </form>
+</div>
+{% endblock %}
