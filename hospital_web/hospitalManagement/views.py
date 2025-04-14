@@ -986,7 +986,7 @@ def book_appointment(request):
 
             messages.success(request, f"Appointment requested successfully for {service.appointmentDate.strftime('%Y-%m-%d')} at {service.appointmentTime.strftime('%H:%M')} with {service.doctor}. You will be notified upon confirmation.")
             # Redirect to a success page or the patient's appointment list
-            return redirect('patient-view-appointment') # CHANGE THIS to your success/list URL name
+            return redirect('patient-view-appointments') # CHANGE THIS to your success/list URL name
 
         else:
             # Form is invalid, errors will be displayed in the template
