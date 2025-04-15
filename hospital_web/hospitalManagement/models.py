@@ -1,7 +1,10 @@
+
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User,Permission,Group
 from decimal import Decimal
+
 
 DEPARTMENT= [
     ('bac_si_tim_mach', 'Bác sĩ Tim mạch'),
@@ -147,8 +150,8 @@ class AI_Record (models.Model):
     # thông tin khác
     symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
     description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
-    record_date = models.DateField() # ngày khám
-    created_at = models.DateTimeField(auto_now_add=True)
+    
+    created_at = models.DateField(default=timezone.now) # ngày tạo bản ghi
     
     def __str__(self):
         return f"{self.record_type} - {self.patient.name} ({self.record_date})"
@@ -184,7 +187,7 @@ class Appointment(models.Model):
 class Test(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    Test_date = models.DateField(default=timezone.now) # ngày xét nghiệm
 
     def __str__(self):
         return f"Test #{self.id} - {self.service.name}"
