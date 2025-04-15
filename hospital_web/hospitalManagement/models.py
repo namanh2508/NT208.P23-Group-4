@@ -34,6 +34,12 @@ APPOINTMENT_METHOD= [
     ('online','Tư vấn online'),
     ('offline','Khám bệnh trực tiếp')
 ]
+
+TYPE_OF_SERVICE = [
+    ('appointment', 'Đăng ký khám bệnh'),
+    ('test', 'Xét nghiệm'),
+    ('prescription', 'Đặt thuốc'),    
+]
 # ---------- Custom User ----------
 class CustomUser(AbstractUser):
     groups = models.ManyToManyField(
@@ -103,9 +109,13 @@ class Service(models.Model):
     appointmentDate = models.DateField() # ngày hẹn
     appointmentTime = models.TimeField() # thời gian hẹn
     description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
+    type = models.CharField(max_length=100, blank=True, null=True, choices=TYPE_OF_SERVICE)
     status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
     def __str__(self):
         return f"Service #{self.service_id} for {self.patient}"
+    @property
+    def get_type(self):
+        return dict(TYPE_OF_SERVICE).get(self.type, 'Unknown')
 
 # ---------- Record ----------
 class Record(models.Model):

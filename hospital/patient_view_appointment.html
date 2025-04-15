@@ -108,15 +108,17 @@
           <div class="row">
             <div class="col-6">
               <div class="row">
-                {% for appointment in appointments %}
+                {% for service in services %}
                   <div class="col-6">
                     
-                    <img src="{{ appointment.doctorId.profile_pic.url }}" alt="Doctor Picture" class="img-fluid rounded" style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                    <img src="{{ service.doctor.user.picture }}" alt="Doctor Picture" class="img-fluid rounded" style="max-width: 100px; max-height: 100px; object-fit: cover;">
                   </div>
                   <div class="col-6"> 
-                    <p><span style="font-weight: 800; font-size: medium;">Tên bác sĩ:</span> {{ appointment.doctorName }}</p>
-                    <p><span style="font-weight: 800; font-size: medium;">Ngày và giờ:</span> {{ appointment.appointmentDate }} | {{ appointment.appointmentTime }} </p>
-                    <p><span style="font-weight: 800; font-size: medium;">Tình trạng:</span> {{ appointment.status|yesno:"Đã xác nhận,Đang chờ xác nhận" }}</p>
+                    <p><span style="font-weight: 800; font-size: medium;">Tên bác sĩ:</span> {{ service.doctor.user.first_name }}</p>
+                    <p><span style="font-weight: 800; font-size: medium;">Ngày và giờ:</span> {{ service.appointmentDate }} | {{ service.appointmentTime }} </p>
+                    <p><span style="font-weight: 800; font-size: medium;">Loại dịch vụ:</span> {{ service.type }}</p>
+                    <p><span style="font-weight: 800; font-size: medium;">Tình trạng:</span> {{ service.status|yesno:"Đã xác nhận,Đang chờ xác nhận" }}</p>
+
                     <div class="col-6 d-grid justify-content-end align-items-end">
                       <button class="btn btn-primary btn-pay-online mb-5">Thanh toán</button>
                       <button class="btn btn-danger btn-cancel-appointment mb-5">Hủy cuộc hẹn</button>

@@ -44,6 +44,26 @@
         </tr>
 
         <tr>
+          <th><label for="id_method" class="form-label">Appointment Method</label></th>
+          <td>
+            {{ form.method }}
+            {% if request.method == "POST" and form.method.errors %}
+              <div class="text-danger small mt-1">{{ form.method.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
+
+        <tr>
+          <th><label for="id_type" class="form-label">Type of service</label></th>
+          <td>
+            {{ form.type }}
+            {% if request.method == "POST" and form.type.errors %}
+              <div class="text-danger small mt-1">{{ form.type.errors }}</div>
+            {% endif %}
+          </td>
+        </tr>
+
+        <tr>
           <th><label for="id_description" class="form-label">Reason / Symptoms</label></th>
           <td>
             {{ form.description }}

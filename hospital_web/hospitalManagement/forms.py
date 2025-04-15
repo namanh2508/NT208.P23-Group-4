@@ -5,7 +5,7 @@ from . import models
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.validators import RegexValidator
 
-from .models import Service, Doctor, Patient 
+from .models import APPOINTMENT_METHOD, TYPE_OF_SERVICE, Appointment, Service, Doctor, Patient 
 from django.utils import timezone
 import datetime
 
@@ -413,7 +413,22 @@ class AppointmentBookingForm(forms.ModelForm):
             }
         )
     )
-
+    
+    
+    type = forms.ChoiceField(
+        choices=TYPE_OF_SERVICE,
+        label="loại dịch vụ",
+        widget= forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    
+    method = forms.ChoiceField(
+        choices=APPOINTMENT_METHOD,
+        label="hình thức cuộc hẹn",
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
     # Customize description field (optional, for patient's notes)
     description = forms.CharField(
         label="Reason for Visit / Symptoms (Optional)",
@@ -430,19 +445,21 @@ class AppointmentBookingForm(forms.ModelForm):
     class Meta:
         model = Service
         # Fields the PATIENT needs to fill out when booking
-        fields = ['doctor', 'appointmentDate', 'appointmentTime', 'description']
+        fields = ['doctor', 'appointmentDate', 'appointmentTime','method','type', 'description']
         # Note: 'patient' will be set automatically in the view based on the logged-in user.
         # 'status' will be set to 'pending' automatically.
 
+    
     def __init__(self, *args, **kwargs):
-        # You could potentially pass the user here if needed for filtering doctors, etc.
-        # user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # You can add further customizations here if needed
-        # Example: Filter doctors based on department passed in kwargs if needed
+        self.fields['method'].widget.attrs.update({'class': 'form-control'})
+        # Add styling to other fields if needed
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({'class': 'form-control'})
 
-    # --- Custom Validation (Examples) ---
 
+
+    # --- Custom Validation ---
     def clean_appointmentDate(self):
         """Ensure appointment date is not in the past."""
         date = self.cleaned_data.get('appointmentDate')

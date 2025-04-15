@@ -16,7 +16,7 @@ from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
 from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
 from django.template.loader import get_template
-from .models import Doctor,Patient
+from .models import Doctor,Patient,Appointment,Service
 
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
@@ -959,8 +959,8 @@ def all_doctors_view(request):
 @login_required(login_url='patientlogin')
 def get_appointment_by_patient_name(request, name):
     # Lấy danh sách các cuộc hẹn dựa trên tên bệnh nhân
-    appointments = models.Appointment.objects.filter(service__patient__user__first_name =name)
-    return render(request, 'patient_view_appointment.html', {'appointments': appointments})
+    services = models.Service.objects.filter(patient__user__first_name =name)
+    return render(request, 'patient_view_appointment.html', {'services': services})
 
 # @login_required(login_url='patientlogin')
 # def patient_view_profile(request):
@@ -983,10 +983,15 @@ def book_appointment(request):
             service.status = 'pending'
             # Now save the Service instance to the database
             service.save()
-
+            # Tạo Appointment tương ứng
+            Appointment.objects.create(
+                service=service,
+                method= form.cleaned_data['method'],  # hoặc 'online', tùy theo mặc định bạn muốn đặt
+                status='pending'
+            )
             messages.success(request, f"Appointment requested successfully for {service.appointmentDate.strftime('%Y-%m-%d')} at {service.appointmentTime.strftime('%H:%M')} with {service.doctor}. You will be notified upon confirmation.")
             # Redirect to a success page or the patient's appointment list
-            return redirect('patient-view-appointments') # CHANGE THIS to your success/list URL name
+            return redirect('patient-view-appointments', name=patient.user.first_name) # CHANGE THIS to your success/list URL name
 
         else:
             # Form is invalid, errors will be displayed in the template
