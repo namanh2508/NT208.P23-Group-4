@@ -111,6 +111,7 @@ class Service(models.Model):
     description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
     type = models.CharField(max_length=100, blank=True, null=True, choices=TYPE_OF_SERVICE)
     status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
+    image = models.ImageField(upload_to='service_images/', blank=True, null=True) # ảnh chụp dịch vụ
     def __str__(self):
         return f"Service #{self.service_id} for {self.patient}"
     @property
@@ -130,23 +131,45 @@ class Record(models.Model):
 
 # -------------------- AI_Record --------------------
 class AI_Record (models.Model):
+    RECORD_TYPES = (
+        ('lab_report', 'Xét nghiệm'),
+        ('dermatology', 'Da liễu'),
+        ('xray', 'X-quang'),
+    )
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='ai_record') # khóa ngoại liên kết với patient
+    record_type = models.CharField(max_length=50, choices=RECORD_TYPES, default='lab_report')
+    image = models.ImageField(upload_to='ai_inputs/', blank=True, null=True)
+    
+    # Dùng cho chẩn đoán từ ảnh y học
+    diagnosis = models.CharField(max_length=255, blank=True, null=True)
+    confidence = models.FloatField(blank=True, null=True)
+    
+    # thông tin khác
     symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
     description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
     record_date = models.DateField() # ngày khám
-    weight = models.PositiveIntegerField(blank=True, null=True) # cân nặng
-    height = models.PositiveIntegerField(blank=True, null=True) # chiều cao
-    glucose = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    blood_pressure = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    blood_group = models.CharField(max_length=5, blank=True, null=True)
-    liver_enzymes = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    cretinine = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    acid_uric = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    cholesterol = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.record_type} - {self.patient.name} ({self.record_date})"
+    
     class Meta:
         verbose_name = "AI Record"
         verbose_name_plural = "AI Records"
 
+
+# -------------------- AI Metric lưu chỉ số OCR đc từ ảnh xét nghiệm, thông qua AI phân tích --------------------------------------------- 
+class AI_Metric(models.Model):
+    ai_record = models.ForeignKey(AI_Record, on_delete=models.CASCADE, related_name='metrics')
+    name = models.CharField(max_length=100)  # tên chỉ số
+    value = models.FloatField() # giá trị chỉ số
+    unit = models.CharField(max_length=20, blank=True, null=True) # đơn vị chỉ số
+    reference_range = models.CharField(max_length=100, blank=True, null=True) # khoảng tham chiếu (VD: 4.0-6.0)
+    status = models.CharField(max_length=10, blank=True, null=True)  # tình trạng: cao hay thấp hơn bình thường
+
+    def __str__(self):
+        return f"{self.name}: {self.value} {self.unit} ({self.status})"
+    
     
 # -------------------- Appointment --------------------
 class Appointment(models.Model):
@@ -160,17 +183,24 @@ class Appointment(models.Model):
 # -------------------- Test --------------------
 class Test(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    glucose = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    blood_pressure = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    blood_group = models.CharField(max_length=5, blank=True, null=True)
-    liver_enzymes = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    cretinine = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    acid_uric = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    cholesterol = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True) # giá tiền
+    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Test for Service #{self.service.service_id}"
+        return f"Test #{self.id} - {self.service.name}"
+    
+    
+# -------------------- Test Parameter lưu chỉ số, cái này do người dùng nhập hoặc là bác sĩ nhập tay , khác với AI_Metric  --------------------
+class TestParameter(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='parameters')
+    name = models.CharField(max_length=100)
+    value = models.FloatField()
+    unit = models.CharField(max_length=20, blank=True, null=True)
+    reference_range = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=10, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name}: {self.value} {self.unit} ({self.status})"
 
 # -------------------- Medicine --------------------
 class Medicine(models.Model):
