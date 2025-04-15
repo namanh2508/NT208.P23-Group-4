@@ -14,9 +14,10 @@ from hospitalManagement import models
 from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
-from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
+from hospital_web.hospitalManagement.utils.image_classifier import detect_record_type_by_cnn
+from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm, UploadForm
 from django.template.loader import get_template
-from .models import Doctor,Patient,Appointment,Service
+from .models import AI_Metric, Doctor,Patient,Appointment,Service
 
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
@@ -1016,3 +1017,37 @@ def GetPatient(request,name):
 def Get_Doctor_Detail(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     return render(request, 'doctor_detail.html', {'doctor': doctor})
+
+# def upload_image_view(request):
+#     if request.method == 'POST':
+#         form = UploadForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             ai_record = form.save(commit=False)
+            
+#             # Tự động xác định loại ảnh
+#             auto_type = detect_record_type_by_cnn(ai_record.image.path)
+#             ai_record.record_type = auto_type
+#             ai_record.save()
+
+#             if ai_record.record_type == 'lab_report':
+#                 text = extract_text_from_image(ai_record.image.path)
+#                 metrics = analyze_test_result(text)
+#                 for m in metrics:
+#                     AI_Metric.objects.create(
+#                         ai_record=ai_record,
+#                         name=m['name'],
+#                         value=m['value'],
+#                         unit=m['unit'],
+#                         status=m['status'],
+#                         reference_range=m['range']
+#                     )
+#             else:  # dermatology or xray
+#                 result = call_dermatology_ai_api(ai_record.image.path)
+#                 ai_record.diagnosis = result.get('diagnosis')
+#                 ai_record.confidence = result.get('confidence')
+#                 ai_record.save()
+
+#             return redirect('ai_upload_success')
+#     else:
+#         form = UploadForm()
+#     return render(request, 'ai_upload.html', {'form': form})

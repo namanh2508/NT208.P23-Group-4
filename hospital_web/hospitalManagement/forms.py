@@ -526,3 +526,8 @@ class PatientProfileForm(forms.ModelForm):
             'height': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
         }
+        
+class UploadForm(models.ModelForm):
+    class Meta:
+        model = models.AI_Record
+        fields = ['patient', 'image']
