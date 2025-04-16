@@ -1,7 +1,8 @@
 import torch
 from torchvision import transforms
 from PIL import Image
-from hospital_web.ai_training import CNNmodel  # mô hình CNN bạn đã định nghĩa
+
+from ai_training.train_cnn import CNNmodel
 
 # Load mô hình đã train
 model = CNNmodel(num_classes=3)
@@ -20,11 +21,13 @@ transform = transforms.Compose([
 ])
 
 # 🔮 Hàm dự đoán ảnh mới
-def detect_record_type_by_cnn(image_path):
-    image = Image.open(image_path).convert('RGB')  # mở ảnh
+def detect_record_type_by_cnn(image_file):
+    image = Image.open(image_file).convert('RGB')
     image = transform(image).unsqueeze(0)  # thêm batch dimension: [1, 3, 128, 128]
 
     with torch.no_grad():  # không cần gradient khi dự đoán
-        outputs = model(image)              # chạy qua mạng
-        _, predicted = torch.max(outputs, 1)  # lấy index class lớn nhất
-        return class_names[predicted.item()]  # trả về tên lớp
+        outputs = model(image)
+        probabilities = torch.nn.functional.softmax(outputs, dim=1)
+        _, predicted = torch.max(outputs, 1)
+        confidence = probabilities[0][predicted.item()].item()
+        return class_names[predicted.item()], confidence

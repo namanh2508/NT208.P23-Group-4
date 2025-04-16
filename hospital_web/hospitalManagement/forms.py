@@ -527,7 +527,7 @@ class PatientProfileForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control'}),
         }
         
-class UploadForm(models.ModelForm):
+class UploadForm(forms.ModelForm):
     class Meta:
         model = models.AI_Record
         fields = ['patient', 'image']

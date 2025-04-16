@@ -3,7 +3,7 @@ from django.contrib.auth import logout
 from django.shortcuts import render,redirect,get_object_or_404
 from django.db.models import Sum
 from django.contrib.auth.models import Group,User
-from django.http import HttpResponseRedirect,HttpResponse
+from django.http import HttpResponseRedirect,HttpResponse, JsonResponse
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
@@ -14,7 +14,7 @@ from hospitalManagement import models
 from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
-from hospital_web.hospitalManagement.utils.image_classifier import detect_record_type_by_cnn
+from .utils.image_classifier import detect_record_type_by_cnn
 from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm, UploadForm
 from django.template.loader import get_template
 from .models import AI_Metric, Doctor,Patient,Appointment,Service
@@ -715,11 +715,11 @@ def doctor_patient_view(request):
 def doctor_view_patient_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
     appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
-    patient_ids = [a.patientId.id for a in appointments]
+    patient_ids = [a.service.patient.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
     # Tính toán số lượng cuộc hẹn của mỗi bệnh nhân với bác sĩ
     for p in patients:
-        p.num_appointments_with_doctor = appointments.filter(patientId=p).count()
+        p.num_appointments_with_doctor = appointments.filter(service__patient=p).count()
     appointments = zip(appointments, patients)
     return render(request,'doctor_view_patient.html',{'appointments': appointments, 'patients': patients})
 
@@ -758,7 +758,7 @@ def doctor_view_appointment_view(request):
 def doctor_delete_appointment_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
     appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
-    patient_ids = [a.patientId.id for a in appointments]
+    patient_ids = [a.service.patient.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
     print("Appointments:")
     for a in appointments:
@@ -780,7 +780,7 @@ def delete_appointment_view(request,pk):
     appointments=models.Appointment.objects.all().filter(status=True,service__doctor__id=request.user.id)
     patientid=[]
     for a in appointments:
-        patientid.append(a.service__patient.id)
+        patientid.append(a.service.patient.id)
     patients=models.Patient.objects.all().filter(status=True,user_id__in=patientid)
     appointments=zip(appointments,patients)
     return render(request,'doctor_delete_appointment.html',{'appointments':appointments,'doctor':doctor})
@@ -1018,36 +1018,71 @@ def Get_Doctor_Detail(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     return render(request, 'doctor_detail.html', {'doctor': doctor})
 
-# def upload_image_view(request):
-#     if request.method == 'POST':
-#         form = UploadForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             ai_record = form.save(commit=False)
-            
-#             # Tự động xác định loại ảnh
-#             auto_type = detect_record_type_by_cnn(ai_record.image.path)
-#             ai_record.record_type = auto_type
-#             ai_record.save()
+import logging
+from django.views.decorators.csrf import csrf_exempt
 
-#             if ai_record.record_type == 'lab_report':
-#                 text = extract_text_from_image(ai_record.image.path)
-#                 metrics = analyze_test_result(text)
-#                 for m in metrics:
-#                     AI_Metric.objects.create(
-#                         ai_record=ai_record,
-#                         name=m['name'],
-#                         value=m['value'],
-#                         unit=m['unit'],
-#                         status=m['status'],
-#                         reference_range=m['range']
-#                     )
-#             else:  # dermatology or xray
-#                 result = call_dermatology_ai_api(ai_record.image.path)
-#                 ai_record.diagnosis = result.get('diagnosis')
-#                 ai_record.confidence = result.get('confidence')
-#                 ai_record.save()
+logger = logging.getLogger(__name__)
 
-#             return redirect('ai_upload_success')
-#     else:
-#         form = UploadForm()
-#     return render(request, 'ai_upload.html', {'form': form})
+def extract_text_from_image(image_path):
+    # Placeholder implementation
+    logger.warning("extract_text_from_image function is not implemented.")
+    return ""
+
+def analyze_test_result(text):
+    # Placeholder implementation
+    logger.warning("analyze_test_result function is not implemented.")
+    return []
+
+def call_dermatology_ai_api(image_path):
+    # Placeholder implementation
+    logger.warning("call_dermatology_ai_api function is not implemented.")
+    return {"diagnosis": None, "confidence": None}
+
+@csrf_exempt
+def upload_image_view(request):
+    if request.method == 'POST':
+        form = UploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                ai_record = form.save(commit=False)
+                
+                # Tự động xác định loại ảnh
+                auto_type, confidence = detect_record_type_by_cnn(request.FILES['image'])
+                ai_record.record_type = auto_type
+                ai_record.save()
+
+                if ai_record.record_type == 'lab_report':
+                    text = extract_text_from_image(ai_record.image.path)
+                    metrics = analyze_test_result(text)
+                    for m in metrics:
+                        AI_Metric.objects.create(
+                            ai_record=ai_record,
+                            name=m['name'],
+                            value=m['value'],
+                            unit=m['unit'],
+                            status=m['status'],
+                            reference_range=m['range']
+                        )
+                else:  # dermatology or xray
+                    result = call_dermatology_ai_api(ai_record.image.path)
+                    ai_record.diagnosis = result.get('diagnosis')
+                    ai_record.confidence = result.get('confidence')
+                    ai_record.save()
+
+                return redirect('ai_upload_success')
+            except Exception as e:
+                logger.error(f"Error processing uploaded image: {e}")
+                messages.error(request, "There was an error processing the image. Please try again.")
+        else:
+            messages.error(request, "Invalid form submission. Please check the input.")
+    else:
+        form = UploadForm()
+    return render(request, 'ai_upload.html', {'form': form})
+
+
+def predict_view(request):
+    if request.method == 'POST' and 'image' in request.FILES:
+        image_file = request.FILES['image']
+        result = detect_record_type_by_cnn(image_file)
+        return JsonResponse({'result': result})
+    return JsonResponse({'error': 'No image uploaded'}, status=400)

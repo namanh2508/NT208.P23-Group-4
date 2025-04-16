@@ -31,7 +31,9 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-dataset_path = "dataset"  # thư mục chứa ảnh đã phân loại
+import os
+
+dataset_path = os.path.join(os.path.dirname(__file__), "dataset")  # thư mục chứa ảnh đã phân loại
 dataset = datasets.ImageFolder(dataset_path, transform=transform)
 loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
