@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Bệnh Nhân - {{ patient_name|default:"Bệnh Nhân" }}</title> {# Tiêu đề trang #}
+
+    {# Bootstrap CSS #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+    {# Font Awesome CSS (Cho Icons) #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    {# CSS Tùy Chỉnh #}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+             display: flex; /* Sử dụng flexbox cho body */
+             flex-direction: column; /* Các phần tử con xếp chồng lên nhau */
+             background-color: #f8f9fa; /* Màu nền nhẹ */
+        }
+
+        .wrapper {
+             flex: 1 0 auto; /* Cho phép wrapper co giãn và không bị thu nhỏ */
+             display: flex;
+             flex-direction: column;
+             /* Không cần height: 100% ở đây nữa */
+        }
+
+        main {
+            flex: 1; /* Đảm bảo main chiếm không gian còn lại giữa navbar và footer */
+            padding-top: 1.5rem; /* Thêm khoảng cách trên */
+            padding-bottom: 1.5rem; /* Thêm khoảng cách dưới */
+        }
+
+         .footer { /* Style cho footer nếu include */
+             flex-shrink: 0; /* Ngăn footer bị co lại */
+             background-color: #f8f9fa;
+             padding: 15px 0;
+             text-align: center;
+             border-top: 1px solid #dee2e6;
+         }
+
+        /* ----- CSS cho Profile ----- */
+        .profile-header {
+            background: linear-gradient(to right, #0d6efd, #6f42c1);
+            color: white;
+            padding: 25px;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .profile-header img {
+            border: 3px solid white;
+        }
+
+        .list-group-item i.fa-fw { /* Đảm bảo icon thẳng hàng */
+            width: 1.25em; /* Rộng hơn một chút */
+            text-align: center;
+        }
+
+        .card-title {
+            color: #0d6efd;
+        }
+        /* ----- Hết CSS Profile ----- */
+
+        /* ----- CSS cho Navbar (Nếu không có trong file include) ----- */
+        /* Bạn có thể đặt CSS của navbar vào đây nếu patient_navbar.html chỉ chứa HTML */
+        .navbar-logo-img { height: 40px; width: auto; margin-right: 8px; }
+        /* ... các style navbar khác ... */
+        /* ----- Hết CSS Navbar ----- */
+
+    </style>
+</head>
+
+<body>
+    {# Load các template tags cần thiết #}
+    {% load static widget_tweaks %}
+
+    <div class="wrapper">
+
+        {# === Navbar === #}
+        {% include "patient_navbar.html" %}
+
+        {# === Nội dung chính === #}
+        <main class="container mt-4 mb-5"> {# Thêm class container và margin vào main #}
+            <div class="row">
+
+                {# --- Sidebar Menu (Cột trái) --- #}
+                <div class="col-lg-3 mb-4 mb-lg-0">
+                    <div class="list-group shadow-sm">
+                        <a href="#thong-tin-ca-nhan" class="list-group-item list-group-item-action active" aria-current="true">
+                            <i class="fas fa-user fa-fw me-2"></i> Thông Tin Cá Nhân
+                        </a>
+                        <a href="#lich-hen" class="list-group-item list-group-item-action">
+                            <i class="fas fa-calendar-check fa-fw me-2"></i> Lịch Hẹn Của Tôi
+                        </a>
+                        <a href="#ho-so-benh-an" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-medical fa-fw me-2"></i> Hồ Sơ Bệnh Án
+                        </a>
+                        <a href="#ket-qua" class="list-group-item list-group-item-action">
+                            <i class="fas fa-notes-medical fa-fw me-2"></i> Kết Quả Xét Nghiệm
+                        </a>
+                        <a href="#thanh-toan" class="list-group-item list-group-item-action">
+                            <i class="fas fa-dollar-sign fa-fw me-2"></i> Thanh Toán & Hóa Đơn
+                        </a>
+                        <a href="#cap-nhat" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user-edit fa-fw me-2"></i> Cập Nhật Thông Tin
+                        </a>
+                        {# Ví dụ link Logout - cần URL đúng #}
+                        <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger">
+                            <i class="fas fa-sign-out-alt fa-fw me-2"></i> Đăng Xuất
+                        </a>
+                    </div>
+                </div>
+
+                {# --- Nội dung Profile (Cột phải) --- #}
+                <div class="col-lg-9">
+                    <div class="card shadow-sm">
+                        {# Header của Card Profile #}
+                        <div class="profile-header d-flex align-items-center">
+                            {# Thay bằng ảnh thật, ví dụ dùng static #}
+            
+                            <img src="{{ patient.profile_pic.url  }}" alt="Ảnh đại diện" class="rounded-circle me-3 shadow-sm" width="80" height="80">
+                            <div>
+                                <h1 class="h3 mb-0">{{ patient.get_name|default:"Tên Bệnh Nhân" }}</h1>
+                                <span class="small fw-light">Mã BN: {{ patient.id|default:"Chưa có" }}</span> {# Ví dụ lấy từ profile model #}
+                            </div>
+                        </div>
+
+                        {# Thân Card chứa các thông tin chi tiết #}
+                        <div class="card-body p-4">
+
+                            {# --- Phần Thông tin cá nhân --- #}
+                            <section id="thong-tin-ca-nhan" class="mb-4">
+                                <h5 class="card-title mb-3 border-bottom pb-2"><i class="fas fa-id-card fa-fw me-2"></i>Thông Tin Cơ Bản</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <strong>Ngày sinh:</strong> {{ patient_profile.dob|date:"d/m/Y"|default:"Chưa cập nhật" }} {# Ví dụ format ngày #}
+                                         {# Hiển thị tuổi nếu có ngày sinh #}
+                                         {% if patient_profile.dob %}({{ patient_profile.get_age|default:"?" }} tuổi){% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <strong>Giới tính:</strong> {{ patient_profile.get_gender_display|default:"Chưa cập nhật" }} {# Ví dụ dùng get_..._display #}
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <strong>Điện thoại:</strong> {{ patient.mobile|default:"Chưa cập nhật" }}
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <strong>Email:</strong> {{ request.user.email|default:"Chưa cập nhật" }}
+                                    </div>
+                                    <div class="col-12 mb-2">
+                                        <strong>Địa chỉ:</strong> {{ patient.address|default:"Chưa cập nhật" }}
+                                    </div>
+                                </div>
+                            </section>
+
+                            {# --- Phần Thông tin Y tế tóm tắt --- #}
+                            <section id="thong-tin-y-te" class="mb-4">
+                                <h5 class="card-title mt-4 mb-3 border-bottom pb-2"><i class="fas fa-notes-medical fa-fw me-2"></i>Thông Tin Y Tế Tóm Tắt</h5>
+                                <p><strong>Dị ứng:</strong> {{ patient_profile.allergies|default:"Không có dị ứng nào được ghi nhận." }}</p>
+                                <p><strong>Tình trạng mãn tính:</strong> {{ patient_profile.chronic_conditions|default:"Không có." }}</p>
+                                <p><a href="#ho-so-benh-an">Xem chi tiết hồ sơ bệnh án &rarr;</a></p>
+                            </section>
+
+                             {# --- Phần Lịch hẹn sắp tới --- #}
+                            <section id="lich-hen" class="mb-4">
+                                <h5 class="card-title mt-4 mb-3 border-bottom pb-2"><i class="fas fa-calendar-alt fa-fw me-2"></i>Lịch Hẹn Sắp Tới</h5>
+                                <div class="list-group list-group-flush">
+                                    {# === Dùng vòng lặp for của Django để hiển thị lịch hẹn === #}
+                                    {% for appointment in upcoming_appointments %}
+                                    <a href="{% url 'appointment_detail' appointment.id %}" {# Ví dụ URL tới chi tiết lịch hẹn #} class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ appointment.appointmentTime|time:"H:i" }}, {{ appointment.appointmentDate|date:"l, d/m/Y" }}</strong> - {{ appointment.doctor.get_department_display|default:"Khám chuyên khoa" }}<br>
+                                            <small class="text-muted">BS. {{ appointment.doctor.user.get_full_name }} - {{ appointment.location|default:"Phòng khám" }}</small>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill">Sắp tới</span>
+                                    </a>
+                                    {% empty %}
+                                    <p class="text-muted list-group-item">Bạn không có lịch hẹn nào sắp tới.</p>
+                                    {% endfor %}
+                                     {# === Kết thúc vòng lặp === #}
+                                </div>
+                                <a href="{% url 'patient_appointments' request.user.first_name %}" {# Ví dụ URL tới tất cả lịch hẹn #} class="mt-2 d-block">Xem tất cả lịch hẹn &rarr;</a>
+                            </section>
+
+                            {# --- Phần Thông tin khác --- #}
+                             <section id="thong-tin-khac">
+                                 <h5 class="card-title mt-4 mb-3 border-bottom pb-2"><i class="fas fa-info-circle fa-fw me-2"></i>Thông Tin Khác</h5>
+                                <p><strong>Bảo hiểm y tế:</strong> {{ patient_profile.insurance_info|default:"Chưa cập nhật" }}</p>
+                                <p><strong>Liên hệ khẩn cấp:</strong> {{ patient_profile.emergency_contact|default:"Chưa cập nhật" }}</p>
+                            </section>
+
+                        </div>
+                        {# Footer của Card - Nút chỉnh sửa #}
+                        <div class="card-footer bg-light text-end">
+                            <a href="#cap-nhat" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-pencil-alt me-1"></i> Chỉnh sửa thông tin
+                            </a>
+                        </div>
+                    </div> {# end .card #}
+                </div> {# end .col-lg-9 #}
+
+            </div> {# end .row #}
+        </main>
+
+        {# === Footer === #}
+        <footer class="footer">
+             {% include "footer.html" %} {# Giả sử bạn có file footer.html #}
+        </footer>
+
+    </div> {# end .wrapper #}
+
+    {# Bootstrap JS Bundle #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
