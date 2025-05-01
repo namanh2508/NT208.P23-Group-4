@@ -12,3 +12,4 @@ djangorestframework-simplejwt
 PyJWT
 pytz
 python-dotenv
+google-generativeai

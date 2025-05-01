@@ -2,6 +2,13 @@ from django.shortcuts import render,get_object_or_404
 from requests import models
 import hospitalManagement.models
 from django.http import HttpResponseForbidden
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.conf import settings
+from .serializers import SymptomSerializer
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+import google.generativeai as genai
 # from django.contrib.auth.models import User
 # from rest_framework import generics
 # from .serializers import UserSerializer, NoteSerializer,PatientDischargeDetailsSerializer,DoctorSerializer,PatientSerializer,DoctorDetailSerializer
@@ -85,3 +92,19 @@ def patient_appointments_view(request,patientID):
         'appointments': appointments,
     }
     return render(request, '' , context) # thêm file.html để hiển thị các lịch hẹn của 1 patient
+
+genai.configure(api_key="AIzaSyDqT2XW78e3x_X4lKgXSgAzJEIdA64LUfE")
+
+model = genai.GenerativeModel(model_name="models/gemini-1.5-pro")
+
+class GeminiChatView(APIView):
+    def post(self, request):
+        message = request.data.get("message", "")
+        if not message:
+            return Response({"error": "No message provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            response = model.generate_content(message)
+            return Response({"reply": response.text})
+        except Exception as e:
+            return Response({"error": "Gemini API error", "details": str(e)}, status=500)

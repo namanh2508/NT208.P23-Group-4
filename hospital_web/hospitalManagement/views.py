@@ -265,6 +265,7 @@ def logout_view(request):
     logout(request)
     return redirect('index')
 
+
 #---------------------------------------------------------------------------------
 #------------------------ ADMIN RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
@@ -853,6 +854,9 @@ def all_doctors_view(request):
     doctors = models.Doctor.objects.all()  # Lấy tất cả bác sĩ từ database
     return render(request, 'all_doctors.html', {'doctors': doctors})
 
+
+
+
 # def patient_signup_view(request):
 #     userForm=forms.PatientUserForm()
 #     patientForm=forms.PatientForm()
@@ -1000,3 +1004,4 @@ def book_appointment(request):
         'page_title': 'Book an Appointment' # Optional: for template title
     }
     return render(request, 'patient_book_appointment.html', context) # CHANGE THIS template path
+

@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'hospitalManagement', 
     'widget_tweaks',
     'rest_framework', 
+    'corsheaders',
     
 ]
 AUTH_USER_MODEL = 'hospitalManagement.CustomUser'
@@ -76,8 +77,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'hospital_web.urls'
 
 TEMPLATES = [
@@ -107,7 +110,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
         'USER': 'postgres',      # Tên người dùng root
-        'PASSWORD': 'PhuongGiang2803',   # Mật khẩu root_pw
+        'PASSWORD': '',   # Mật khẩu root_pw
         'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
         'PORT': '5432',         # Cổng (mặc định là 5432)
     }
