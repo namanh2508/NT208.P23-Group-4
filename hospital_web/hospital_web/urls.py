@@ -13,7 +13,6 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('stafflogin/',views.home_view,name='index'),
     path('',views.index_view,name='index_home'),
-
     path('adminsignup/', views.admin_signup_view,name='adminsignup'),
     path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
     path('patientsignup/', views.patient_signup_view,name='patientsignup'),

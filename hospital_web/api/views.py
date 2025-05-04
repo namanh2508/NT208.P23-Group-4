@@ -9,6 +9,7 @@ from .serializers import SymptomSerializer
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 import google.generativeai as genai
+from django.views.generic import TemplateView
 # from django.contrib.auth.models import User
 # from rest_framework import generics
 # from .serializers import UserSerializer, NoteSerializer,PatientDischargeDetailsSerializer,DoctorSerializer,PatientSerializer,DoctorDetailSerializer
@@ -105,6 +106,15 @@ class GeminiChatView(APIView):
 
         try:
             response = model.generate_content(message)
-            return Response({"reply": response.text})
+            text_reply = ""
+            if hasattr(response, 'text'):
+                text_reply = response.text
+            elif hasattr(response, 'candidates'):
+                text_reply = response.candidates[0].content.parts[0].text
+
+            return Response({"reply": text_reply})
         except Exception as e:
             return Response({"error": "Gemini API error", "details": str(e)}, status=500)
+        
+class ChatPageView(TemplateView):
+    template_name = "chatbot.html"
