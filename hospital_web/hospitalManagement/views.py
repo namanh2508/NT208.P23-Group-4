@@ -17,7 +17,9 @@ from django.template.loader import get_template
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.models import SocialToken, SocialApp, SocialAccount
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 import secrets
 import requests
 # Create your views here.
@@ -109,35 +111,36 @@ def google_login_redirect(request):
         google_app = SocialApp.objects.get(provider='google')
         client_id = google_app.client_id
     except SocialApp.DoesNotExist:
-        client_id = '956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com'
+        client_id = settings.GOOGLE_CLIENT_ID
+
     redirect_uri = settings.SITE_URL + "/accounts/google/login/callback/"
-    # Generate a secure random state token
     state_token = secrets.token_urlsafe(16)
-    # Store state in the session for verification later
+
     request.session['oauth_state'] = state_token
-    request.session['oauth_role'] = role  # Store role in session
-    request.session.modified = True  # Ensure session updates
+    request.session['oauth_role'] = role
+    request.session.modified = True
+
     google_auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth?"
         f"client_id={client_id}&"
         f"redirect_uri={redirect_uri}&"
-        "scope=email%20profile&"
         "response_type=code&"
+        "scope=openid%20email%20profile%20https://www.googleapis.com/auth/calendar&"
         f"state={state_token}&"
-        "access_type=online"
-    ) 
+        "access_type=offline&"
+        "prompt=consent"
+    )
     return redirect(google_auth_url)
+
 
 def google_callback(request):
     stored_state = request.session.get('oauth_state')
     received_state = request.GET.get('state')
-
     if not stored_state or stored_state != received_state:
         return HttpResponse("Invalid state parameter", status=400)
-
     request.session.pop('oauth_state', None)
-    
-    role = request.session.get('oauth_role', 'PATIENT')  # Retrieve role from session
+
+    role = request.session.get('oauth_role', 'PATIENT')
 
     code = request.GET.get("code")
     if not code:
@@ -159,7 +162,9 @@ def google_callback(request):
         return HttpResponse("Failed to get access token", status=400)
 
     access_token = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token")  # Might be None if not first time
 
+    # Get user info
     user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
     headers = {"Authorization": f"Bearer {access_token}"}
     user_info_response = requests.get(user_info_url, headers=headers)
@@ -173,29 +178,71 @@ def google_callback(request):
     if not email:
         return HttpResponse("Failed to retrieve user email", status=400)
 
-    # Get or create the user
+    # Get or create user
     user, _ = models.CustomUser.objects.get_or_create(
-    username=email, defaults={"email": email, "first_name": name}
+        username=email, defaults={"email": email, "first_name": name}
     )
+
+    # Assign role
     if role == 'ADMIN':
-        admin, _ = models.Admin.objects.get_or_create(user=user)
-        user.is_staff = True  # Allow access to admin site
-        user.is_superuser = True  # Optionally make them a superuser for full access
-        user.save()
-    if role == 'PATIENT':
-        patient, _ = models.Patient.objects.get_or_create(user=user)
-    if role == 'DOCTOR':
-        doctor, _ = models.Doctor.objects.get_or_create(user=user)
-    # Add user to the group
+        models.Admin.objects.get_or_create(user=user)
+        user.is_staff = True
+        user.is_superuser = True
+    elif role == 'PATIENT':
+        models.Patient.objects.get_or_create(user=user)
+    elif role == 'DOCTOR':
+        models.Doctor.objects.get_or_create(user=user)
+
     group, _ = Group.objects.get_or_create(name=role)
     user.groups.add(group)
-    user.is_active=True
-    # Log the user in
+    user.is_active = True
     user.backend = 'django.contrib.auth.backends.ModelBackend'
     user.save()
     login(request, user)
+
+    #Save tokens to SocialToken for later use with Calendar API
+    app = SocialApp.objects.get(provider='google')
+    account, _ = SocialAccount.objects.get_or_create(
+        user=user,
+        provider='google',
+        uid=user_info['id']
+    )
+    SocialToken.objects.update_or_create(
+        app=app,
+        account=account,
+        defaults={
+            'token': access_token,
+            'token_secret': refresh_token or '',  # Store refresh_token safely
+        }
+    )
     return redirect('afterlogin')
 
+#check credentials before using calendarAPI
+def get_google_credentials(user):
+    try:
+        account = SocialAccount.objects.get(user=user, provider='google')
+        token = SocialToken.objects.get(account=account, app__provider='google')
+        app = SocialApp.objects.get(provider='google')
+
+        creds = Credentials(
+            token=token.token,
+            refresh_token=token.token_secret,
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=app.client_id,
+            client_secret=app.secret
+        )
+
+        # Refresh token if needed
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            # Save new access token
+            token.token = creds.token
+            token.save()
+
+        return creds
+
+    except (SocialAccount.DoesNotExist, SocialToken.DoesNotExist, SocialApp.DoesNotExist):
+        return None
 
 #login view
 def admin_login_view(request):

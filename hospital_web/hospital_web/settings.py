@@ -166,7 +166,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/afterlogin/'
 LOGOUT_REDIRECT_URL = '/'
 
- #--------------------------allauth setup
+ #--------------------------allauth setup & google calendar
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'
@@ -179,8 +179,8 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': '956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com',
             'secret': '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',
         },
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
+        'SCOPE': ['openid', 'profile', 'email', 'https://www.googleapis.com/auth/calendar'],
+        'AUTH_PARAMS': {'access_type': 'offline', 'prompt': 'consent'},
     }
 }
 # Google OAuth Settings
