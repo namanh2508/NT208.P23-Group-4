@@ -14,7 +14,7 @@ from hospitalManagement import models
 from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
-from .utils.image_classifier import detect_record_type_by_cnn
+
 from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm, UploadForm
 from django.template.loader import get_template
 from .models import AI_Metric, Doctor,Patient,Appointment,Service
