@@ -99,7 +99,9 @@ urlpatterns = [
     # path('my_profile/', views.patient_view_profile, name='my_profile'),
     # --------------------for patient dasboard:--------------------
     path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
-    path('medicines/', views.medicine_list_view, name='medicine_list'), # patient và doctor xài chức năng này
+    path('medicines/', views.medicine_list_view, name='medicine_list'),# patient và doctor xài chức năng này
+    path('chat/doctors/', views.get_chat_doctors, name='get_doctors'),
+    path('chat/room/<id>', views.get_or_create_chat_rooms_for_patient, name='get_rooms'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

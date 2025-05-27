@@ -22,6 +22,7 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 import secrets
 import requests
+from django.http import JsonResponse
 # Create your views here.
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -901,7 +902,51 @@ def all_doctors_view(request):
     doctors = models.Doctor.objects.all()  # Lấy tất cả bác sĩ từ database
     return render(request, 'all_doctors.html', {'doctors': doctors})
 
+# tạo hoặc join chat bệnh nhân & bác sĩ
+def get_or_create_chat_room(patient: models.Patient, doctor: models.Doctor):
+    room, created = models.ChatRoom.objects.get_or_create(patient=patient, doctor=doctor)
+    return room
+# chỉ cho phép bệnh nhân và bác sĩ có dịch vụ với nhau chat
+def can_chat(patient: models.Patient, doctor: models.Doctor) -> bool:
+    return models.Service.objects.filter(patient=patient, doctor=doctor).exists() or \
+           models.Record.objects.filter(patient=patient, doctor=doctor).exists()
+# lấy danh sách bác sĩ mà bệnh nhân có thể chat
+def get_doctors_patient_can_chat_with(patient: models.Patient):
+    # Get distinct doctors from Service and Record
+    doctors_from_services = models.Doctor.objects.filter(service__patient=patient).distinct()
+    doctors_from_records = models.Doctor.objects.filter(record__patient=patient).distinct()
+    
+    # Combine the two querysets
+    all_doctors = (doctors_from_services | doctors_from_records).distinct()
 
+    return all_doctors
+#tạo hoặc join phòng có bác sĩ phù hợp
+def get_or_create_chat_rooms_for_patient(patient: models.Patient):
+    doctors = get_doctors_patient_can_chat_with(patient)
+    chat_rooms = []
+
+    for doctor in doctors:
+        room, created = models.ChatRoom.objects.get_or_create(patient=patient, doctor=doctor)
+        chat_rooms.append(room)
+    return chat_rooms
+
+@login_required
+def get_chat_doctors(request):
+    user = request.user
+    if not hasattr(user, 'patient'):
+        return JsonResponse([], safe=False)
+
+    patient = user.patient
+    doctors = get_doctors_patient_can_chat_with(patient)
+    rooms = [models.ChatRoom.objects.get_or_create(patient=patient, doctor=doc)[0] for doc in doctors]
+
+    return JsonResponse([
+        {
+            'id': room.id,
+            'doctor_name': room.doctor.user.get_full_name(),
+        }
+        for room in rooms
+    ], safe=False)
 
 
 # def patient_signup_view(request):
