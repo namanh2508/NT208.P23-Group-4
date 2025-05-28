@@ -30,7 +30,7 @@ class CustomUserSignupForm(forms.ModelForm):
 
     class Meta:
         model = models.CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'birthday']
+        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'birthday', 'picture']
         labels = {
             'username': 'Tên đăng nhập',
             'email': 'Email',
@@ -38,6 +38,7 @@ class CustomUserSignupForm(forms.ModelForm):
             'last_name': 'Tên',
             'phone': 'Số điện thoại',
             'birthday': 'Ngày sinh',
+            'picture': 'Ảnh đại diện',
         }
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên đăng nhập'}),
@@ -46,6 +47,7 @@ class CustomUserSignupForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại'}),
             'birthday': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'picture': forms.FileInput(attrs={'class': 'form-control-file'}),
             # 'gender': forms.RadioSelect(choices=models.GENDER),
         }
 
@@ -381,12 +383,6 @@ class PatientUserForm(CustomUserUpdateForm):
 class AppointmentBookingForm(forms.ModelForm):
     # Customize the Doctor field to show readable names
     # Use ModelChoiceField to get a dropdown of doctors
-    doctor = forms.ModelChoiceField(
-        queryset=Doctor.objects.select_related('user').all(), # Optimize query
-        label="Select Doctor",
-        empty_label="-- Choose a Doctor --",
-        widget=forms.Select(attrs={'class': 'form-control'}) # Add CSS class if using Bootstrap etc.
-    )
 
     # Customize appointmentDate field
     appointmentDate = forms.DateField(
@@ -445,7 +441,7 @@ class AppointmentBookingForm(forms.ModelForm):
     class Meta:
         model = Service
         # Fields the PATIENT needs to fill out when booking
-        fields = ['doctor', 'appointmentDate', 'appointmentTime','method','type', 'description']
+        fields = ['appointmentDate', 'appointmentTime','method','type', 'description']
         # Note: 'patient' will be set automatically in the view based on the logged-in user.
         # 'status' will be set to 'pending' automatically.
 

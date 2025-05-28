@@ -81,6 +81,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'hospital_web.urls'
+CSRF_TRUSTED_ORIGINS = [
+    'https://deep-urchin-plainly.ngrok-free.app',
+    # Thêm các domain khác nếu cần, ví dụ domain production của bạn sau này
+    # 'https://your-production-domain.com',
+]
 
 TEMPLATES = [
     {
@@ -104,17 +109,29 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
+# DATABASES = {
     
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'defaultdb',  # Tên cơ sở dữ liệu
+#         'USER': 'avnadmin',      # Tên người dùng root
+#         'PASSWORD': 'AVNS_OFptgXjJKY7U1I642x4',   # Mật khẩu root_pw
+#         'HOST': 'pg-22aad830-gm-cd7f.h.aivencloud.com',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
+#         'PORT': '21644',         # Cổng (mặc định là 5432)
+#     }
+# }a
+
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
-        'USER': 'postgres',      # Tên người dùng root
-        'PASSWORD': 'giang2005@',   # Mật khẩu root_pw
-        'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
-        'PORT': '5432',         # Cổng (mặc định là 5432)
+        'NAME': 'hospitaldb',         # Tên database bạn đặt ở POSTGRES_DB
+        'USER': 'myuser',            # Tên user bạn đặt ở POSTGRES_USER
+        'PASSWORD': 'mypassword',      # Mật khẩu bạn đặt ở POSTGRES_PASSWORD
+        'HOST': 'localhost',           # Hoặc '127.0.0.1'
+        'PORT': '5433',              # Cổng host bạn đã ánh xạ ở lệnh docker run (phần trước dấu :)
     }
 }
+
 
 
 # Password validation
@@ -141,7 +158,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "Asia/Bangkok"
 
 USE_I18N = True
 
