@@ -197,3 +197,11 @@ SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict' may block OAuth redirects
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True
 # AUTH_USER_MODEL = 'UserManagement.Users'
+
+#OTP
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'stmp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'giangcam2005@gmail.com'
+EMAIL_HOST_PASSWORD = 'fups hspf fems wlje'
