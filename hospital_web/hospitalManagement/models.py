@@ -5,7 +5,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User,Permission,Group
 from decimal import Decimal
-from opentok import OpenTok, MediaModes, Roles, OpenTokException
+
 
 DEPARTMENT= [
     ('bac_si_tim_mach', 'Bác sĩ Tim mạch'),
@@ -122,75 +122,7 @@ class Service(models.Model):
     def get_type(self):
         return dict(TYPE_OF_SERVICE).get(self.type, 'Unknown')
     
-#---------Room meeting----------
-class Room(models.Model):
-    doctor = models.OneToOneField(
-    Doctor, 
-    on_delete=models.CASCADE, 
-    related_name='video_room', # Tên truy cập ngược từ Doctor: doctor_instance.video_room
-    verbose_name="Bác sĩ chủ phòng"
-    )
-    vonage_session_id = models.CharField(
-        max_length=255, 
-        unique=True, # Mỗi session ID là duy nhất
-        blank=True, # Sẽ được tạo sau, hoặc khi Doctor được tạo
-        null=True,  # Có thể null ban đầu
-        help_text="Vonage Session ID cho phòng video của bác sĩ này."
-    )
-    last_activated_at = models.DateTimeField(
-        null=True, blank=True,
-        help_text="Thời điểm cuối cùng session này được kích hoạt hoặc tạo."
-    )
-    is_active = models.BooleanField(
-        default=False, # Bác sĩ có thể cần "mở" hoặc "đóng" phòng
-        help_text="Phòng có đang hoạt động không (ví dụ: bác sĩ có đang online không?)"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"Phòng video của BS. {self.doctor.user.get_full_name()} - Session: {self.vonage_session_id if self.vonage_session_id else 'Chưa tạo'}"
-
-    def get_or_create_vonage_session(self, opentok_sdk=None):
-        """
-        Lấy sessionId đã có, hoặc tạo mới nếu chưa có và lưu lại.
-        Cần truyền vào opentok_sdk_instance đã được khởi tạo.
-        """
-        if self.vonage_session_id:
-            # Có thể thêm logic kiểm tra xem session trên Vonage có còn tồn tại không nếu cần
-            # và cập nhật last_activated_at
-            self.last_activated_at = timezone.now() # Ví dụ
-            self.is_active = True # Ví dụ
-            self.save(update_fields=['last_activated_at', 'is_active'])
-            return self.vonage_session_id
-
-        if not opentok_sdk: # Cần có instance của OpenTok SDK
-            if settings.VONAGE_API_KEY and settings.VONAGE_API_SECRET:
-                opentok_sdk = OpenTok(settings.VONAGE_API_KEY, settings.VONAGE_API_SECRET)
-            else:
-                print("Lỗi: VONAGE_API_KEY hoặc VONAGE_API_SECRET chưa được cấu hình.")
-                return None
-        
-        try:
-            # Tạo session với media mode routed (tốt cho nhiều người hoặc ghi âm)
-            session = opentok_sdk.create_session(media_mode=MediaModes.routed)
-            self.vonage_session_id = session.session_id
-            self.last_activated_at = timezone.now()
-            self.is_active = True
-            self.save() # Lưu session ID mới vào database
-            print(f"Đã tạo và lưu Vonage Session ID mới cho phòng của BS {self.doctor.user.username}: {self.vonage_session_id}")
-            return self.vonage_session_id
-        except OpenTokException as e:
-            print(f"Lỗi khi tạo Vonage Session ID cho phòng của BS {self.doctor.user.username}: {e}")
-            return None
-        except Exception as e_general: # Bắt lỗi chung khác
-            print(f"Lỗi không xác định khi tạo Vonage Session: {e_general}")
-            return None
-
-
-    class Meta:
-        verbose_name = "Phòng Video Call"
-        verbose_name_plural = "Các Phòng Video Call"
     
 
 

@@ -8,7 +8,7 @@ from django.utils import timezone
 from datetime import timedelta, datetime, time
 from django.contrib.auth.decorators import login_required,user_passes_test
 # Import các model từ app hospitalManagement (hoặc app chứa model của bạn)
-from hospitalManagement.models import Appointment, Service, Patient, Doctor, CustomUser, Room # Thêm Room
+from hospitalManagement.models import Appointment, Service, Patient, Doctor, CustomUser 
 # Import từ thư viện OpenTok (Vonage)
 
 from hospitalManagement import models
