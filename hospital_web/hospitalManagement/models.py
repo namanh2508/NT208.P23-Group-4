@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User,Permission,Group
 from decimal import Decimal
-
+from django.utils import timezone
 DEPARTMENT= [
     ('bac_si_tim_mach', 'Bác sĩ Tim mạch'),
     ('bac_si_da_lieu', 'Bác sĩ Da liễu'),
@@ -193,8 +193,27 @@ class Bill(models.Model):
     method = models.CharField(max_length=50,blank=True, null=True) # Phương thức thanh toán
     def __str__(self):
         return f"Bill for {self.patient.user.get_full_name()} on {self.release_date}"
+#-------------------- Phòng chat bác sĩ & bệnh nhân --------------------
+class ChatRoom(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='chat_rooms')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='chat_rooms')
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('patient', 'doctor')  # One room per doctor-patient pair
 
+    def __str__(self):
+        return f"ChatRoom between {self.patient.user.get_full_name()} and Dr. {self.doctor.user.get_full_name()}"
+
+#-------------------- tin nhắn --------------------
+class Message(models.Model):
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # can be either patient or doctor
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Message from {self.sender.get_full_name()} at {self.timestamp}"
 
 
 

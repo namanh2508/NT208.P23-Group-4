@@ -5,7 +5,7 @@ from django.http import HttpResponseForbidden
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.conf import settings
-from .serializers import SymptomSerializer
+# from .serializers import SymptomSerializer
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 import google.generativeai as genai
@@ -94,7 +94,7 @@ def patient_appointments_view(request,patientID):
     }
     return render(request, '' , context) # thêm file.html để hiển thị các lịch hẹn của 1 patient
 
-genai.configure(api_key="AIzaSyDqT2XW78e3x_X4lKgXSgAzJEIdA64LUfE")
+genai.configure(api_key="AIzaSyCyJiVy8beS2XiDEBz7vosPP5Sh65yp5zU")
 
 model = genai.GenerativeModel(model_name="models/gemini-1.5-pro")
 

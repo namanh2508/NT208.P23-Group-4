@@ -1,0 +1,60 @@
+﻿<!-- Chat Widget -->
+<div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+    <!-- Floating Icon -->
+    <button id="chat-toggle" style="width: 60px; height: 60px; border-radius: 50%; background-color: #007bff; color: white; border: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+        💬
+    </button>
+
+    <!-- Chat Box -->
+    <div id="chat-box" style="display: none; position: absolute; bottom: 70px; right: 0; width: 300px; background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
+        <div style="background-color: #007bff; color: white; padding: 10px; text-align: center;">
+            Chat With Your Doctors
+        </div>
+        <div id="doctor-list" style="max-height: 200px; overflow-y: auto; padding: 10px;">
+            <!-- Doctors dynamically loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle chat box
+    document.getElementById('chat-toggle').addEventListener('click', function () {
+        var box = document.getElementById('chat-box');
+        box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
+    });
+
+    // Load doctor list dynamically
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch('/chat/doctors/')  // your Django view URL here
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById('doctor-list');
+                list.innerHTML = '';
+                if (data.length === 0) {
+                    list.innerHTML = '<p>No available doctors.</p>';
+                    return;
+                }
+                data.forEach(doctor => {
+                    const btn = document.createElement('button');
+                    btn.innerText = '💬 ' + doctor.doctor_name;
+                    btn.style.display = 'block';
+                    btn.style.marginBottom = '10px';
+                    btn.style.padding = '8px';
+                    btn.style.width = '100%';
+                    btn.style.border = '1px solid #007bff';
+                    btn.style.borderRadius = '5px';
+                    btn.style.backgroundColor = 'white';
+                    btn.style.color = '#007bff';
+                    btn.style.cursor = 'pointer';
+                    btn.addEventListener('click', function () {
+                        window.location.href = `/chat/room/${doctor.id}/`;  // Redirect to specific chat room
+                    });
+                    list.appendChild(btn);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching doctors:', error);
+                document.getElementById('doctor-list').innerHTML = '<p>Error loading doctors.</p>';
+            });
+    });
+</script>

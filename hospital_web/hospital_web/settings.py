@@ -107,12 +107,15 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_db',  # Tên cơ sở dữ liệu
-        'USER': 'postgres',      # Tên người dùng root
-        'PASSWORD': '',   # Mật khẩu root_pw
-        'HOST': 'localhost',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
-        'PORT': '5432',         # Cổng (mặc định là 5432)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'defaultdb',
+        'USER': 'avnadmin',
+        'PASSWORD': 'AVNS_ZObnXMuxHluI5Skkd08',
+        'HOST': 'pg-1d1a530d-gm-cd7f.h.aivencloud.com',
+        'PORT': '21644',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
 
@@ -171,21 +174,8 @@ SESSION_ENGINE = "django.contrib.sessions.backends.db"
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'
 ]
-SITE_ID = 1 #allauth required
-SITE_URL = 'http://127.0.0.1:8000'
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': '956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com',
-            'secret': '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',
-        },
-        'SCOPE': ['openid', 'profile', 'email', 'https://www.googleapis.com/auth/calendar'],
-        'AUTH_PARAMS': {'access_type': 'offline', 'prompt': 'consent'},
-    }
-}
-# Google OAuth Settings
-GOOGLE_CLIENT_ID = "956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "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"
+SITE_ID = 1  # Required by django-allauth
+SITE_URL = 'http://127.0.0.1:8000'  # Used for building redirect_uri
 
 # Set a secure session cookie
 SESSION_COOKIE_SECURE = False  # Set to False only in local development
