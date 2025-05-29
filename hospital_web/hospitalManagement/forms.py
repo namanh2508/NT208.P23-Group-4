@@ -420,7 +420,7 @@ class AppointmentBookingForm(forms.ModelForm):
     
     method = forms.ChoiceField(
         choices=APPOINTMENT_METHOD,
-        label="hình thức cuộc hẹn",
+        label="Method of Appointment",
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
