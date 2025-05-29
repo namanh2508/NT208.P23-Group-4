@@ -1,0 +1,80 @@
+{% load static %}
+{% load widget_tweaks %}
+<html>
+
+<head>
+    <style>
+        #root {
+            width: 100vw;
+            height: 100vh;
+            }
+    </style>
+</head>
+
+
+<body>
+    <div id="root"></div>
+    {{ room_id|json_script:"room-id" }}
+    {{ user.username|json_script:"user-name" }}
+    {{role|json_script:"user-role"}}
+</body>
+<script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+<script>
+window.onload = function () {
+    function getUrlParams(url) {
+        let urlStr = url.split('?')[1];
+        const urlSearchParams = new URLSearchParams(urlStr);
+        const result = Object.fromEntries(urlSearchParams.entries());
+        return result;
+    }
+
+
+        // Generate a Token by calling a method.
+        // @param 1: appID
+        // @param 2: serverSecret
+        // @param 3: Room ID
+        // @param 4: User ID
+        // @param 5: Username
+    const roomIDstring = JSON.parse(document.getElementById('room-id').textContent);
+    const roomID = String(roomIDstring);
+    const userID = JSON.parse(document.getElementById('user-name').textContent);
+    console.log("user ID:", JSON.parse(document.getElementById('user-name').textContent))
+    const userName = JSON.parse(document.getElementById('user-name').textContent);
+    const appID = 320383113;
+    const serverSecret = "84318098c1f104829f5a59a9037a2447";
+    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
+    const role = JSON.parse(document.getElementById('user-role').textContent);
+    let return_Url = '/';
+    if (role == 'doctor'){
+        return_Url = '/doctor-dashboard/';
+    }
+    const zp = ZegoUIKitPrebuilt.create(kitToken);
+        zp.joinRoom({
+            container: document.querySelector("#root"),
+            sharedLinks: [{
+                name: 'Personal link',
+                url: window.location.protocol + '//' + window.location.host  + window.location.pathname + '?roomID=' + roomID,
+            }],
+            scenario: {
+                mode: ZegoUIKitPrebuilt.VideoConference,
+            },
+            onReturnToHomeScreenClicked: () => {
+                window.location.href = return_Url;
+            },  
+           	turnOnMicrophoneWhenJoining: true,
+           	turnOnCameraWhenJoining: true,
+           	showMyCameraToggleButton: true,
+           	showMyMicrophoneToggleButton: true,
+           	showAudioVideoSettingsButton: true,
+           	showScreenSharingButton: true,
+           	showTextChat: true,
+           	showUserList: true,
+           	maxUsers: 50,
+           	layout: "Auto", 
+           	showLayoutButton: true,
+            showPreJoinView: true,
+            });
+}
+</script>
+
+</html>

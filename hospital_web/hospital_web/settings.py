@@ -124,11 +124,11 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospitaldb',         # Tên database bạn đặt ở POSTGRES_DB
-        'USER': 'myuser',            # Tên user bạn đặt ở POSTGRES_USER
-        'PASSWORD': 'mypassword',      # Mật khẩu bạn đặt ở POSTGRES_PASSWORD
+        'NAME': 'hospital_db',         # Tên database bạn đặt ở POSTGRES_DB
+        'USER': 'postgres',            # Tên user bạn đặt ở POSTGRES_USER
+        'PASSWORD': 'namanh2508',      # Mật khẩu bạn đặt ở POSTGRES_PASSWORD
         'HOST': 'localhost',           # Hoặc '127.0.0.1'
-        'PORT': '5433',              # Cổng host bạn đã ánh xạ ở lệnh docker run (phần trước dấu :)
+        'PORT': '5432',              # Cổng host bạn đã ánh xạ ở lệnh docker run (phần trước dấu :)
     }
 }
 

@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="vi"> {# Thay lang="en" thành lang="vi" cho tiếng Việt #}
+<html lang="vi">
 
 <head>
-
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IV-Medical</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
-    {# Toàn bộ CSS tổng hợp #}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IV-Medical</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
     <style>
         html,
         body {
@@ -15,19 +13,9 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            font-family: Arial, sans-serif; /* Có thể chọn font khác */
-            scroll-behavior: smooth; /* Cuộn trang mượt hơn */
+            font-family: Arial, sans-serif;
+            scroll-behavior: smooth;
         }
-        .navbar {
-      background-color: #7aaed0 !important;
-    }
-    .navbar-nav .nav-link {
-      color: #ffffff !important;
-      margin-right: 50px;
-      transition: color 0.3s ease;
-      font-family: Arial, Helvetica, sans-serif;
-      font-weight: bold;
-    }
 
         .wrapper {
             flex: 1;
@@ -36,188 +24,83 @@
         }
 
         main {
-            flex: 1; /* Đảm bảo main chiếm không gian còn lại */
+            flex: 1; 
         }
 
+        .btn-create-account:hover {
+            background-color: #6366F1;
+            color: #FFD700;
+        }
+        /* CSS cho html, body bị lặp lại, đã xóa một lần ở trên */
 
-    .btn-create-account:hover {
-      background-color: #6366F1;
-      color: #FFD700;
-    }
-    html, body {
-      height: 100%;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-}
-
-        .footer { /* Class này có thể cần trong footer.html */
+        .footer { 
             background-color: #f8f9fa;
             padding: 10px 0;
             text-align: center;
             margin-top: auto;
-            /* Đẩy footer xuống cuối */
         }
-
-
-        /* --- CSS cho Navbar (từ patient_navbar.html nếu có và CSS cũ) --- */
-        /* Giả định .navbar, .navbar-nav, .nav-link được định nghĩa trong Bootstrap hoặc file include */
-        .navbar-nav .nav-link {
-            color: white;
-            margin-right: 20px;
-            transition: color 0.3s ease;
-            font-weight: 500; /* Thêm độ dày chữ */
-        }
-
-        .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link.active { /* Thêm class active nếu có */
-            color: #FFD700; /* Màu vàng nổi bật khi hover/active */
-        }
-
-        .navbar-brand {
-            padding-top: 5px;
-            padding-bottom: 5px;
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar-logo-img {
-            height: 40px; /* Điều chỉnh chiều cao logo */
-            width: auto;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        .btn-profile {
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-        }
-
-        .profile-icon {
-            width: 28px; /* Tăng nhẹ kích thước icon profile */
-            height: 28px;
-            filter: brightness(0) invert(1); /* Chuyển icon profile thành màu trắng */
-        }
-
-        .navbar-nav .nav-item {
-            position: relative;
-        }
-
-        /* Sidebar dropdown menu */
-        #sidebarMenu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            z-index: 1050; /* Đảm bảo cao hơn các element khác */
-            /* display: none; được quản lý bởi .collapse */
-        }
-
-        .sidebar {
-            background-color: #ffffff; /* Nền trắng */
-            padding: 8px;
-            border-radius: 8px;
-            width: 180px; /* Tăng chiều rộng sidebar */
-            text-align: left; /* Căn trái chữ trong sidebar */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-            border: 1px solid #e9ecef; /* Thêm viền nhẹ */
-        }
-
-        .sidebar-nav .nav-link {
-             color: #212529 !important; /* Màu chữ đen (quan trọng để ghi đè style inline cũ) */
-             padding: 8px 12px; /* Tăng padding */
-             font-size: 0.95em; /* Tăng nhẹ kích thước chữ */
-             display: block; /* Đảm bảo chiếm cả dòng */
-             text-decoration: none;
-             border-radius: 4px; /* Bo góc nhẹ cho link */
-             transition: background-color 0.2s ease;
-         }
-
-         .sidebar-nav .nav-link:hover {
-             background-color: #e9ecef; /* Màu nền khi hover */
-             color: #0056b3 !important; /* Đổi màu chữ khi hover */
-         }
-
-        .btn-create-account {
-            background-color: #FFD700;
-            color: #0d6efd; /* Màu xanh dương gốc của primary */
-            font-weight: bold;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            border: none; /* Bỏ border nếu không cần */
-        }
-
-        .btn-create-account:hover {
-            background-color: #ffca2c; /* Màu vàng nhạt hơn khi hover */
-            color: #0b5ed7;
-        }
-        /* --- Kết thúc CSS Navbar --- */
-
 
         /* --- CSS cho Hero Banner --- */
         .hero-banner {
-             /* Style inline đã khá đủ, có thể giữ nguyên hoặc chuyển vào đây */
+            /* Style inline đã khá đủ, có thể giữ nguyên hoặc chuyển vào đây */
         }
         /* --- Kết thúc CSS Hero Banner --- */
 
-
         /* --- CSS cho Decorative Gallery 1 --- */
         .decorative-gallery-1 {
-             /* Style inline đã khá đủ */
+            /* Style inline đã khá đủ */
         }
-         .decorative-gallery-1 img:hover {
+        .decorative-gallery-1 img:hover {
             transform: scale(1.03) translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Tăng bóng đổ khi hover */
-         }
-         .decorative-gallery-1 figcaption { /* Style chung cho figcaption */
-             padding-top: 12px; /* Tăng khoảng cách */
-             font-weight: 600; /* Đậm vừa */
-             font-size: 1em;
-             color: #495057;
-             line-height: 1.4;
-         }
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); 
+        }
+        .decorative-gallery-1 figcaption { 
+            padding-top: 12px; 
+            font-weight: 600; 
+            font-size: 1em;
+            color: #495057;
+            line-height: 1.4;
+        }
         /* --- Kết thúc CSS Decorative Gallery 1 --- */
 
-
-         /* --- CSS cho Decorative Gallery 2 --- */
-         .decorative-gallery-2 {
-             /* Style inline đã khá đủ */
-         }
-         /* --- Kết thúc CSS Decorative Gallery 2 --- */
-
+        /* --- CSS cho Decorative Gallery 2 --- */
+        .decorative-gallery-2 {
+            /* Style inline đã khá đủ */
+        }
+        /* --- Kết thúc CSS Decorative Gallery 2 --- */
 
         /* --- CSS CHO CAROUSEL BÁC SĨ --- */
         .carousel-container {
-          width: 100%;
-          max-width: 960px; /* (290 * 3) + (30 * 2) = 930px. Có thể tăng nhẹ lên 960 */
-          margin: 0 auto;
-          overflow: hidden;
-          position: relative;
+            width: 100%;
+            max-width: 960px; 
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
         }
 
         .carousel {
-          display: flex;
-          transition: transform 0.5s ease-in-out;
+            display: flex;
+            transition: transform 0.5s ease-in-out;
         }
 
         .doctor-card {
-          flex-shrink: 0;
-          width: 290px;
-          margin-right: 30px;
-          background-color: #ffffff; /* Nền trắng cho card */
-          border: 1px solid #e9ecef; /* Thêm viền nhẹ */
-          border-radius: 10px;
-          overflow: hidden;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.07);
-          text-align: center;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
+            flex-shrink: 0;
+            width: 290px;
+            margin-right: 30px;
+            background-color: #ffffff; 
+            border: 1px solid #e9ecef; 
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .carousel .doctor-card:last-child {
-          margin-right: 0;
+            margin-right: 0;
         }
 
-        .doctor-card img { /* Style cho ảnh bác sĩ */
+        .doctor-card img { 
             width: 100%;
             height: 260px;
             object-fit: cover;
@@ -226,74 +109,84 @@
         }
 
         .doctor-card .doctor-info {
-          padding: 20px 15px;
+            padding: 20px 15px;
         }
 
         .doctor-card h3 {
-          font-size: 1.3em; /* Giảm nhẹ size chữ */
-          margin-top: 0;
-          margin-bottom: 5px;
-          color: #0056b3;
+            font-size: 1.3em; 
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #0056b3;
         }
 
         .doctor-card .specialty {
-          font-size: 0.95em; /* Giảm nhẹ size chữ */
-          color: #1a73e8;
-          margin-bottom: 12px; /* Giảm khoảng cách */
-          font-weight: 500;
-          display: block;
-          min-height: 20px; /* Giữ khoảng trống nếu chuyên khoa ngắn */
+            font-size: 0.95em; 
+            color: #1a73e8;
+            margin-bottom: 12px; 
+            font-weight: 500;
+            display: block;
+            min-height: 20px; 
         }
 
         .doctor-card .desc {
-          font-size: 0.85em; /* Giảm nhẹ size chữ */
-          color: #6c757d; /* Màu chữ xám hơn */
-          line-height: 1.5;
-          height: 4.5em; /* Giới hạn chiều cao cố định (khoảng 3 dòng) */
-          margin-bottom: 15px; /* Giảm khoảng cách */
-          overflow: hidden;
-          text-overflow: ellipsis;
-          /* Kỹ thuật giới hạn dòng hiệu quả hơn trong một số trường hợp */
-           display: -webkit-box;
-           -webkit-line-clamp: 3; /* Giới hạn 3 dòng */
-           -webkit-box-orient: vertical;
+            font-size: 0.85em; 
+            color: #6c757d; 
+            line-height: 1.5;
+            height: 4.5em; 
+            margin-bottom: 15px; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3; 
+            -webkit-box-orient: vertical;
         }
 
         .doctor-card .profile-link {
-          background-color: #1a73e8;
-          color: white;
-          padding: 8px 18px; /* Giảm nhẹ padding */
-          text-decoration: none;
-          border-radius: 50px;
-          font-size: 0.85em; /* Giảm nhẹ size chữ */
-          font-weight: 500;
-          transition: background-color 0.2s ease;
-          display: inline-block;
+            background-color: #1a73e8;
+            color: white;
+            padding: 8px 18px; 
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 0.85em; 
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            display: inline-block;
         }
 
-         .doctor-card .profile-link:hover {
-             background-color: #0056b3;
-         }
+        .doctor-card .profile-link:hover {
+            background-color: #0056b3;
+        }
 
-         .doctor-card:hover {
+        .doctor-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
         }
         /* --- KẾT THÚC CSS CAROUSEL --- */
 
+        /* CSS cho nút btn-create-account (giữ lại vì không rõ có thuộc navbar không) */
+        .btn-create-account {
+            background-color: #FFD700;
+            color: #0d6efd; 
+            font-weight: bold;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border: none; 
+        }
+
+        .btn-create-account:hover {
+            background-color: #ffca2c; 
+            color: #0b5ed7;
+        }
+
     </style>
 </head>
 
 <body>
-    {# Load static tag ngay đầu body hoặc sau include navbar #}
     {% load static %}
 
     <div class="wrapper">
 
-        {# Include Navbar #}
         {% include "patient_navbar.html" %}
 
-        {# Phần nội dung chính của trang #}
         <main>
             {# --- Hero Banner --- #}
             <section class="hero-banner" style="position: relative; text-align: center; color: white;
@@ -309,15 +202,15 @@
                 <div style="display: flex; justify-content: center; align-items: flex-start; gap: 25px; flex-wrap: wrap; text-align: center;">
                     <figure style="margin: 0; width: 400px;">
                         <img src="{% static 'images/hinh phong vip.jpg' %}" alt="Phòng bệnh tiện nghi" style="display: block; width: 100%; height: 280px; object-fit: cover; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); transition: transform 0.3s ease;">
-                        <figcaption> Phòng Bệnh VIP Sang Trọng & Tiện Nghi </figcaption> {# CSS cho figcaption đã có trong style chung #}
+                        <figcaption> Phòng Bệnh VIP Sang Trọng & Tiện Nghi </figcaption>
                     </figure>
                     <figure style="margin: 0; width: 400px;">
                         <img src="{% static 'images/lobby.jpg' %}" alt="Sảnh chờ thoáng đãng" style="display: block; width: 100%; height: 280px; object-fit: cover; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); transition: transform 0.3s ease;">
-                         <figcaption> Sảnh Chờ Rộng Rãi và Thoáng Đãng Hiện Đại </figcaption>
+                        <figcaption> Sảnh Chờ Rộng Rãi và Thoáng Đãng Hiện Đại </figcaption>
                     </figure>
                     <figure style="margin: 0; width: 400px;">
                         <img src="{% static 'images/csvc.jpg' %}" alt="Trang thiết bị tiên tiến" style="display: block; width: 100%; height: 280px; object-fit: cover; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); transition: transform 0.3s ease;">
-                         <figcaption> Trang Thiết Bị Y Tế Tiên Tiến Bậc Nhất </figcaption>
+                        <figcaption> Trang Thiết Bị Y Tế Tiên Tiến Bậc Nhất </figcaption>
                     </figure>
                 </div>
             </section>
@@ -335,75 +228,62 @@
                 </div>
             </section>
 
-             {# --- Phần Giới thiệu Bác sĩ Carousel --- #}
-            <section class="featured-doctors" style="padding: 70px 20px; background-color: #f0f4ff;"> {# Đổi màu nền nhẹ #}
+            {# --- Phần Giới thiệu Bác sĩ Carousel --- #}
+            <section class="featured-doctors" style="padding: 70px 20px; background-color: #f0f4ff;">
                 <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 50px; color: #333;"> Gặp Gỡ Đội Ngũ Bác Sĩ Chuyên Môn Của Chúng Tôi </h2>
-                {# Container để giới hạn chiều rộng và ẩn overflow #}
                 <div class="carousel-container">
-                    {# Container chứa các card và sẽ được dịch chuyển #}
                     <div class="carousel" id="doctorCarousel">
-                         {# Vòng lặp Django để render các card bác sĩ #}
-                         {% for doctor in doctors %}
-                         <div class="doctor-card">
-                             {# Sửa alt text #}
-                             <img src="{{ doctor.profile_pic.url }}" alt="Ảnh Bác sĩ {{ doctor.user.get_full_name }}">
-                             {# Thêm class để CSS dễ hơn #}
-                             <div class="doctor-info">
-                                 <h3>{{ doctor.user.last_name }} {{ doctor.user.first_name }}</h3>
-                                 <p class="specialty">{{ doctor.get_department_display }}</p>
-                                 <p class="desc">{{ doctor.about }}</p>
-                                 <a href="/doctor/{{doctor.id}}" class="profile-link">Đăt lịch ngay</a> 
-                             </div>
-                         </div>
-                         {% endfor %}
+                        {% for doctor in doctors %}
+                        <div class="doctor-card">
+                            <img src="{{ doctor.user.picture.url }}" alt="Ảnh Bác sĩ {{ doctor.user.get_full_name }}">
+                            <div class="doctor-info">
+                                <h3>{{doctor.user.get_full_name}}</h3>
+                                
+                                <p class="specialty">{{ doctor.get_department_display }}</p>
+                                <p><i>{{doctor.description}}</i></p>
+                                <p class="desc">{{ doctor.about }}</p>
+                                <a href="/doctor/{{doctor.id}}" class="profile-link">Đăt lịch ngay</a> 
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {# Nút xem tất cả bác sĩ #}
                 <div style="text-align: center; margin-top: 50px;">
-                     <a href="{% url 'all_doctors' %}" {# Sử dụng url tag nếu có #} style="background-color: #6c757d; color: white; padding: 13px 35px; text-decoration: none; border-radius: 50px; font-size: 1.1em; font-weight: 500; transition: background-color 0.3s ease;"> Xem Danh Sách Bác Sĩ </a>
-                 </div>
+                    <a href="{% url 'all_doctors' %}" style="background-color: #6c757d; color: white; padding: 13px 35px; text-decoration: none; border-radius: 50px; font-size: 1.1em; font-weight: 500; transition: background-color 0.3s ease;"> Xem Danh Sách Bác Sĩ </a>
+                </div>
             </section>
-
         </main>
 
-         {# Include Footer #}
         {% include "footer.html" %}
+    </div> 
 
-    </div> {# end .wrapper #}
-
-    {# Link tới Bootstrap JS (cần cho navbar collapse và sidebar collapse) #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    {# JavaScript cho Carousel Bác sĩ #}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const carousel = document.getElementById('doctorCarousel');
             if (carousel) {
                 const cards = carousel.getElementsByClassName('doctor-card');
                 const totalCards = cards.length;
-                const cardsPerView = 3; // Số card hiển thị mỗi lần
-
-                if (totalCards > cardsPerView) { // Chỉ chạy carousel nếu có nhiều card hơn số lượng hiển thị
-                    // Tính toán các giá trị cần thiết một cách an toàn hơn
-                    let cardMarginRight = 30; // Giá trị dự phòng
-                    let cardWidth = 290;      // Giá trị dự phòng
-                    if (cards[0]) { // Kiểm tra xem có card nào không
+                const cardsPerView = 3; 
+                console.log(`Tổng số bác sĩ: ${totalCards}, Số bác sĩ hiển thị mỗi lần: ${cardsPerView}`);
+                if (totalCards > cardsPerView) { 
+                    let cardMarginRight = 30; 
+                    let cardWidth = 290;       
+                    if (cards[0]) { 
                         const cardStyle = window.getComputedStyle(cards[0]);
                         cardMarginRight = parseFloat(cardStyle.marginRight) || 30;
                         cardWidth = parseFloat(cardStyle.width) || 290;
                     }
 
-                    const cardMovementWidth = cardWidth + cardMarginRight; // Tổng chiều rộng chiếm dụng của 1 card
-                    const totalSlides = Math.ceil(totalCards / cardsPerView); // Tổng số "trang" slide
+                    const cardMovementWidth = cardWidth + cardMarginRight; 
+                    const totalSlides = Math.ceil(totalCards / cardsPerView); 
                     let currentSlideIndex = 0;
 
                     function goToSlide(slideIndex) {
                         const offset = -slideIndex * cardsPerView * cardMovementWidth;
-                         // Kiểm tra offset để không trượt quá giới hạn cuối cùng nếu tổng số card không chia hết cho cardsPerView
-                         // Tính toán offset tối đa có thể trượt
                         const maxOffset = -(totalCards - cardsPerView) * cardMovementWidth;
-                        const correctedOffset = Math.max(offset, maxOffset); // Đảm bảo không trượt quá ảnh cuối
-
+                        const correctedOffset = Math.max(offset, maxOffset); 
                         carousel.style.transform = `translateX(${correctedOffset}px)`;
                     }
 
@@ -411,19 +291,16 @@
                         currentSlideIndex = (currentSlideIndex + 1) % totalSlides;
                         goToSlide(currentSlideIndex);
                     }
-
-                    setInterval(autoSlide, 5000); // 5 giây
+                    setInterval(autoSlide, 5000); 
                 } else {
-                     console.log("Số lượng bác sĩ không đủ để tạo carousel trượt.");
-                     // Có thể thêm CSS để căn giữa nếu chỉ có 1-3 bác sĩ
-                     if (totalCards > 0 && totalCards <= cardsPerView) {
-                         carousel.parentElement.style.justifyContent = 'center'; // Căn giữa container nếu ít card
-                         carousel.style.justifyContent = 'center'; // Căn giữa các card trong carousel
-                     }
+                    console.log("Số lượng bác sĩ không đủ để tạo carousel trượt.");
+                    if (totalCards > 0 && totalCards <= cardsPerView) {
+                        carousel.parentElement.style.justifyContent = 'center'; 
+                        carousel.style.justifyContent = 'center'; 
+                    }
                 }
             }
         });
     </script>
-
 </body>
 </html>

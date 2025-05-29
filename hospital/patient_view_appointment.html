@@ -108,22 +108,38 @@
           <div class="row">
             <div class="col-6">
               <div class="row">
-                {% for service in services %}
+                {% for appointment in appointment %}
                   <div class="col-6">
                     
-                    <img src="{{ service.doctor.user.picture }}" alt="Doctor Picture" class="img-fluid rounded" style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                    <img src="{{ appointment.service.doctor.get_picture }}" alt="Doctor Picture"
+     class="img-fluid rounded"
+     style="width: 250px; height: 250px; object-fit: cover;">
                   </div>
                   <div class="col-6"> 
-                    <p><span style="font-weight: 800; font-size: medium;">Tên bác sĩ:</span> {{ service.doctor.user.first_name }}</p>
-                    <p><span style="font-weight: 800; font-size: medium;">Ngày và giờ:</span> {{ service.appointmentDate }} | {{ service.appointmentTime }} </p>
-                    <p><span style="font-weight: 800; font-size: medium;">Loại dịch vụ:</span> {{ service.type }}</p>
-                    <p><span style="font-weight: 800; font-size: medium;">Tình trạng:</span> {{ service.status|yesno:"Đã xác nhận,Đang chờ xác nhận" }}</p>
+                    <p><span style="font-weight: 800; font-size: medium;">Tên bác sĩ:</span> {{ appointment.service.doctor.user.get_full_name }}</p>
+                    <p><span style="font-weight: 800; font-size: medium;">Ngày và giờ:</span> {{ appointment.service.appointmentDate }} | {{ appointment.service.appointmentTime }} </p>
+                    <p><span style="font-weight: 800; font-size: medium;">Hình thức khám bệnh:</span> {{ appointment.method }}</p>
+                    <p><span style="font-weight: 800; font-size: medium;">Tình trạng:</span> 
+                      {% if appointment.status == 'pending' %}
+                            Chờ thanh toán
+                        {% elif appointment.status == 'accepted' %}
+                            Đã thanh toán
+                        {% elif appointment.status == 'rejected' %}
+                            Đã hủy
+                        {% else %}
+                            {{ appointment.get_status_display }} {# Sử dụng get_status_display cho các trường hợp khác #}
+                        {% endif %}
+                    </p>
 
                     <div class="col-6 d-grid justify-content-end align-items-end">
-                      <button class="btn btn-primary btn-pay-online mb-5">Thanh toán</button>
+                      {% if appointment.status == 'pending' %}
+                      <a href="{% url 'payos_create_payment' %}" class="btn btn-primary btn-pay-online mb-5" role="button">Thanh toán</a>
                       <button class="btn btn-danger btn-cancel-appointment mb-5">Hủy cuộc hẹn</button>
+                      {% endif %}
+
                     </div>
                   </div>
+                  <hr>
                   
                 {% empty %}
                 <tr>
@@ -135,7 +151,6 @@
             </div>
             
           </div>
-        <hr>
       </div>
 
 

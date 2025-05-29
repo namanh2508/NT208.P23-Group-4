@@ -1,84 +1,195 @@
-{% extends 'patient_base.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
-{% block title %}Book Appointment{% endblock %}
+<!DOCTYPE html>
+<html lang="vi"> {# Đặt lang="vi" cho tiếng Việt #}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default:"Đặt Lịch Hẹn" }} - Tên Website Của Bạn</title> {# Thêm tên website #}
 
-{% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4">Book an Appointment</h2>
+    {# Bootstrap 5 CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    
+    {# Font Awesome (nếu bạn muốn dùng icons) - Tùy chọn #}
+    {# <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" /> #}
 
-  <form method="post" class="card shadow-sm p-4">
-    {% csrf_token %}
+    {# Custom CSS của bạn (nếu có) - đặt sau Bootstrap để ghi đè nếu cần #}
+    {# <link rel="stylesheet" href="{% static 'css/your_custom_styles.css' %}"> #}
 
-    <table class="table table-borderless align-middle">
-      <tbody>
+    <style>
+        body {
+            background-color: #f4f7f6; /* Màu nền nhẹ cho toàn trang */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Đảm bảo footer luôn ở cuối nếu nội dung ngắn */
+        }
+        .main-content {
+            flex: 1;
+        }
+        .card-header {
+            font-weight: 500;
+        }
+        .doctor-info-card img {
+            border: 3px solid #0d6efd; /* Màu viền cho ảnh bác sĩ */
+        }
+        .form-label strong { /* Làm đậm label hơn một chút */
+            font-weight: 600;
+        }
+        .footer {
+             background-color: #e9ecef;
+             padding: 20px 0;
+             text-align: center;
+             font-size: 0.9em;
+             color: #6c757d;
+        }
+        /* Thêm các style tùy chỉnh khác của bạn ở đây nếu cần */
+    </style>
+</head>
+<body>
 
-        <tr>
-          <th><label for="id_doctor" class="form-label">Select Doctor</label></th>
-          <td>
-            {{ form.doctor }}
-            {% if request.method == "POST" and form.doctor.errors %}
-              <div class="text-danger small mt-1">{{ form.doctor.errors }}</div>
-            {% endif %}
-          </td>
-        </tr>
+    {% include 'patient_navbar.html' %}
+   
+    
 
-        <tr>
-          <th><label for="id_appointmentDate" class="form-label">Appointment Date</label></th>
-          <td>
-            {{ form.appointmentDate }}
-            {% if request.method == "POST" and form.appointmentDate.errors %}
-              <div class="text-danger small mt-1">{{ form.appointmentDate.errors }}</div>
-            {% endif %}
-          </td>
-        </tr>
+    <div class="main-content">
+        <div class="container mt-4 mb-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-md-12">
 
-        <tr>
-          <th><label for="id_appointmentTime" class="form-label">Appointment Time</label></th>
-          <td>
-            {{ form.appointmentTime }}
-            {% if request.method == "POST" and form.appointmentTime.errors %}
-              <div class="text-danger small mt-1">{{ form.appointmentTime.errors }}</div>
-            {% endif %}
-          </td>
-        </tr>
+                    {# THÔNG TIN BÁC SĨ #}
+                    {% if selected_doctor_profile %}
+                    <div class="card shadow-sm mb-4 doctor-info-card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3 text-center mb-3 mb-md-0">
+                                    {% if selected_doctor_profile.user.picture and selected_doctor_profile.user.picture.url %}
+                                        <img src="{{ selected_doctor_profile.user.picture.url }}" alt="Ảnh BS. {{ selected_doctor_profile.user.get_full_name }}" class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="{% static 'images/default_doctor_avatar.png' %}" alt="Ảnh bác sĩ" class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-9">
+                                    <h2 class="card-title text-primary">{{ page_title }}</h2>
+                                    {% if selected_doctor_profile.get_department_display %}
+                                        <p class="card-text"><strong class="text-secondary">Chuyên khoa:</strong> {{ selected_doctor_profile.get_department_display }}</p>
+                                    {% endif %}
+                                    {% if selected_doctor_profile.description %}
+                                        <p class="card-text text-muted small"><em>{{ selected_doctor_profile.description|truncatewords:30 }}</em></p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center mb-4">
+                        <h2 class="mb-4">{{ page_title|default:"Đặt Lịch Hẹn" }}</h2>
+                    </div>
+                    {% endif %}
+                    
+                    {# HIỂN THỊ MESSAGES #}
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
 
-        <tr>
-          <th><label for="id_method" class="form-label">Appointment Method</label></th>
-          <td>
-            {{ form.method }}
-            {% if request.method == "POST" and form.method.errors %}
-              <div class="text-danger small mt-1">{{ form.method.errors }}</div>
-            {% endif %}
-          </td>
-        </tr>
+                    {# FORM ĐẶT LỊCH #}
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light border-bottom-0">
+                            <h4 class="mb-0 text-primary">Điền thông tin cuộc hẹn</h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post">
+                                {% csrf_token %}
 
-        <tr>
-          <th><label for="id_type" class="form-label">Type of service</label></th>
-          <td>
-            {{ form.type }}
-            {% if request.method == "POST" and form.type.errors %}
-              <div class="text-danger small mt-1">{{ form.type.errors }}</div>
-            {% endif %}
-          </td>
-        </tr>
+                                {% if form.doctor %}
+                                    {{ form.doctor }} 
+                                {% endif %}
 
-        <tr>
-          <th><label for="id_description" class="form-label">Reason / Symptoms</label></th>
-          <td>
-            {{ form.description }}
-            {% if request.method == "POST" and form.description.errors %}
-              <div class="text-danger small mt-1">{{ form.description.errors }}</div>
-            {% endif %}
-          </td>
-        </tr>
+                                {% if form.non_field_errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {% for error in form.non_field_errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
 
-      </tbody>
-    </table>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.appointmentDate.id_for_label }}" class="form-label"><strong>{{ form.appointmentDate.label_tag|default:"Ngày hẹn:" }}</strong></label>
+                                        {% render_field form.appointmentDate class+="form-control form-control-lg" %}
+                                        {% if form.appointmentDate.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.appointmentDate.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
 
-    <div class="text-end mt-3">
-      <button type="submit" class="btn btn-primary px-4">Book Appointment</button>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.appointmentTime.id_for_label }}" class="form-label"><strong>{{ form.appointmentTime.label_tag|default:"Giờ hẹn:" }}</strong></label>
+                                        {% render_field form.appointmentTime class+="form-control form-control-lg" %}
+                                        {% if form.appointmentTime.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.appointmentTime.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="{{ form.method.id_for_label }}" class="form-label"><strong>{{ form.method.label_tag|default:"Hình thức cuộc hẹn:" }}</strong></label>
+                                        {% render_field form.method class+="form-select form-select-lg" %}
+                                        {% if form.method.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.method.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="{{ form.type.id_for_label }}" class="form-label"><strong>{{ form.type.label_tag|default:"Loại dịch vụ:" }}</strong></label>
+                                        {% render_field form.type class+="form-select form-select-lg" %}
+                                        {% if form.type.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.type.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="{{ form.description.id_for_label }}" class="form-label"><strong>{{ form.description.label_tag|default:"Lý do khám / Triệu chứng:" }}</strong></label>
+                                        {% render_field form.description class+="form-control form-control-lg" rows="4" placeholder="Mô tả ngắn gọn lý do hoặc triệu chứng bạn gặp phải..." %}
+                                        {% if form.description.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2 mt-4 pt-3 border-top">
+                                    <button type="submit" class="btn btn-primary btn-lg">Xác Nhận Đặt Lịch</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </form>
-</div>
-{% endblock %}
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">&copy; {% now "Y" %} Tên Bệnh Viện/Phòng Khám Của Bạn. Bảo lưu mọi quyền.</span>
+        </div>
+    </footer>
+
+    {# Bootstrap 5 JS Bundle (bao gồm Popper) #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    {# Custom JS của bạn (nếu có) #}
+    {# <script src="{% static 'js/your_custom_scripts.js' %}"></script> #}
+</body>
+</html>

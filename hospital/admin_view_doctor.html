@@ -34,7 +34,6 @@
             <th>Tên</th>
             <th>Ảnh</th>
             <th>Liên lạc</th>
-            <th>Địa chỉ</th>
             <th>Chuyên môn</th>
             <th>Sửa</th>
             <th>Xóa</th>
@@ -43,10 +42,9 @@
         {% for d in doctors %}
         <tr>
 
-          <td> {{d.get_name}}</td>
-          <td> <img src="{{ d.profile_pic.url }}" alt="Profile Pic" height="40px" width="40px" /></td>
-          <td>{{d.mobile}}</td>
-          <td>{{d.address}}</td>
+          <td> {{d.user.get_full_name}}</td>
+          <td> <img src="{{ d.get_picture }}" alt="Profile Pic" height="40px" width="40px" /></td>
+          <td>{{d.user.phone}}</td>
           <td>{{d.get_department_display}}</td>
           <td><a class="btn btn-primary btn-xs" href="{% url 'update-doctor' d.id  %}"><span class="glyphicon glyphicon-edit"></span></a></td>
           <td><a class="btn btn-danger btn-xs" href="{% url 'delete-doctor-from-hospital' d.id  %}"><span class="glyphicon glyphicon-trash"></span></a></td>

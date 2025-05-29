@@ -7,8 +7,7 @@
     a:link {
       text-decoration: none;
     }
-
-    .note {
+    .note { /* Giữ lại nếu bạn dùng ở template base hoặc nơi khác */
       text-align: center;
       height: 80px;
       background: -webkit-linear-gradient(left, #0072ff, #8811c5);
@@ -16,87 +15,243 @@
       font-weight: bold;
       line-height: 80px;
     }
-
-    .form-content {
-      padding: 5%;
+    .form-container {
+      max-width: 700px; 
+      margin: 40px auto; 
+      padding: 25px;     
       border: 1px solid #ced4da;
-      margin-bottom: 2%;
+      border-radius: 0.5rem; 
+      background-color: #fff; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
     }
-
     .form-control {
-      border-radius: 1.5rem;
+      border-radius: 1.5rem !important; 
+      margin-bottom: 10px; 
     }
-
-    .btnSubmit {
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: .5rem;
+    }
+    .btnSubmit, .btn-register { 
       border: none;
       border-radius: 1.5rem;
-      padding: 1%;
-      width: 20%;
+      padding: 10px 25px; 
       cursor: pointer;
-      background: #0062cc;
+      background: #0062cc; 
       color: #fff;
+      font-weight: bold;
+      transition: background-color 0.2s ease-in-out; 
     }
-
-    .menu {
+    .btnSubmit:hover, .btn-register:hover {
+      background: #004a99; 
+    }
+    /* CSS cho label của radio button để không bị đậm như label field */
+    .radio-group .form-check-label {
+        font-weight: normal; 
+    }
+    .divider {
+        text-align: center;
+        margin: 20px 0;
+    }
+    .divider hr {
+        display: inline-block;
+        width: 40%;
+        vertical-align: middle;
+    }
+    .divider span {
+        display: inline-block;
+        vertical-align: middle;
+        padding: 0 10px;
+    }
+    .menu { /* Giữ lại nếu bạn dùng */
       top: 50px;
     }
   </style>
 
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-  <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
 </head>
-<br><br><br>
-<!------ signup page for doctor by admin(sumit)  ---------->
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  <div class="container register-form">
-    <div class="form">
-      <div class="note">
-        <p>Đăng ký bác sĩ</p>
-      </div>
-      <div class="form-content">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group">
-              {% render_field userForm.first_name class="form-control" placeholder="Tên chính" %}
-            </div>
-            <div class="form-group">
-              {% render_field userForm.username class="form-control" placeholder="Username" %}
-            </div>
-            <div class="form-group">
-              {% render_field doctorForm.department class="form-control" placeholder="Chuyên môn" %}
-            </div>
-            <div class="form-group">
-              {% render_field doctorForm.address class="form-control" placeholder="Địa chỉ" %}
-            </div>
-            <div class="form-group">
-              {% render_field doctorForm.about class="form-control" placeholder="Giới thiệu" style="resize: vertical; min-height: 150px;" %}
-            </div>
-            
+
+<div class="form-container">
+  <h2 class="text-center mb-4">Đăng ký tài khoản Bác sĩ</h2>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          {{ form.first_name.label_tag }}
+          {% render_field form.first_name class="form-control" placeholder="Tên" %}
+          {% if form.first_name.errors %}
+          <div class="text-danger small mt-1">
+            {{ form.first_name.errors|striptags }}
           </div>
-          <div class="col-md-6">
-            <div class="form-group">
-              {% render_field userForm.last_name class="form-control" placeholder="Họ và tên đệm" %}
-            </div>
-            <div class="form-group">
-              {% render_field userForm.password class="form-control" placeholder="Mật khẩu" %}
-            </div>
-            <div class="form-group">
-              {% render_field doctorForm.mobile class="form-control"  placeholder="Liên lạc" %}
-            </div>
-            <div class="form-group">
-              {% render_field doctorForm.profile_pic required="required" class="form-control" placeholder="Ảnh đại diện" %}
-            </div>
-            
-            
+          {% endif %}
         </div>
-        <button type="submit" class="btnSubmit">Đăng ký</button>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          {{ form.last_name.label_tag }}
+          {% render_field form.last_name class="form-control" placeholder="Họ" %}
+          {% if form.last_name.errors %}
+          <div class="text-danger small mt-1">
+            {{ form.last_name.errors|striptags }}
+          </div>
+          {% endif %}
+        </div>
       </div>
     </div>
-  </div>
 
-</form>
+    <div class="form-group">
+      {{ form.birthday.label_tag }}
+      {% render_field form.birthday class="form-control" placeholder="YYYY-MM-DD" %} 
+      {% if form.birthday.errors %}
+      <div class="text-danger small mt-1">
+        {{ form.birthday.errors|striptags }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      {{ form.gender.label_tag }}
+      <div class="radio-group mt-1">
+        {% for radio in form.gender %}
+        <div class="form-check form-check-inline">
+          {{ radio.tag }}  {# QUAN TRỌNG: KHÔNG dùng widget_tweaks (như |add_class) ở đây cho radio.tag #}
+          <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+        </div>
+        {% endfor %}
+      </div>
+      {% if form.gender.errors %}
+      <div class="text-danger small mt-1">
+        {{ form.gender.errors|striptags }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      {{ form.phone.label_tag }}
+      {% render_field form.phone class="form-control" placeholder="Số điện thoại" %}
+      {% if form.phone.errors %}
+      <div class="text-danger small mt-1">
+        {{ form.phone.errors|striptags }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      {{ form.username.label_tag }}
+      {% render_field form.username class="form-control" placeholder="Tên đăng nhập" %}
+      {% if form.username.errors %}
+      <div class="text-danger small mt-1">
+        {{ form.username.errors|striptags }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      {{ form.email.label_tag }}
+      {% render_field form.email class="form-control" placeholder="email@example.com" %}
+      {% if form.email.errors %}
+      <div class="text-danger small mt-1">
+        {{ form.email.errors|striptags }}
+      </div>
+      {% endif %}
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+            {{ form.password.label_tag }}
+            {% render_field form.password class="form-control" placeholder="Mật khẩu" %}
+            {% if form.password.errors %}
+            <div class="text-danger small mt-1">
+                {{ form.password.errors|striptags }}
+            </div>
+            {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+            {{ form.confirm_password.label_tag }}
+            {% render_field form.confirm_password class="form-control" placeholder="Xác nhận mật khẩu" %}
+            {% if form.confirm_password.errors %}
+            <div class="text-danger small mt-1">
+                {{ form.confirm_password.errors|striptags }}
+            </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+      {{ form.department.label_tag }}
+      {% render_field form.department class="form-control" %}
+      {% if form.department.errors %}
+      <div class="text-danger small mt-1">
+        {{ form.department.errors|striptags }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      {{ form.description.label_tag }}
+      {% render_field form.description class="form-control" rows="3" placeholder="Mô tả chuyên môn..." %}
+      {% if form.description.errors %}
+      <div class="text-danger small mt-1">
+        {{ form.description.errors|striptags }}
+      </div>
+      {% endif %}
+    </div>
+
+    
+    <div class="form-group">
+      {{ form.picture.label_tag }}
+      {% comment %} 
+        Sử dụng class 'form-control-file' của Bootstrap cho input file nếu bạn dùng Bootstrap.
+        Hoặc bạn có thể dùng class 'form-control' như các trường khác nếu muốn.
+        Widget trong forms.py đã được cấu hình với 'form-control-file'.
+      {% endcomment %}
+      {% render_field form.picture class="form-control-file" %} 
+      {% if form.picture.errors %}
+      <div class="text-danger small mt-1">
+        {{ form.picture.errors|striptags }}
+      </div>
+      {% endif %}
+    </div>
+    
+    <div class="text-center mt-4">
+        <button type="submit" class="btn btn-register">Đăng ký</button>
+    </div>
+    
+    <div class="divider">
+      <hr><span>hoặc</span><hr>
+    </div>
+
+    <div class="text-center mt-3">
+      <button id="google-login-btn" class="btn btn-outline-dark border rounded-circle p-2" title="Đăng nhập với Google">
+        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" width="28" height="28">
+      </button>
+    </div>  
+
+    <div class="text-center mt-4">
+      <span>Đã có tài khoản?</span>
+      <a href="{% url 'doctorlogin' %}" class="text-primary fw-bold ms-1">Đăng nhập ngay!</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.getElementById("google-login-btn").addEventListener("click", function (event) {
+    event.preventDefault();
+    loginWithGoogle('DOCTOR');
+  });
+
+  function loginWithGoogle(role) {
+    let googleLoginUrl = `/google_login_redirect?role=${role}`;
+    window.location.href = googleLoginUrl;
+  }
+</script>
 
 {% endblock content %}
