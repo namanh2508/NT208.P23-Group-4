@@ -4,7 +4,7 @@ from hospitalManagement.models import Medicine
 from hospitalManagement.utils.gemini_client import process_medicine_description_with_gemini
 
 class Command(BaseCommand):
-    help = 'Fetches medicine entries from OpenFDA, translates and summarizes using Gemini, and saves to DB'
+    help = 'Fetches medicine entries from OpenFDA, processes descriptions with Gemini, and saves to DB'
 
     def handle(self, *args, **kwargs):
         total_to_save = 10
@@ -37,7 +37,7 @@ class Command(BaseCommand):
                 fallback_description = item.get("description", [None])[0]
                 raw_description = usage or fallback_description
 
-                if not generic_name or not brand_name or not manufacturer or not raw_description:
+                if not all([generic_name, brand_name, manufacturer, raw_description]):
                     continue
 
                 combined_name = f"{brand_name} ({generic_name})"
@@ -62,10 +62,11 @@ class Command(BaseCommand):
                         saved_count += 1
                         self.stdout.write(self.style.SUCCESS(f"[{saved_count}/{total_to_save}] Saved: {medicine.name}"))
                         if saved_count >= total_to_save:
-                            break
+                            return
+
                 except Exception as e:
-                    self.stderr.write(f"❌ Gemini processing failed for '{combined_name}': {e}")
-                    continue
+                    self.stderr.write(self.style.ERROR(f"Processing failed for '{combined_name}': {e}. Stopping command to preserve quota."))
+                    return
 
             offset += 10
 

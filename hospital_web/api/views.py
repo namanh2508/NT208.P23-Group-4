@@ -96,7 +96,8 @@ def patient_appointments_view(request,patientID):
 
 genai.configure(api_key="AIzaSyCyJiVy8beS2XiDEBz7vosPP5Sh65yp5zU")
 
-model = genai.GenerativeModel(model_name="models/gemini-1.5-pro")
+# Use the correct model and v1-compatible method
+model = genai.GenerativeModel(model_name="models/gemini-1.5-flash")
 
 class GeminiChatView(APIView):
     def post(self, request):
@@ -105,12 +106,9 @@ class GeminiChatView(APIView):
             return Response({"error": "No message provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            response = model.generate_content(message)
-            text_reply = ""
-            if hasattr(response, 'text'):
-                text_reply = response.text
-            elif hasattr(response, 'candidates'):
-                text_reply = response.candidates[0].content.parts[0].text
+            # Pass message as a list
+            response = model.generate_content([message])
+            text_reply = getattr(response, 'text', 'No response text available')
 
             return Response({"reply": text_reply})
         except Exception as e:
