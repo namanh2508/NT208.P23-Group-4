@@ -32,7 +32,8 @@ GENDER= [
 STATUS= [
     ('accepted','Accepted'),
     ('rejected','Rejected'),
-    ('pending','Pending')
+    ('pending','Pending'),
+    ('finished','Finished')
 ]
 APPOINTMENT_METHOD= [
     ('online','Tư vấn online'),
@@ -116,8 +117,6 @@ class Service(models.Model):
     type = models.CharField(max_length=100, blank=True, null=True, choices=TYPE_OF_SERVICE)
     status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
     image = models.ImageField(upload_to='service_images/', blank=True, null=True) # ảnh chụp dịch vụ
-    def __str__(self):
-        return f"Service #{self.service_id} for {self.patient}"
     @property
     def get_type(self):
         return dict(TYPE_OF_SERVICE).get(self.type, 'Unknown')

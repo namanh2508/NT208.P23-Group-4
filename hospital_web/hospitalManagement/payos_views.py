@@ -19,15 +19,23 @@ MY_DOMAIN = 'http://127.0.0.1:8000'
 TEMP_PAYOS_RETURN_URL = '/' 
 TEMP_PAYOS_CANCEL_URL = '/'
 
-def create_payment_view(request): # Đảm bảo bạn có 'request' ở đây
+def create_payment_view(request, id):
     try:
         current_user = request.user
         des = f"BN {current_user.get_full_name()}"
         if len(des) > 25:
             des = f"BN {current_user.first_name}"
-        patient = models.Patient.objects.filter(user=current_user).first()
-        service = models.Service.objects.filter(patient = patient).first()
-        my_appointment = models.Appointment.objects.filter(service = service).first()
+        
+        print(f"Đang xử lý appointment với id: {id}")
+        # Kiểm tra xem có bao nhiêu appointment với id này
+        appointments = models.Appointment.objects.filter(id=id)
+        print(f"Số lượng appointment tìm thấy: {appointments.count()}")
+        for app in appointments:
+            print(f"Appointment ID: {app.id}, Service: {app.service}, Status: {app.status}")
+        
+        my_appointment = models.Appointment.objects.get(id=id)
+        print(f"Appointment được chọn: ID={my_appointment.id}, Service={my_appointment.service}")
+        
         item = ItemData(name="Phí khám bệnh", quantity=1, price=2000)
         payment_data = PaymentData(
             orderCode=int(time.time()),
@@ -37,20 +45,27 @@ def create_payment_view(request): # Đảm bảo bạn có 'request' ở đây
             cancelUrl=MY_DOMAIN + '/cancel', 
             returnUrl=MY_DOMAIN + "/success", 
         )
-        my_appointment.orderCode = payment_data.orderCode
-        my_appointment.save()
+        print(f"OrderCode mới: {payment_data.orderCode}")
+        
+        # Kiểm tra trước khi cập nhật
+        print(f"OrderCode cũ: {my_appointment.orderCode}")
+        models.Appointment.objects.filter(id=id).update(orderCode=payment_data.orderCode)
+        print(f"Đã cập nhật orderCode thành công")
+        
         payment_link_response = payos_instance.createPaymentLink(payment_data) 
-        return redirect(payment_link_response.checkoutUrl) #
+        return redirect(payment_link_response.checkoutUrl)
     except Exception as e:
-        print(f"Lỗi khi tạo link thanh toán PayOS: {e}") 
+        print(f"Lỗi khi tạo link thanh toán PayOS: {e}")
         return HttpResponse(f"Có lỗi xảy ra trong quá trình tạo thanh toán: {str(e)}", status=500)
     
 
 def success_view(request):
-    return render(request, 'success.html') 
+    current_user = request.user
+    return render(request, 'success.html', {'current_user': current_user}) 
 
 def cancel_view(request):
-    return render(request, 'cancel.html')
+    current_user = request.user
+    return render(request, 'cancel.html', {'current_user': current_user})
 
 @csrf_exempt
 def receive_webhook_view(request):
@@ -65,9 +80,7 @@ def receive_webhook_view(request):
                     order_code = str(verified_data.orderCode)
                     print(order_code)
                     if order_code:
-                        my_appointment = models.Appointment.objects.filter(orderCode = order_code).first()
-                        my_appointment.status = 'accepted'
-                        my_appointment.save()
+                        models.Appointment.objects.filter(orderCode=order_code).update(status='accepted')
                 
             return JsonResponse({'message': 'Webhook received by Django. Raw data logged.'}, status=200)
 

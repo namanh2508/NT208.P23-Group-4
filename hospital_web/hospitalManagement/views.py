@@ -298,8 +298,8 @@ def admin_dashboard_view(request):
     patientcount=models.Patient.objects.all().filter(user__status=True).count()
     pendingpatientcount=models.Patient.objects.all().filter(user__status=False).count()
 
-    appointmentcount=models.Appointment.objects.all().filter(status='accepted').count()
-    pendingappointmentcount=models.Appointment.objects.all().filter(status='pending').count()
+    appointmentcount=models.Service.objects.all().filter(status='accepted').count()
+    pendingappointmentcount=models.Appointment.objects.all().filter(status='accepted').count()
     mydict={
     'doctors':doctors,
     'patients':patients,
@@ -651,9 +651,15 @@ def admin_appointment_view(request):
 @login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_view_appointment_view(request):
-    appointments=models.Appointment.objects.all().filter(status=True)
+    appointments=models.Service.objects.all().filter(status='accepted')
     return render(request,'admin_view_appointment.html',{'appointments':appointments})
 
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_approve_appointment_view(request):
+    #those whose approval are needed
+    appointments=models.Appointment.objects.all().filter(status='accepted')
+    return render(request,'admin_approve_appointment.html',{'appointments':appointments})
 
 
 @login_required(login_url='login')
@@ -692,31 +698,27 @@ def admin_add_appointment_view(request):
 
 
 
-@login_required(login_url='login')
-@user_passes_test(is_admin)
-def admin_approve_appointment_view(request):
-    #those whose approval are needed
-    appointments=models.Appointment.objects.all().filter(status=False)
-    return render(request,'admin_approve_appointment.html',{'appointments':appointments})
+
 
 
 
 @login_required(login_url='login')
 @user_passes_test(is_admin)
-def approve_appointment_view(request,pk):
-    appointment=models.Appointment.objects.get(appointmentID=pk)
-    appointment.status=True
-    appointment.save()
-    return redirect(reverse('admin-approve-appointment'))
+def approve_appointment_view(request,id):
+    service=models.Service.objects.get(id=id)
+    service.status='accepted'
+    service.save()
+    return redirect(reverse('admin-view-appointment'))
 
 
 
 @login_required(login_url='login')
 @user_passes_test(is_admin)
-def reject_appointment_view(request,pk):
-    appointment=models.Appointment.objects.get(appointmentID=pk)
-    appointment.delete()
-    return redirect('admin-approve-appointment')
+def reject_appointment_view(request,id):
+    service=models.Service.objects.get(id=id)
+    service.status='rejected'
+    service.save()
+    return redirect('admin-view-appointment')
 
 
 
@@ -819,24 +821,15 @@ def doctor_dashboard_view(request):
     except models.Doctor.DoesNotExist:
         return HttpResponse("Tài khoản này chưa có thông tin bác sĩ!", status=404)
 
-    appointments = models.Appointment.objects.filter(status='approved', service__doctor=doctor).order_by('-id')
+    appointments = models.Service.objects.filter(status='accepted', doctor=doctor).order_by('-id')
     appointmentcount = appointments.count()
-    patientdischarged = models.Record.objects.filter(doctor=doctor).count()
-
-    patients = []
-    for a in appointments:
-        if a.service and a.service.patient:
-            patients.append(a.service.patient)
-
-    patientcount = len(patients)
-    appointments_and_patients = zip(appointments, patients)
+    
 
     mydict = {
         'appointmentcount': appointmentcount,
-        'patientdischarged': patientdischarged,
-        'appointments_and_patients': appointments_and_patients,
+        'appointments': appointments,
         'doctor': doctor,
-        'patientcount': patientcount,
+        
     }
 
     return render(request, 'doctor_dashboard.html', context=mydict)

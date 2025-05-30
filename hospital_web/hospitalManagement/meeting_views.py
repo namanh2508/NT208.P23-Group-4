@@ -54,7 +54,7 @@ def doctor_video_room_view(request, doctor_user_id):
             return render(request, 'meeting.html', {'user': user, 'room_id': doctor_user_id, 'role': 'patient'})
         else:
             print("khong co")
-            return HttpResponseForbidden("Bạn không có quyền truy cập vào phòng họp này.")
+            return HttpResponseForbidden("Bạn chưa đến giờ hẹn hoặc không có quyền vào phòng này.")
     
     print("username: ",user.username)
     if is_doctor(user):
