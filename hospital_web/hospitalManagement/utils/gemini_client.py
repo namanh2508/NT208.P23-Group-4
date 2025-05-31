@@ -3,7 +3,7 @@ import google.generativeai as genai
 
 # Configure Gemini SDK once at import
 genai.configure(api_key="AIzaSyCyJiVy8beS2XiDEBz7vosPP5Sh65yp5zU")
-model = genai.GenerativeModel(model_name="models/gemini-1.5-flash")
+model = genai.GenerativeModel(model_name="gemini-2.0-flash-lite")
 
 def process_medicine_description_with_gemini(usage: str, description: str) -> dict:
     """
@@ -19,9 +19,9 @@ def process_medicine_description_with_gemini(usage: str, description: str) -> di
         "**QUAN TRỌNG**: Luôn trả về KẾT QUẢ DUY NHẤT ở định dạng JSON theo mẫu dưới đây, không có bất kỳ chú thích nào khác bên ngoài JSON:"
         "Trả về kết quả ở định dạng JSON như sau:"
         "{"
-        "    \"translated_summary\": \"<mô tả chức năng thuốc ngắn gọn, dưới 100 chữ cái, đã dịch>\","
-        "    \"times_per_day\": <số nguyên>,"
-        "    \"estimated_price\": <số thực>"
+        "\"translated_summary\": \"<mô tả chức năng thuốc ngắn gọn, dưới 100 chữ cái, đã dịch>\","
+        "\"times_per_day\": <số nguyên>,"
+        "\"estimated_price\": <số thực>"
         "}"
         f"Dưới đây là mô tả thuốc:{description}"
         f"Dưới đây là công dụng và chỉ định thuốc:{usage}"

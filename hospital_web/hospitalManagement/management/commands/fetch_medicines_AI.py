@@ -12,7 +12,7 @@ class Command(BaseCommand):
         gemini_calls = 0
         offset = 0
         limit = 100
-
+        gemini_quota=30;
         self.stdout.write("Fetching valid medicine entries from OpenFDA...")
         try:
             while True:
@@ -67,9 +67,9 @@ class Command(BaseCommand):
                         saved_count += 1
                         self.stdout.write(self.style.SUCCESS(f"[{saved_count}] Saved: {combined_name}"))
 
-                        # Pause after 15 Gemini calls to respect quota
-                        if gemini_calls >= 15:
-                            self.stdout.write("Reached 15 Gemini calls. Waiting 65 seconds to refresh quota...")
+                        # Pause after reaching Gemini quota
+                        if gemini_calls >= gemini_quota:
+                            self.stdout.write("Reached maximum Gemini calls per minute. Waiting 65 seconds to refresh quota...")
                             time.sleep(65)
                             gemini_calls = 0
 
