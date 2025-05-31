@@ -107,7 +107,7 @@ class Record(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='record') # khóa ngoại liên kết với doctor
     symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
     description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
-    record_date = models.DateField() # ngày khám 
+    record_date = models.DateField(blank=True, null=True) # ngày khám 
     def __str__(self):
         return f"Record for {self.patient} on {self.record_date}" 
 
@@ -116,7 +116,7 @@ class AI_Record (models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='ai_record') # khóa ngoại liên kết với patient
     symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
     description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
-    record_date = models.DateField() # ngày khám
+    record_date = models.DateField(blank=True, null=True) # ngày khám
     weight = models.PositiveIntegerField(blank=True, null=True) # cân nặng
     height = models.PositiveIntegerField(blank=True, null=True) # chiều cao
     glucose = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
