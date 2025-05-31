@@ -28,7 +28,9 @@ urlpatterns = [
     path('accounts/google/login/callback/', views.google_callback, name='google_callback'),
     path('afterlogin/', views.afterlogin_view, name='afterlogin'),
     path('logout/', views.logout_view, name='logout'),
-    
+    #link google account
+    path('accounts/google/link/', views.google_link_redirect, name='google-link'),
+    path('accounts/google/link/callback/', views.google_link_callback, name='google-link-callback'),
     path('accounts/', include('allauth.urls')), #google authentication
 
     path('aboutus/', views.aboutus_view, name='aboutus'),
@@ -100,8 +102,7 @@ urlpatterns = [
     # --------------------for patient dasboard:--------------------
     path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
     path('medicines/', views.medicine_list_view, name='medicine_list'),# patient và doctor xài chức năng này
-    path('chat/doctors/', views.get_chat_doctors, name='get_doctors'),
-    path('chat/room/<id>', views.get_or_create_chat_rooms_for_patient, name='get_rooms'),
+    path('patient-dashboard/add-calendar-reminders/', views.add_calendar_reminders, name='add_calendar_reminders'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

@@ -94,9 +94,8 @@ def patient_appointments_view(request,patientID):
     }
     return render(request, '' , context) # thêm file.html để hiển thị các lịch hẹn của 1 patient
 
-genai.configure(api_key="AIzaSyCyJiVy8beS2XiDEBz7vosPP5Sh65yp5zU")
-
-model = genai.GenerativeModel(model_name="models/gemini-1.5-pro")
+genai.configure(api_key="AIzaSyDqT2XW78e3x_X4lKgXSgAzJEIdA64LUfE")
+model = genai.GenerativeModel(model_name="gemini-2.0-flash")
 
 class GeminiChatView(APIView):
     def post(self, request):
@@ -105,12 +104,9 @@ class GeminiChatView(APIView):
             return Response({"error": "No message provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            response = model.generate_content(message)
-            text_reply = ""
-            if hasattr(response, 'text'):
-                text_reply = response.text
-            elif hasattr(response, 'candidates'):
-                text_reply = response.candidates[0].content.parts[0].text
+            # Pass message as a list
+            response = model.generate_content([message])
+            text_reply = getattr(response, 'text', 'No response text available')
 
             return Response({"reply": text_reply})
         except Exception as e:

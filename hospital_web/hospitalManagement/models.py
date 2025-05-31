@@ -99,8 +99,9 @@ class Service(models.Model):
     description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
     status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
     def __str__(self):
-        return f"Service #{self.id} for {self.patient}"
-
+        if self.pk:  
+            return f"Service #{self.pk} for {self.patient}"
+        return "Unsaved Service"
 # ---------- Record ----------
 class Record(models.Model):
     service= models.OneToOneField(Service, on_delete=models.SET_NULL, null=True, blank=True) # 1 bản record sẽ được tạo sau khi khám xong, nếu service bị xóa thì biến này thành null
@@ -108,7 +109,7 @@ class Record(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='record') # khóa ngoại liên kết với doctor
     symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
     description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
-    record_date = models.DateField() # ngày khám 
+    record_date = models.DateField(blank=True, null=True) # ngày khám 
     def __str__(self):
         return f"Record for {self.patient} on {self.record_date}" 
 
@@ -117,7 +118,7 @@ class AI_Record (models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='ai_record') # khóa ngoại liên kết với patient
     symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
     description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
-    record_date = models.DateField() # ngày khám
+    record_date = models.DateField(blank=True, null=True) # ngày khám
     weight = models.PositiveIntegerField(blank=True, null=True) # cân nặng
     height = models.PositiveIntegerField(blank=True, null=True) # chiều cao
     glucose = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
@@ -158,7 +159,7 @@ class Test(models.Model):
 
 # -------------------- Medicine --------------------
 class Medicine(models.Model):
-    name = models.CharField(max_length=100, blank=True, null=True) # tên thuốc
+    name = models.CharField(max_length=255, blank=True, null=True) # tên thuốc
     brand = models.CharField(max_length=100, blank=True, null=True) # tên công ty sản xuất
     description= models.TextField(blank=True, null=True) # chức năng  thuốc
     times_per_day = models.IntegerField(blank=True, null=True) # uống bao nhiêu lần 1 ngày
@@ -178,8 +179,8 @@ class Prescription(models.Model):
         self.total_price = self.get_total_price()
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.medicine_name} for Service #{self.service.service_id}"
+def __str__(self):
+    return f"{self.medicine} for Service #{self.service.id}"
 
 # -------------------- Bill --------------------
 class Bill(models.Model):

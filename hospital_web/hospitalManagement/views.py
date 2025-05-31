@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group,User
 from django.http import HttpResponseRedirect,HttpResponse,HttpResponseForbidden
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
-from datetime import datetime,timedelta,date
+from datetime import datetime,timedelta,date,time
 from django.conf import settings
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
@@ -30,6 +30,11 @@ from google.auth.transport.requests import Request
 import secrets
 import requests
 from django.http import JsonResponse
+#googlecalendar
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+import math
+from django.utils.timezone import now as dj_now
 # Create your views here.
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -284,8 +289,101 @@ def google_callback(request):
     #chuyển về giao diện chính
     return redirect('afterlogin')
 
-#lấy Google API credentials cho người dùng, để có thể xài google calendar mà ko phải đăng nhập lại
+@login_required
+def google_link_redirect(request):
+    try:
+        google_app = SocialApp.objects.get(provider='google')
+        client_id = google_app.client_id
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
 
+    redirect_uri = settings.SITE_URL + "/accounts/google/link/callback/"
+    state_token = secrets.token_urlsafe(16)
+
+    request.session['oauth_state'] = state_token
+    request.session['link_google'] = True
+    request.session.modified = True
+
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={client_id}&"
+        f"redirect_uri={redirect_uri}&"
+        "response_type=code&"
+        "scope=openid%20email%20profile%20https://www.googleapis.com/auth/calendar&"
+        f"state={state_token}&"
+        "access_type=offline&"
+        "prompt=consent"
+    )
+    return redirect(google_auth_url)
+
+@login_required
+def google_link_callback(request):
+    # Check CSRF-like state
+    stored_state = request.session.get('oauth_state')
+    received_state = request.GET.get('state')
+    if not stored_state or stored_state != received_state:
+        return HttpResponse("Invalid state parameter", status=400)
+    request.session.pop('oauth_state', None)
+    request.session.pop('link_google', None)
+
+    code = request.GET.get("code")
+    if not code:
+        return HttpResponse("Authorization failed", status=400)
+
+    try:
+        app = SocialApp.objects.get(provider='google')
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
+
+    # Get token
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": app.client_id,
+        "client_secret": app.secret,
+        "redirect_uri": settings.SITE_URL + "/accounts/google/link/callback/",
+        "grant_type": "authorization_code",
+    }
+    response = requests.post(token_url, data=data)
+    token_data = response.json()
+
+    if "access_token" not in token_data:
+        return HttpResponse("Failed to get access token", status=400)
+
+    access_token = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token")
+
+    # Get Google profile
+    headers = {"Authorization": f"Bearer {access_token}"}
+    user_info = requests.get("https://www.googleapis.com/oauth2/v2/userinfo", headers=headers).json()
+    google_uid = user_info['id']
+
+    #Check 1: This Google account already linked to another user
+    existing = SocialAccount.objects.filter(provider='google', uid=google_uid)
+    if existing:
+        return HttpResponse("This Google account is already linked", status=409)
+
+    #Check 2: Current user already linked to another Google account
+    already_linked = SocialAccount.objects.filter(provider='google', user=request.user).exclude(uid=google_uid).exists()
+    if already_linked:
+        return HttpResponse("You have already linked a different Google account.", status=409)
+
+    #Create or update
+    account= SocialAccount.objects.create(
+        user=request.user,
+        provider='google',
+        uid=google_uid
+    )
+    SocialToken.objects.update_or_create(
+        app=app,
+        account=account,
+        defaults={'token': access_token, 'token_secret': refresh_token or ''},
+    )
+
+    return redirect('afterlogin')
+
+
+#lấy Google API credentials cho người dùng, để có thể xài google calendar mà ko phải đăng nhập lại
 def get_google_credentials(user):
     try:
         #lấy SocialAccount, access token và refresh token object
@@ -967,51 +1065,69 @@ def all_doctors_view(request):
     doctors = models.Doctor.objects.all()  # Lấy tất cả bác sĩ từ database
     return render(request, 'all_doctors.html', {'doctors': doctors})
 
-# tạo hoặc join chat bệnh nhân & bác sĩ
-def get_or_create_chat_room(patient: models.Patient, doctor: models.Doctor):
-    room, created = models.ChatRoom.objects.get_or_create(patient=patient, doctor=doctor)
-    return room
-# chỉ cho phép bệnh nhân và bác sĩ có dịch vụ với nhau chat
-def can_chat(patient: models.Patient, doctor: models.Doctor) -> bool:
-    return models.Service.objects.filter(patient=patient, doctor=doctor).exists() or \
-           models.Record.objects.filter(patient=patient, doctor=doctor).exists()
-# lấy danh sách bác sĩ mà bệnh nhân có thể chat
-def get_doctors_patient_can_chat_with(patient: models.Patient):
-    # Get distinct doctors from Service and Record
-    doctors_from_services = models.Doctor.objects.filter(service__patient=patient).distinct()
-    doctors_from_records = models.Doctor.objects.filter(record__patient=patient).distinct()
-    
-    # Combine the two querysets
-    all_doctors = (doctors_from_services | doctors_from_records).distinct()
+def add_calendar_reminders(request):
+    if request.method == 'POST':
+        user = request.user
+        creds = get_google_credentials(user)
+        
+        if creds is None:
+            print("[ERROR] Google credentials not found for user:", user)
+            return redirect('patient-dashboard')
 
-    return all_doctors
-#tạo hoặc join phòng có bác sĩ phù hợp
-def get_or_create_chat_rooms_for_patient(patient: models.Patient):
-    doctors = get_doctors_patient_can_chat_with(patient)
-    chat_rooms = []
+        try:
+            service = build('calendar', 'v3', credentials=creds)
+        except Exception as e:
+            print("[ERROR] Failed to build Google Calendar service:", e)
+            return redirect('patient-dashboard')
 
-    for doctor in doctors:
-        room, created = models.ChatRoom.objects.get_or_create(patient=patient, doctor=doctor)
-        chat_rooms.append(room)
-    return chat_rooms
+        try:
+            patient = models.Patient.objects.get(user=user)
+            prescriptions = models.Prescription.objects.filter(service__patient=patient)
 
-@login_required
-def get_chat_doctors(request):
-    user = request.user
-    if not hasattr(user, 'patient'):
-        return JsonResponse([], safe=False)
+            if not prescriptions:
+                print("[INFO] No prescriptions found for patient:", patient)
+                return redirect('patient-dashboard')
 
-    patient = user.patient
-    doctors = get_doctors_patient_can_chat_with(patient)
-    rooms = [models.ChatRoom.objects.get_or_create(patient=patient, doctor=doc)[0] for doc in doctors]
+            total_events = 0
+            for prescription in prescriptions:
+                med = prescription.medicine
+                if not med or not med.times_per_day or not prescription.amount:
+                    print(f"[WARNING] Skipping prescription with missing data: {prescription}")
+                    continue
 
-    return JsonResponse([
-        {
-            'id': room.id,
-            'doctor_name': room.doctor.user.get_full_name(),
-        }
-        for room in rooms
-    ], safe=False)
+                total_pills = prescription.amount
+                daily_times = med.times_per_day
+                days_needed = math.ceil(total_pills / daily_times)
+
+                print(f"[INFO] Creating {daily_times} reminders per day for {days_needed} days for medicine: {med.name}")
+
+                now = dj_now()
+                for day_offset in range(days_needed):
+                    reminder_count = daily_times if (day_offset < days_needed - 1) else total_pills % daily_times or daily_times
+                    for dose in range(reminder_count):
+                        event_time = now + timedelta(days=day_offset, hours=8 + 4 * dose)  # 8AM, 12PM, 4PM...
+                        event = {
+                            'summary': f'Dùng thuốc: {med.name}',
+                            'description': med.description or '',
+                            'start': {
+                                'dateTime': event_time.isoformat(),
+                                'timeZone': 'Asia/Ho_Chi_Minh',
+                            },
+                            'end': {
+                                'dateTime': (event_time + timedelta(minutes=30)).isoformat(),
+                                'timeZone': 'Asia/Ho_Chi_Minh',
+                            },
+                        }
+                        created_event = service.events().insert(calendarId='primary', body=event).execute()
+                        print(f"[SUCCESS] Created reminder for {med.name} at {event_time}")
+                        total_events += 1
+
+            print(f"[INFO] Total reminders created for user {user}: {total_events}")
+        except Exception as e:
+            print("[EXCEPTION] Error while creating calendar reminders:", e)
+
+    return redirect('patient-dashboard')
+
 
 
 # def patient_signup_view(request):
