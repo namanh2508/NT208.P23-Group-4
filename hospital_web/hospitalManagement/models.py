@@ -157,7 +157,7 @@ class Test(models.Model):
 
 # -------------------- Medicine --------------------
 class Medicine(models.Model):
-    name = models.CharField(max_length=100, blank=True, null=True) # tên thuốc
+    name = models.CharField(max_length=255, blank=True, null=True) # tên thuốc
     brand = models.CharField(max_length=100, blank=True, null=True) # tên công ty sản xuất
     description= models.TextField(blank=True, null=True) # chức năng  thuốc
     times_per_day = models.IntegerField(blank=True, null=True) # uống bao nhiêu lần 1 ngày
