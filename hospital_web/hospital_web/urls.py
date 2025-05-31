@@ -106,10 +106,10 @@ urlpatterns = [
     path('doctor/<int:doctor_id>/', views.Get_Doctor_Detail, name='doctor_detail'),
     path('patient_view_profile/<str:id>', views.GetPatient, name='patient_view_profile'),
     
-
-
+    path('xac-nhan-cuoc-hen/<str:id>', views.approve_appointment_view, name='approve_appointment_view'),
+    path('huy-cuoc-hen/<str:id>', views.reject_appointment_view, name='reject_appointment_view'),
     #payos
-    path('tao-thanh-toan-payos/', payos_views.create_payment_view, name='payos_create_payment'), 
+    path('tao-thanh-toan-payos/<str:id>', payos_views.create_payment_view, name='payos_create_payment'), 
     path('success', payos_views.success_view, name='payos_success'),
     path('cancel', payos_views.cancel_view, name='payos_cancel'),
     path('receive-webhook/', payos_views.receive_webhook_view, name='payos_receive_webhook'),
