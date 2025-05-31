@@ -739,14 +739,12 @@ def doctor_patient_view(request):
 @user_passes_test(is_doctor)
 def doctor_view_patient_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
-    appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
-    patient_ids = [a.service.patient.id for a in appointments]
-    patients = models.Patient.objects.filter(id__in=patient_ids)
+    services = models.Service.objects.filter(doctor=doctor)
+    patients = models.Patient.objects.filter(id__in=[service.patient.id for service in services])
     # Tính toán số lượng cuộc hẹn của mỗi bệnh nhân với bác sĩ
     for p in patients:
-        p.num_appointments_with_doctor = appointments.filter(service__patient=p).count()
-    appointments = zip(appointments, patients)
-    return render(request,'doctor_view_patient.html',{'appointments': appointments, 'patients': patients})
+        p.num_appointments_with_doctor = services.filter(patient=p, status='accepted').count()
+    return render(request,'doctor_view_patient.html',{'patients': patients})
 
 
 
@@ -771,10 +769,7 @@ def doctor_appointment_view(request):
 @user_passes_test(is_doctor)
 def doctor_view_appointment_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
-    appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
-    patient_ids = [a.patientId.id for a in appointments]
-    patients = models.Patient.objects.filter(id__in=patient_ids)
-    appointments = zip(appointments, patients)
+    appointments=models.Service.objects.all().filter(status="accepted",doctor=doctor).order_by('appointmentDate', 'appointmentTime')
     return render(request,'doctor_view_appointment.html',{'appointments': appointments, 'doctor': doctor})
 
 
