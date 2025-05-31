@@ -107,15 +107,12 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'defaultdb',
-        'USER': 'avnadmin',
-        'PASSWORD': 'AVNS_ZObnXMuxHluI5Skkd08',
-        'HOST': 'pg-1d1a530d-gm-cd7f.h.aivencloud.com',
-        'PORT': '21644',
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'hospital_db',
+        'USER': 'postgres',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '5432'
     }
 }
 
@@ -181,6 +178,7 @@ SITE_URL = 'http://127.0.0.1:8000'  # Used for building redirect_uri
 SESSION_COOKIE_SECURE = False  # Set to False only in local development
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict' may block OAuth redirects
+SESSION_COOKIE_AGE = 15 * 60
 
 #------------------------------------------------
 
@@ -190,8 +188,10 @@ CORS_ALLOWS_CREDENTIALS = True
 
 #OTP
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'stmp.gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'giangcam2005@gmail.com'
 EMAIL_HOST_PASSWORD = 'fups hspf fems wlje'
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

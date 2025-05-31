@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User,Permission,Group
 from decimal import Decimal
 from django.utils import timezone
+import datetime
 DEPARTMENT= [
     ('bac_si_tim_mach', 'Bác sĩ Tim mạch'),
     ('bac_si_da_lieu', 'Bác sĩ Da liễu'),
@@ -214,8 +215,17 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.get_full_name()} at {self.timestamp}"
+#-------------------- Email OTP ------------------
+class EmailOTP (models.Model):
+    email = models.EmailField(unique=True)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-
+    def __str__(self):
+        return f"{self.email} - {self.otp}"
+    
+    def is_expired(self):
+        return timezone.now() > self.created_at +timezone.timedelta(minutes=5)
 
 # class Admin (models.Model):
 #     user = models.OneToOneField (User, on_delete=models.CASCADE)

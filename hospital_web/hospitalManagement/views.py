@@ -14,6 +14,13 @@ from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
 from django.template.loader import get_template
+from django.utils import timezone
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.dateparse import parse_date
+import random
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -63,6 +70,28 @@ def patientclick_view(request):
 
 #----------Signup Views----------------
 
+#----------Gửi email otp----------------
+def generate_otp():
+    return str(random.randint(100000, 999999))
+def send_otp_to_email (email):
+    otp = generate_otp()
+
+    models.EmailOTP.objects.update_or_create(
+        email=email, 
+        defaults= {'otp': otp, 'created_at': timezone.now()})
+    
+    subject = "Mã xác thực OTP của bạn"
+    from_email = "noreply@gmail.com"
+
+    html_content = render_to_string("otp_email_template.html", {"otp": otp})
+    text_content = strip_tags(html_content)
+    try:
+        email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
+    except Exception as e:
+        print(f"Lỗi gửi email: {e}")
+
 def admin_signup_view(request):
     if request.method == "POST":
         form = forms.AdminSignupForm(request.POST)
@@ -93,17 +122,47 @@ def doctor_signup_view(request):
 
 def patient_signup_view(request):
     if request.method == "POST":
+        if 'otp_submit' in request.POST:
+            email = request.session.get("pending_email")
+            input_otp = request.POST.get("otp")
+            try:
+                record = models.EmailOTP.objects.get(email=email)
+                if record.otp == input_otp and not record.is_expired():
+                    user = models.CustomUser.objects.get(email=email)
+                    user.is_active=True
+                    user.save()
+                    del request.session["pending_email"]
+                    messages.success(request, "Xác thực OTP thành công! Vui lòng đăng nhập")
+                    return redirect ('patientlogin')
+                else:
+                    messages.error(request, "Mã OTP không đúng hoặc đã hết hạn.")
+            except models.EmailOTP.DoesNotExist:
+                messages.error(request, "Không tìm thấy yêu cầu xác thực OTP.")
+            return render(request, 'verify_otp.html')
+        
         form = forms.PatientSignupForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+            patient = models.Patient.objects.create(
+                user = user,
+                family_phone = form.cleaned_data['family_phone'],
+                weight = form.cleaned_data['weight'],
+                height = form.cleaned_data['height']
+            )
             patient_group, _ = Group.objects.get_or_create(name='PATIENT')
             user.groups.add(patient_group)
-            messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
-            return redirect('patientlogin')
+
+            send_otp_to_email(user.email)
+            request.session["pending_email"] = user.email
+            messages.info(request, "Mã OTP đã được gửi tới email. Vui lòng xác thực.")
+            return render(request, 'verify_otp.html')
+            # messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
+            # return redirect('patientlogin')
     else:
         form = forms.PatientSignupForm()
     return render(request, 'patientsignup.html', {'form': form})
-
 
 # hàm này kích hoạt khi bấm nút login bằng google
 
