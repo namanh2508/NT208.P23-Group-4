@@ -3,7 +3,11 @@ from django.contrib.auth import logout
 from django.shortcuts import render,redirect,get_object_or_404
 from django.db.models import Sum
 from django.contrib.auth.models import Group,User
+<<<<<<< HEAD
 from django.http import HttpResponseRedirect,HttpResponse, JsonResponse
+=======
+from django.http import HttpResponseRedirect,HttpResponse,HttpResponseForbidden
+>>>>>>> main
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
@@ -22,10 +26,16 @@ from .models import AI_Metric, Doctor,Patient,Appointment,Service
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from allauth.socialaccount.models import SocialApp
+from allauth.socialaccount.models import SocialToken, SocialApp, SocialAccount
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 import secrets
 import requests
+<<<<<<< HEAD
 from xhtml2pdf import pisa
+=======
+from django.http import JsonResponse
+>>>>>>> main
 # Create your views here.
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -118,56 +128,65 @@ def patient_signup_view(request):
     return render(request, 'patientsignup.html', {'form': form})
 
 
-#google login
+# hàm này kích hoạt khi bấm nút login bằng google
+
 def google_login_redirect(request):
     role = request.GET.get('role', 'PATIENT')
     try:
         google_app = SocialApp.objects.get(provider='google')
         client_id = google_app.client_id
     except SocialApp.DoesNotExist:
-        client_id = '956299204451-suo8i077gtc4n3tolq3ba1ggqa3ovgue.apps.googleusercontent.com'
+        return HttpResponse("Google OAuth app not configured", status=500)
+
     redirect_uri = settings.SITE_URL + "/accounts/google/login/callback/"
-    # Generate a secure random state token
     state_token = secrets.token_urlsafe(16)
-    # Store state in the session for verification later
+
     request.session['oauth_state'] = state_token
-    request.session['oauth_role'] = role  # Store role in session
-    request.session.modified = True  # Ensure session updates
+    request.session['oauth_role'] = role
+    request.session.modified = True
+
     google_auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth?"
         f"client_id={client_id}&"
         f"redirect_uri={redirect_uri}&"
-        "scope=email%20profile&"
         "response_type=code&"
+        "scope=openid%20email%20profile%20https://www.googleapis.com/auth/calendar&"
         f"state={state_token}&"
-        "access_type=online"
-    ) 
+        "access_type=offline&"
+        "prompt=consent"
+    )
     return redirect(google_auth_url)
 
+# xử lý redirect sau khi đăng nhập google thành công
+
 def google_callback(request):
+    #chống csrf attack
     stored_state = request.session.get('oauth_state')
     received_state = request.GET.get('state')
-
     if not stored_state or stored_state != received_state:
         return HttpResponse("Invalid state parameter", status=400)
-
     request.session.pop('oauth_state', None)
-    
-    role = request.session.get('oauth_role', 'PATIENT')  # Retrieve role from session
-
+    #lấy role từ google_login_redirect
+    role = request.session.get('oauth_role', 'PATIENT')
+    #lấy authorization code
     code = request.GET.get("code")
     if not code:
         return HttpResponse("Authorization failed", status=400)
 
+    try:
+        app = SocialApp.objects.get(provider='google')
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
+
+    #dùng authorization code để lấy access token và refresh token
     token_url = "https://oauth2.googleapis.com/token"
     data = {
         "code": code,
-        "client_id": settings.GOOGLE_CLIENT_ID,
-        "client_secret": settings.GOOGLE_CLIENT_SECRET,
+        "client_id": app.client_id,
+        "client_secret": app.secret,
         "redirect_uri": settings.SITE_URL + "/accounts/google/login/callback/",
         "grant_type": "authorization_code",
     }
-
     response = requests.post(token_url, data=data)
     token_data = response.json()
 
@@ -175,43 +194,85 @@ def google_callback(request):
         return HttpResponse("Failed to get access token", status=400)
 
     access_token = token_data["access_token"]
-
+    refresh_token = token_data.get("refresh_token")
+    #lấy thông tin cá nhân user
     user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
     headers = {"Authorization": f"Bearer {access_token}"}
     user_info_response = requests.get(user_info_url, headers=headers)
+
     if user_info_response.status_code != 200:
         return HttpResponse("Failed to retrieve user information", status=400)
-    user_info = user_info_response.json()
 
+    user_info = user_info_response.json()
     email = user_info.get("email")
     name = user_info.get("name")
 
     if not email:
         return HttpResponse("Failed to retrieve user email", status=400)
 
-    # Get or create the user
-    user, _ = models.CustomUser.objects.get_or_create(
-    username=email, defaults={"email": email, "first_name": name}
+    user, created = models.CustomUser.objects.get_or_create(
+        username=email, defaults={"email": email, "first_name": name}
     )
-    if role == 'ADMIN':
-        admin, _ = models.Admin.objects.get_or_create(user=user)
-        user.is_staff = True  # Allow access to admin site
-        user.is_superuser = True  # Optionally make them a superuser for full access
+    #phân role nếu như là tài khoản mới
+    if created:
+        if role == 'ADMIN':
+            models.Admin.objects.get_or_create(user=user)
+            user.is_staff = True
+            user.is_superuser = True
+        elif role == 'PATIENT':
+            models.Patient.objects.get_or_create(user=user)
+        elif role == 'DOCTOR':
+            models.Doctor.objects.get_or_create(user=user)
+
+        group, _ = Group.objects.get_or_create(name=role)
+        user.groups.add(group)
+        user.is_active = True
         user.save()
-    if role == 'PATIENT':
-        patient, _ = models.Patient.objects.get_or_create(user=user)
-    if role == 'DOCTOR':
-        doctor, _ = models.Doctor.objects.get_or_create(user=user)
-    # Add user to the group
-    group, _ = Group.objects.get_or_create(name=role)
-    user.groups.add(group)
-    user.is_active=True
-    # Log the user in
+
     user.backend = 'django.contrib.auth.backends.ModelBackend'
-    user.save()
     login(request, user)
+    #tạo SocialAccount object để lưu access token và refresh token
+    account, _ = SocialAccount.objects.get_or_create(
+        user=user,
+        provider='google',
+        uid=user_info['id']
+    )
+    SocialToken.objects.update_or_create(
+        app=app,
+        account=account,
+        defaults={
+            'token': access_token,
+            'token_secret': refresh_token or '',
+        }
+    )
+    #chuyển về giao diện chính
     return redirect('afterlogin')
 
+#lấy Google API credentials cho người dùng, để có thể xài google calendar mà ko phải đăng nhập lại
+
+def get_google_credentials(user):
+    try:
+        #lấy SocialAccount, access token và refresh token object
+        account = SocialAccount.objects.get(user=user, provider='google')
+        token = SocialToken.objects.get(account=account, app__provider='google')
+        app = SocialApp.objects.get(provider='google')
+        #tạo object credentials
+        creds = Credentials(
+            token=token.token,
+            refresh_token=token.token_secret,
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=app.client_id,
+            client_secret=app.secret
+        )
+        #làm mới access token nếu access token hết hạn mà vẫn còn refresh token, sau đó update database
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            token.token = creds.token
+            token.save()
+        return creds
+    #trả về none nếu như thiếu 1 trong 3 object
+    except (SocialAccount.DoesNotExist, SocialToken.DoesNotExist, SocialApp.DoesNotExist):
+        return None
 
 #login view
 def admin_login_view(request):
@@ -269,7 +330,7 @@ def afterlogin_view(request):
     elif is_doctor(request.user):
         return redirect('doctor-dashboard')
     elif is_patient(request.user):
-        accountapproval=models.Patient.objects.all().filter(user_id=request.user.id,status=True)
+        accountapproval = models.Patient.objects.filter(user=request.user, user__status=True)
         if accountapproval:
             return redirect('patient-dashboard')
         else:
@@ -280,6 +341,7 @@ def afterlogin_view(request):
 def logout_view(request):
     logout(request)
     return redirect('index')
+
 
 #---------------------------------------------------------------------------------
 #------------------------ ADMIN RELATED VIEWS START ------------------------------
@@ -881,10 +943,69 @@ def patient_dashboard_view(request):
 #         return redirect('afterlogin')
 #     doctors = Doctor.objects.all()
 #     return render(request, 'index_home.html', {'doctors': doctors})
+def medicine_list_view(request):
+    user = request.user
+    if is_doctor(user):
+        # Doctor: see all medicines in the system
+        medicines = models.Medicine.objects.all()
+    elif is_patient(user):
+        # Patient: see only medicines from their prescriptions
+        prescriptions = models.Prescription.objects.filter(service__patient__user=user).select_related('medicine')
+        medicines = [p.medicine for p in prescriptions if p.medicine]
+    else:
+        return HttpResponseForbidden("Bạn không có quyền truy cập trang này.")
 
+    return render(request, 'medicine_list.html', {'medicines': medicines})
 def all_doctors_view(request):
     doctors = models.Doctor.objects.all()  # Lấy tất cả bác sĩ từ database
     return render(request, 'all_doctors.html', {'doctors': doctors})
+
+# tạo hoặc join chat bệnh nhân & bác sĩ
+def get_or_create_chat_room(patient: models.Patient, doctor: models.Doctor):
+    room, created = models.ChatRoom.objects.get_or_create(patient=patient, doctor=doctor)
+    return room
+# chỉ cho phép bệnh nhân và bác sĩ có dịch vụ với nhau chat
+def can_chat(patient: models.Patient, doctor: models.Doctor) -> bool:
+    return models.Service.objects.filter(patient=patient, doctor=doctor).exists() or \
+           models.Record.objects.filter(patient=patient, doctor=doctor).exists()
+# lấy danh sách bác sĩ mà bệnh nhân có thể chat
+def get_doctors_patient_can_chat_with(patient: models.Patient):
+    # Get distinct doctors from Service and Record
+    doctors_from_services = models.Doctor.objects.filter(service__patient=patient).distinct()
+    doctors_from_records = models.Doctor.objects.filter(record__patient=patient).distinct()
+    
+    # Combine the two querysets
+    all_doctors = (doctors_from_services | doctors_from_records).distinct()
+
+    return all_doctors
+#tạo hoặc join phòng có bác sĩ phù hợp
+def get_or_create_chat_rooms_for_patient(patient: models.Patient):
+    doctors = get_doctors_patient_can_chat_with(patient)
+    chat_rooms = []
+
+    for doctor in doctors:
+        room, created = models.ChatRoom.objects.get_or_create(patient=patient, doctor=doctor)
+        chat_rooms.append(room)
+    return chat_rooms
+
+@login_required
+def get_chat_doctors(request):
+    user = request.user
+    if not hasattr(user, 'patient'):
+        return JsonResponse([], safe=False)
+
+    patient = user.patient
+    doctors = get_doctors_patient_can_chat_with(patient)
+    rooms = [models.ChatRoom.objects.get_or_create(patient=patient, doctor=doc)[0] for doc in doctors]
+
+    return JsonResponse([
+        {
+            'id': room.id,
+            'doctor_name': room.doctor.user.get_full_name(),
+        }
+        for room in rooms
+    ], safe=False)
+
 
 # def patient_signup_view(request):
 #     userForm=forms.PatientUserForm()

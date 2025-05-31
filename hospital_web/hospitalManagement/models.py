@@ -5,8 +5,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User,Permission,Group
 from decimal import Decimal
+<<<<<<< HEAD
 
 
+=======
+from django.utils import timezone
+>>>>>>> main
 DEPARTMENT= [
     ('bac_si_tim_mach', 'Bác sĩ Tim mạch'),
     ('bac_si_da_lieu', 'Bác sĩ Da liễu'),
@@ -121,10 +125,7 @@ class Service(models.Model):
     @property
     def get_type(self):
         return dict(TYPE_OF_SERVICE).get(self.type, 'Unknown')
-    
-
-    
-
+        
 
 # ---------- Record ----------
 class Record(models.Model):
@@ -213,7 +214,7 @@ class TestParameter(models.Model):
 
 # -------------------- Medicine --------------------
 class Medicine(models.Model):
-    name = models.CharField(max_length=100, blank=True, null=True) # tên thuốc
+    name = models.CharField(max_length=255, blank=True, null=True) # tên thuốc
     brand = models.CharField(max_length=100, blank=True, null=True) # tên công ty sản xuất
     description= models.TextField(blank=True, null=True) # chức năng  thuốc
     times_per_day = models.IntegerField(blank=True, null=True) # uống bao nhiêu lần 1 ngày
@@ -222,7 +223,7 @@ class Medicine(models.Model):
 # -------------------- Prescription --------------------
 class Prescription(models.Model):
     medicine= models.ForeignKey(Medicine, on_delete=models.SET_NULL, blank=True, null=True)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE,related_name='prescriptions')
     amount = models.PositiveIntegerField(blank=True, null=True) # số lượng viên thuốc
     total_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # tổng giá tiền
     def get_total_price(self):
@@ -249,8 +250,27 @@ class Bill(models.Model):
     method = models.CharField(max_length=50,blank=True, null=True) # Phương thức thanh toán
     def __str__(self):
         return f"Bill for {self.patient.user.get_full_name()} on {self.release_date}"
+#-------------------- Phòng chat bác sĩ & bệnh nhân --------------------
+class ChatRoom(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='chat_rooms')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='chat_rooms')
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('patient', 'doctor')  # One room per doctor-patient pair
 
+    def __str__(self):
+        return f"ChatRoom between {self.patient.user.get_full_name()} and Dr. {self.doctor.user.get_full_name()}"
+
+#-------------------- tin nhắn --------------------
+class Message(models.Model):
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # can be either patient or doctor
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Message from {self.sender.get_full_name()} at {self.timestamp}"
 
 
 

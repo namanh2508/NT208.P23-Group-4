@@ -5,6 +5,7 @@ from hospitalManagement import payos_views
 from hospitalManagement import meeting_views
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from django.conf.urls.static import static
+from api import views
 
 # from api.views import CreateUserView
 
@@ -15,7 +16,6 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('stafflogin/',views.home_view,name='index'),
     path('',views.index_view,name='index_home'),
-
     path('adminsignup/', views.admin_signup_view,name='adminsignup'),
     path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
     path('patientsignup/', views.patient_signup_view,name='patientsignup'),
@@ -62,6 +62,7 @@ urlpatterns = [
     path('admin-view-patient', views.admin_view_patient_view,name='admin-view-patient'),
     path('delete-patient-from-hospital/<int:pk>', views.delete_patient_from_hospital_view,name='delete-patient-from-hospital'),
     path('update-patient/<int:pk>', views.update_patient_view,name='update-patient'),
+    
     #nút 2
     path('admin-add-patient', views.admin_add_patient_view,name='admin-add-patient'),
     #nút 3
@@ -115,6 +116,15 @@ urlpatterns = [
     #ngrok http --url=deep-urchin-plainly.ngrok-free.app 80
     path('doctor-room/<int:doctor_user_id>/', meeting_views.doctor_video_room_view, name='doctor_video_room'),
     
+    path('book-appointment/', views.book_appointment,name='book-appointment'),
+    path('patient-view-appointment', views.get_appointment_by_patient_name, name='patient-view-appointments'),
+    path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+    # path('my_profile/', views.patient_view_profile, name='my_profile'),
+    # --------------------for patient dasboard:--------------------
+    path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
+    path('medicines/', views.medicine_list_view, name='medicine_list'),# patient và doctor xài chức năng này
+    path('chat/doctors/', views.get_chat_doctors, name='get_doctors'),
+    path('chat/room/<id>', views.get_or_create_chat_rooms_for_patient, name='get_rooms'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
@@ -126,5 +136,5 @@ urlpatterns = [
 
 #     path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
 
-#     path('my_profile/', views.patient_view_profile, name='my_profile'),
+#     
 #  ]
