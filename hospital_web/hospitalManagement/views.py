@@ -230,8 +230,101 @@ def google_callback(request):
     #chuyển về giao diện chính
     return redirect('afterlogin')
 
-#lấy Google API credentials cho người dùng, để có thể xài google calendar mà ko phải đăng nhập lại
+@login_required
+def google_link_redirect(request):
+    try:
+        google_app = SocialApp.objects.get(provider='google')
+        client_id = google_app.client_id
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
 
+    redirect_uri = settings.SITE_URL + "/accounts/google/link/callback/"
+    state_token = secrets.token_urlsafe(16)
+
+    request.session['oauth_state'] = state_token
+    request.session['link_google'] = True
+    request.session.modified = True
+
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={client_id}&"
+        f"redirect_uri={redirect_uri}&"
+        "response_type=code&"
+        "scope=openid%20email%20profile%20https://www.googleapis.com/auth/calendar&"
+        f"state={state_token}&"
+        "access_type=offline&"
+        "prompt=consent"
+    )
+    return redirect(google_auth_url)
+
+@login_required
+def google_link_callback(request):
+    # Check CSRF-like state
+    stored_state = request.session.get('oauth_state')
+    received_state = request.GET.get('state')
+    if not stored_state or stored_state != received_state:
+        return HttpResponse("Invalid state parameter", status=400)
+    request.session.pop('oauth_state', None)
+    request.session.pop('link_google', None)
+
+    code = request.GET.get("code")
+    if not code:
+        return HttpResponse("Authorization failed", status=400)
+
+    try:
+        app = SocialApp.objects.get(provider='google')
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
+
+    # Get token
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": app.client_id,
+        "client_secret": app.secret,
+        "redirect_uri": settings.SITE_URL + "/accounts/google/link/callback/",
+        "grant_type": "authorization_code",
+    }
+    response = requests.post(token_url, data=data)
+    token_data = response.json()
+
+    if "access_token" not in token_data:
+        return HttpResponse("Failed to get access token", status=400)
+
+    access_token = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token")
+
+    # Get Google profile
+    headers = {"Authorization": f"Bearer {access_token}"}
+    user_info = requests.get("https://www.googleapis.com/oauth2/v2/userinfo", headers=headers).json()
+    google_uid = user_info['id']
+
+    #Check 1: This Google account already linked to another user
+    existing = SocialAccount.objects.filter(provider='google', uid=google_uid)
+    if existing:
+        return HttpResponse("This Google account is already linked", status=409)
+
+    #Check 2: Current user already linked to another Google account
+    already_linked = SocialAccount.objects.filter(provider='google', user=request.user).exclude(uid=google_uid).exists()
+    if already_linked:
+        return HttpResponse("You have already linked a different Google account.", status=409)
+
+    #Create or update
+    account= SocialAccount.objects.create(
+        user=request.user,
+        provider='google',
+        uid=google_uid
+    )
+    SocialToken.objects.update_or_create(
+        app=app,
+        account=account,
+        defaults={'token': access_token, 'token_secret': refresh_token or ''},
+    )
+
+    return redirect('afterlogin')
+
+
+#lấy Google API credentials cho người dùng, để có thể xài google calendar mà ko phải đăng nhập lại
 def get_google_credentials(user):
     try:
         #lấy SocialAccount, access token và refresh token object

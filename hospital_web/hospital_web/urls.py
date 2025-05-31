@@ -28,7 +28,9 @@ urlpatterns = [
     path('accounts/google/login/callback/', views.google_callback, name='google_callback'),
     path('afterlogin/', views.afterlogin_view, name='afterlogin'),
     path('logout/', views.logout_view, name='logout'),
-    
+    #link google account
+    path('accounts/google/link/', views.google_link_redirect, name='google-link'),
+    path('accounts/google/link/callback/', views.google_link_callback, name='google-link-callback'),
     path('accounts/', include('allauth.urls')), #google authentication
 
     path('aboutus/', views.aboutus_view, name='aboutus'),
