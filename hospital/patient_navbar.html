@@ -6,7 +6,7 @@
         {# Thêm class navbar-logo-img để dễ dàng chỉnh CSS #}
         {# Thêm alt text mô tả logo #}
         <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
-            <img src="{% static 'images/v987-18a.jpg' %}"" alt="IV-Medical Logo" class="navbar-logo-img">
+            <img src="{% static 'images/v987-18a.jpg' %}" alt="IV-Medical Logo" class="navbar-logo-img">
             BỆNH VIỆN QUỐC TẾ IV MEDICAL
             {# <span style="margin-left: 10px;">IV-Medical</span> #}
         </a>
@@ -16,42 +16,42 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 {# --- Các mục menu khác giữ nguyên --- #}
-                <li class="nav-item">
-                    <a class="nav-link" href="/">Trang chủ</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="all_doctors">Bác sĩ</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="aboutus">Về chúng tôi</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="contactus">Liên lạc</a>
-                </li>
-                {% if request.user.is_authenticated %}
-                <li class="nav-item">
-                    <button class="btn-profile" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
-                        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-icon" alt="Profile">
-                    </button>
-                    <div class="collapse" id="sidebarMenu">
-                        <div class="sidebar">
-                            <div class="sidebar-nav">
-                                <a href="{% url 'my_profile' %}" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
+                 <li class="nav-item">
+                     <a class="nav-link" href="/">Trang chủ</a>
+                 </li>
+                 <li class="nav-item">
+                     <a class="nav-link" href="/all_doctors">Bác sĩ</a>
+                 </li>
+                 <li class="nav-item">
+                     <a class="nav-link" href="/aboutus">Về chúng tôi</a>
+                 </li>
+                 <li class="nav-item">
+                     <a class="nav-link" href="/contactus">Liên lạc</a>
+                 </li>
+                 {% if request.user.is_authenticated %}
+                 <li class="nav-item">
+                     <button class="btn-profile" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
+                         <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-icon" alt="Profile">
+                     </button>
+                     <div class="collapse" id="sidebarMenu">
+                         <div class="sidebar">
+                             <div class="sidebar-nav">
+                                 <a href="{% url 'patient_view_profile' request.user.id %}" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
+                                  <a href="{% url 'patient-view-appointments' request.user.id %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
+                                  <a href="" style="color: black;" class="nav-link d-block">Đăng ký xét nghiệm</a>
+                                  <a href="" style="color: black;" class="nav-link d-block">Mua thuốc</a>
 
-                                {% if is_patient and patient and patient.id %}
-                                <a href="{% url 'patient_appointments' patient.id %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
-                                {% endif %}
-
-                                <a href="{% url 'logout' %}" style="color: black;" class="nav-link d-block">Đăng xuất</a>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="btn btn-create-account py-2 px-4" href="{% url 'patientsignup' %}">Create Account</a>
-                </li>
-                {% endif %}
+                         <a href="/logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>
+                 </div>
+         </div>
+     </div>
+ </li>
+ {% else %}
+ <li class="nav-item">
+     <a class="btn btn-create-account py-2 px-4" href="{% url 'patientsignup' %}">Create Account</a>
+ </li>
+{% endif %}
+                
                 {# --- Hết các mục menu --- #}
             </ul>
         </div>
@@ -59,7 +59,7 @@
 </nav>
 <style>
   /* --- CSS CHO LOGO --- */
-.navbar-logo-img {
+  .navbar-logo-img {
   height: 40px; /* Điều chỉnh chiều cao mong muốn cho logo */
   width: auto; /* Chiều rộng sẽ tự động thay đổi theo tỷ lệ */
   margin-right: 8px; /* Nếu bạn có thêm chữ bên cạnh logo, tạo khoảng cách */
@@ -119,17 +119,19 @@ html, body {
 }
 
 /* --- CSS ĐÃ SỬA CHO SIDEBAR MENU --- */
+
 .navbar-nav .nav-item {
     position: relative;
+    
 }
 
 #sidebarMenu {
     position: absolute;
     top: 100%;
-    right: 0;
+    left: -10%;
     z-index: 1000;
+    
 }
-
 .sidebar {
     background-color: #f8f9fa;
     padding: 5px;
@@ -137,12 +139,21 @@ html, body {
     width: 120px;
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
 }
 /* --- KẾT THÚC CSS ĐÃ SỬA --- */
 
 .sidebar-nav .nav-link {
     padding: 5px 10px;
     font-size: 12px;
+    margin-left: 10px;
+    margin-right: 10px;
+    
+}
+.nav-item {
+    display: flex;
+    align-items: center; /* Căn giữa theo chiều dọc */
 }
 /* Đoạn CSS trùng lặp đã bỏ */
 
