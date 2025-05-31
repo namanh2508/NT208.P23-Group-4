@@ -94,10 +94,8 @@ def patient_appointments_view(request,patientID):
     }
     return render(request, '' , context) # thêm file.html để hiển thị các lịch hẹn của 1 patient
 
-genai.configure(api_key="AIzaSyCyJiVy8beS2XiDEBz7vosPP5Sh65yp5zU")
-
-# Use the correct model and v1-compatible method
-model = genai.GenerativeModel(model_name="models/gemini-1.5-flash")
+genai.configure(api_key="AIzaSyDqT2XW78e3x_X4lKgXSgAzJEIdA64LUfE")
+model = genai.GenerativeModel(model_name="gemini-2.0-flash")
 
 class GeminiChatView(APIView):
     def post(self, request):
