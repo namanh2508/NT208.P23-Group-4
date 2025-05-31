@@ -98,8 +98,9 @@ class Service(models.Model):
     description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
     status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
     def __str__(self):
-        return f"Service #{self.id} for {self.patient}"
-
+        if self.pk:  
+            return f"Service #{self.pk} for {self.patient}"
+        return "Unsaved Service"
 # ---------- Record ----------
 class Record(models.Model):
     service= models.OneToOneField(Service, on_delete=models.SET_NULL, null=True, blank=True) # 1 bản record sẽ được tạo sau khi khám xong, nếu service bị xóa thì biến này thành null
@@ -177,8 +178,8 @@ class Prescription(models.Model):
         self.total_price = self.get_total_price()
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.medicine_name} for Service #{self.service.service_id}"
+def __str__(self):
+    return f"{self.medicine} for Service #{self.service.id}"
 
 # -------------------- Bill --------------------
 class Bill(models.Model):
@@ -193,27 +194,6 @@ class Bill(models.Model):
     method = models.CharField(max_length=50,blank=True, null=True) # Phương thức thanh toán
     def __str__(self):
         return f"Bill for {self.patient.user.get_full_name()} on {self.release_date}"
-#-------------------- Phòng chat bác sĩ & bệnh nhân --------------------
-class ChatRoom(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='chat_rooms')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='chat_rooms')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('patient', 'doctor')  # One room per doctor-patient pair
-
-    def __str__(self):
-        return f"ChatRoom between {self.patient.user.get_full_name()} and Dr. {self.doctor.user.get_full_name()}"
-
-#-------------------- tin nhắn --------------------
-class Message(models.Model):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # can be either patient or doctor
-    content = models.TextField()
-    timestamp = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return f"Message from {self.sender.get_full_name()} at {self.timestamp}"
 
 
 
