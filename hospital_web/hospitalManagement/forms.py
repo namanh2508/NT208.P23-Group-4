@@ -5,7 +5,7 @@ from . import models
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.validators import RegexValidator
 
-from .models import Service, Doctor, Patient 
+from .models import APPOINTMENT_METHOD, TYPE_OF_SERVICE, Appointment, Service, Doctor, Patient 
 from django.utils import timezone
 import datetime
 
@@ -30,7 +30,7 @@ class CustomUserSignupForm(forms.ModelForm):
 
     class Meta:
         model = models.CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'birthday']
+        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'birthday', 'picture']
         labels = {
             'username': 'Tên đăng nhập',
             'email': 'Email',
@@ -38,6 +38,7 @@ class CustomUserSignupForm(forms.ModelForm):
             'last_name': 'Tên',
             'phone': 'Số điện thoại',
             'birthday': 'Ngày sinh',
+            'picture': 'Ảnh đại diện',
         }
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên đăng nhập'}),
@@ -46,6 +47,7 @@ class CustomUserSignupForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại'}),
             'birthday': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'picture': forms.FileInput(attrs={'class': 'form-control-file'}),
             # 'gender': forms.RadioSelect(choices=models.GENDER),
         }
 
@@ -381,12 +383,6 @@ class PatientUserForm(CustomUserUpdateForm):
 class AppointmentBookingForm(forms.ModelForm):
     # Customize the Doctor field to show readable names
     # Use ModelChoiceField to get a dropdown of doctors
-    doctor = forms.ModelChoiceField(
-        queryset=Doctor.objects.select_related('user').all(), # Optimize query
-        label="Select Doctor",
-        empty_label="-- Choose a Doctor --",
-        widget=forms.Select(attrs={'class': 'form-control'}) # Add CSS class if using Bootstrap etc.
-    )
 
     # Customize appointmentDate field
     appointmentDate = forms.DateField(
@@ -413,7 +409,22 @@ class AppointmentBookingForm(forms.ModelForm):
             }
         )
     )
-
+    
+    
+    type = forms.ChoiceField(
+        choices=TYPE_OF_SERVICE,
+        label="loại dịch vụ",
+        widget= forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    
+    method = forms.ChoiceField(
+        choices=APPOINTMENT_METHOD,
+        label="Method of Appointment",
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
     # Customize description field (optional, for patient's notes)
     description = forms.CharField(
         label="Reason for Visit / Symptoms (Optional)",
@@ -430,19 +441,21 @@ class AppointmentBookingForm(forms.ModelForm):
     class Meta:
         model = Service
         # Fields the PATIENT needs to fill out when booking
-        fields = ['doctor', 'appointmentDate', 'appointmentTime', 'description']
+        fields = ['appointmentDate', 'appointmentTime','method','type', 'description']
         # Note: 'patient' will be set automatically in the view based on the logged-in user.
         # 'status' will be set to 'pending' automatically.
 
+    
     def __init__(self, *args, **kwargs):
-        # You could potentially pass the user here if needed for filtering doctors, etc.
-        # user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # You can add further customizations here if needed
-        # Example: Filter doctors based on department passed in kwargs if needed
+        self.fields['method'].widget.attrs.update({'class': 'form-control'})
+        # Add styling to other fields if needed
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({'class': 'form-control'})
 
-    # --- Custom Validation (Examples) ---
 
+
+    # --- Custom Validation ---
     def clean_appointmentDate(self):
         """Ensure appointment date is not in the past."""
         date = self.cleaned_data.get('appointmentDate')
@@ -492,3 +505,25 @@ class AppointmentBookingForm(forms.ModelForm):
                 )
 
         return cleaned_data
+    
+class PatientProfileForm(forms.ModelForm):
+    class Meta:
+        model = models.Patient
+        fields = ['family_phone', 'weight', 'height', 'description']
+        labels = {
+            'family_phone': 'Số điện thoại người thân',
+            'weight': 'Cân nặng (kg)',
+            'height': 'Chiều cao (cm)',
+            'description': 'Mô tả triệu chứng',
+        }
+        widgets = {
+            'family_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+        
+class UploadForm(forms.ModelForm):
+    class Meta:
+        model = models.AI_Record
+        fields = ['patient', 'image']

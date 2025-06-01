@@ -1,11 +1,14 @@
 from django.contrib import admin
 from django.urls import path,include
 from django.contrib.auth.views import LoginView,LogoutView
+from hospitalManagement import payos_views
+from hospitalManagement import meeting_views
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from django.conf.urls.static import static
 from api import views
 
 # from api.views import CreateUserView
+
 from hospitalManagement import views
 from hospital_web import settings
 urlpatterns = [
@@ -95,12 +98,25 @@ urlpatterns = [
     path('delete-appointment/<int:pk>', views.delete_appointment_view,name='delete-appointment'),
 
     path('doctor-dashboard/', views.doctor_dashboard_view,name='doctor-dashboard'),
-    path('book-appointment/', views.book_appointment,name='book-appointment'),
-    path('patient-view-appointment', views.get_appointment_by_patient_name, name='patient-view-appointments'),
-    path('all_doctors/', views.all_doctors_view, name='all_doctors'),
-    # path('my_profile/', views.patient_view_profile, name='my_profile'),
-    # --------------------for patient dasboard:--------------------
+
     path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
+    path('book-appointment/<str:id>', views.book_appointment,name='book-appointment'),
+    path('check_service/<str:date>', views.check_service_by_date, name='check_service'),
+    path('patient-view-appointment/<str:id>', views.get_appointment_by_patient_name, name='patient-view-appointments'),
+    path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+    
+    path('doctor/<int:doctor_id>/', views.Get_Doctor_Detail, name='doctor_detail'),
+    path('patient_view_profile/<str:id>', views.GetPatient, name='patient_view_profile'),
+    
+    path('xac-nhan-cuoc-hen/<str:id>', views.approve_appointment_view, name='approve_appointment_view'),
+    path('huy-cuoc-hen/<str:id>', views.reject_appointment_view, name='reject_appointment_view'),
+    #payos
+    path('tao-thanh-toan-payos/<str:id>', payos_views.create_payment_view, name='payos_create_payment'), 
+    path('success', payos_views.success_view, name='payos_success'),
+    path('cancel', payos_views.cancel_view, name='payos_cancel'),
+    path('receive-webhook/', payos_views.receive_webhook_view, name='payos_receive_webhook'),
+    #ngrok http --url=deep-urchin-plainly.ngrok-free.app 80
+    path('doctor-room/<int:doctor_user_id>/', meeting_views.doctor_video_room_view, name='doctor_video_room'),
     path('medicines/', views.medicine_list_view, name='medicine_list'),# patient và doctor xài chức năng này
     path('patient-dashboard/add-calendar-reminders/', views.add_calendar_reminders, name='add_calendar_reminders'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

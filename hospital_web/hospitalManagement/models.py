@@ -1,3 +1,6 @@
+
+from django.conf import settings
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User,Permission,Group
@@ -29,11 +32,18 @@ GENDER= [
 STATUS= [
     ('accepted','Accepted'),
     ('rejected','Rejected'),
-    ('pending','Pending')
+    ('pending','Pending'),
+    ('finished','Finished')
 ]
 APPOINTMENT_METHOD= [
     ('online','Tư vấn online'),
     ('offline','Khám bệnh trực tiếp')
+]
+
+TYPE_OF_SERVICE = [
+    ('appointment', 'Đăng ký khám bệnh'),
+    ('test', 'Xét nghiệm'),
+    ('prescription', 'Đặt thuốc'),    
 ]
 # ---------- Custom User ----------
 class CustomUser(AbstractUser):
@@ -59,7 +69,7 @@ class CustomUser(AbstractUser):
     birthday = models.DateField(blank=True, null=True) # ngày sinh
     multi_factor_enabled = models.BooleanField(default=False) # option để bật chức năng 2 factor authentication
     ip_address_last_login = models.GenericIPAddressField(blank=True, null=True) # lưu địa chỉ ip đăng nhập gần nhất cho chức năng 2FA
-    status = models.BooleanField(default = False) # tài khoản đã được kích hoạt hay chưa
+    status = models.BooleanField(default = True) # tài khoản đã được kích hoạt hay chưa
     USERNAME_FIELD = 'username' 
     REQUIRED_FIELDS = ['email']  
     def __str__(self):
@@ -74,6 +84,13 @@ class Doctor(models.Model):
         return dict(DEPARTMENT).get(self.department, 'Unknown')
     def __str__(self):
         return f"Dr. {self.user.get_full_name()}"
+    @property
+    def get_picture(self):
+        return self.user.picture.url if self.user.picture else None
+    
+    @property
+    def get_department(self):
+        return dict(DEPARTMENT).get(self.department, 'Unknown')
 
 # ---------- Admin ----------
 class Admin(models.Model):
@@ -97,11 +114,17 @@ class Service(models.Model):
     appointmentDate = models.DateField() # ngày hẹn
     appointmentTime = models.TimeField() # thời gian hẹn
     description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
+    type = models.CharField(max_length=100, blank=True, null=True, choices=TYPE_OF_SERVICE)
     status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
-    def __str__(self):
-        if self.pk:  
-            return f"Service #{self.pk} for {self.patient}"
-        return "Unsaved Service"
+    image = models.ImageField(upload_to='service_images/', blank=True, null=True) # ảnh chụp dịch vụ
+    @property
+    def get_type(self):
+        return dict(TYPE_OF_SERVICE).get(self.type, 'Unknown')
+    
+
+    
+
+
 # ---------- Record ----------
 class Record(models.Model):
     service= models.OneToOneField(Service, on_delete=models.SET_NULL, null=True, blank=True) # 1 bản record sẽ được tạo sau khi khám xong, nếu service bị xóa thì biến này thành null
@@ -115,23 +138,45 @@ class Record(models.Model):
 
 # -------------------- AI_Record --------------------
 class AI_Record (models.Model):
+    RECORD_TYPES = (
+        ('lab_report', 'Xét nghiệm'),
+        ('dermatology', 'Da liễu'),
+        ('xray', 'X-quang'),
+    )
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='ai_record') # khóa ngoại liên kết với patient
+    record_type = models.CharField(max_length=50, choices=RECORD_TYPES, default='lab_report')
+    image = models.ImageField(upload_to='ai_inputs/', blank=True, null=True)
+    
+    # Dùng cho chẩn đoán từ ảnh y học
+    diagnosis = models.CharField(max_length=255, blank=True, null=True)
+    confidence = models.FloatField(blank=True, null=True)
+    
+    # thông tin khác
     symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
     description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
-    record_date = models.DateField(blank=True, null=True) # ngày khám
-    weight = models.PositiveIntegerField(blank=True, null=True) # cân nặng
-    height = models.PositiveIntegerField(blank=True, null=True) # chiều cao
-    glucose = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    blood_pressure = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    blood_group = models.CharField(max_length=5, blank=True, null=True)
-    liver_enzymes = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    cretinine = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    acid_uric = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    cholesterol = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    
+    created_at = models.DateField(default=timezone.now) # ngày tạo bản ghi
+    
+    def __str__(self):
+        return f"{self.record_type} - {self.patient.name} ({self.record_date})"
+    
     class Meta:
         verbose_name = "AI Record"
         verbose_name_plural = "AI Records"
 
+
+# -------------------- AI Metric lưu chỉ số OCR đc từ ảnh xét nghiệm, thông qua AI phân tích --------------------------------------------- 
+class AI_Metric(models.Model):
+    ai_record = models.ForeignKey(AI_Record, on_delete=models.CASCADE, related_name='metrics')
+    name = models.CharField(max_length=100)  # tên chỉ số
+    value = models.FloatField() # giá trị chỉ số
+    unit = models.CharField(max_length=20, blank=True, null=True) # đơn vị chỉ số
+    reference_range = models.CharField(max_length=100, blank=True, null=True) # khoảng tham chiếu (VD: 4.0-6.0)
+    status = models.CharField(max_length=10, blank=True, null=True)  # tình trạng: cao hay thấp hơn bình thường
+
+    def __str__(self):
+        return f"{self.name}: {self.value} {self.unit} ({self.status})"
+    
     
 # -------------------- Appointment --------------------
 class Appointment(models.Model):
@@ -139,23 +184,31 @@ class Appointment(models.Model):
     method = models.CharField(max_length=100, blank=True, null=True, choices=APPOINTMENT_METHOD) # khám trực tiếp hoặc tư vấn online
     price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # giá tiền
     status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
+    orderCode = models.CharField(max_length=100, blank=True, null=True) # mã đơn hàng
     def __str__(self):
         return f"Appointment for {self.service.patient.user.get_full_name()} with {self.service.doctor.user.get_full_name()}"
 
 # -------------------- Test --------------------
 class Test(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    glucose = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    blood_pressure = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    blood_group = models.CharField(max_length=5, blank=True, null=True)
-    liver_enzymes = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    cretinine = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    acid_uric = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    cholesterol = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True) # giá tiền
+    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    Test_date = models.DateField(default=timezone.now) # ngày xét nghiệm
 
     def __str__(self):
-        return f"Test for Service #{self.service.service_id}"
+        return f"Test #{self.id} - {self.service.name}"
+    
+    
+# -------------------- Test Parameter lưu chỉ số, cái này do người dùng nhập hoặc là bác sĩ nhập tay , khác với AI_Metric  --------------------
+class TestParameter(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='parameters')
+    name = models.CharField(max_length=100)
+    value = models.FloatField()
+    unit = models.CharField(max_length=20, blank=True, null=True)
+    reference_range = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=10, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name}: {self.value} {self.unit} ({self.status})"
 
 # -------------------- Medicine --------------------
 class Medicine(models.Model):
@@ -195,24 +248,9 @@ class Bill(models.Model):
     method = models.CharField(max_length=50,blank=True, null=True) # Phương thức thanh toán
     def __str__(self):
         return f"Bill for {self.patient.user.get_full_name()} on {self.release_date}"
-#-------------------- Phòng chat bác sĩ & bệnh nhân --------------------
-class ChatRoom(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='chat_rooms')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='chat_rooms')
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ('patient', 'doctor')  # One room per doctor-patient pair
 
-    def __str__(self):
-        return f"ChatRoom between {self.patient.user.get_full_name()} and Dr. {self.doctor.user.get_full_name()}"
 
-#-------------------- tin nhắn --------------------
-class Message(models.Model):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # can be either patient or doctor
-    content = models.TextField()
-    timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"Message from {self.sender.get_full_name()} at {self.timestamp}"

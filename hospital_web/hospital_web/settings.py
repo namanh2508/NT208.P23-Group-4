@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
+import dj_database_url
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,6 +32,7 @@ SECRET_KEY = 'django-insecure-+%70bj&(=plk%op)2203yngsoseidf#0rg6*ytz@u65bk9f2^+
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -82,6 +84,11 @@ MIDDLEWARE = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'hospital_web.urls'
+CSRF_TRUSTED_ORIGINS = [
+    'https://deep-urchin-plainly.ngrok-free.app',
+    # Thêm các domain khác nếu cần, ví dụ domain production của bạn sau này
+    # 'https://your-production-domain.com',
+]
 
 TEMPLATES = [
     {
@@ -105,6 +112,18 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+    
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'defaultdb',  # Tên cơ sở dữ liệu
+#         'USER': 'avnadmin',      # Tên người dùng root
+#         'PASSWORD': 'AVNS_OFptgXjJKY7U1I642x4',   # Mật khẩu root_pw
+#         'HOST': 'pg-22aad830-gm-cd7f.h.aivencloud.com',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
+#         'PORT': '21644',         # Cổng (mặc định là 5432)
+#     }
+# }a
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -115,6 +134,7 @@ DATABASES = {
         'PORT': '5432'
     }
 }
+
 
 
 # Password validation
@@ -141,7 +161,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "Asia/Bangkok"
 
 USE_I18N = True
 
@@ -153,6 +173,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]

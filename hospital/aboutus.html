@@ -1,45 +1,237 @@
 <!DOCTYPE html>
-{% load static %}
-<html lang="en" dir="ltr">
+<html lang="vi">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>HMS - Django</title>
-  <style media="screen">
-    .jumbotron {
-      margin-top: 0px;
-      margin-bottom: 0px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IV-Medical</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            scroll-behavior: smooth;
+        }
 
-    .jumbotron h1 {
-      text-align: center;
-    }
+        .wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .alert {
-      margin: 0px;
-    }
-  </style>
-  <title>sumit</title>
+        main {
+            flex: 1; 
+        }
+
+        .btn-create-account:hover {
+            background-color: #6366F1;
+            color: #FFD700;
+        }
+        /* CSS cho html, body bị lặp lại, đã xóa một lần ở trên */
+
+        .footer { 
+            background-color: #f8f9fa;
+            padding: 10px 0;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        /* --- CSS cho Hero Banner --- */
+        .hero-banner {
+            /* Style inline đã khá đủ, có thể giữ nguyên hoặc chuyển vào đây */
+        }
+        /* --- Kết thúc CSS Hero Banner --- */
+
+        /* --- CSS cho Decorative Gallery 1 --- */
+        .decorative-gallery-1 {
+            /* Style inline đã khá đủ */
+        }
+        .decorative-gallery-1 img:hover {
+            transform: scale(1.03) translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); 
+        }
+        .decorative-gallery-1 figcaption { 
+            padding-top: 12px; 
+            font-weight: 600; 
+            font-size: 1em;
+            color: #495057;
+            line-height: 1.4;
+        }
+        /* --- Kết thúc CSS Decorative Gallery 1 --- */
+
+        /* --- CSS cho Decorative Gallery 2 --- */
+        .decorative-gallery-2 {
+            /* Style inline đã khá đủ */
+        }
+        /* --- Kết thúc CSS Decorative Gallery 2 --- */
+
+        /* --- CSS CHO CAROUSEL BÁC SĨ --- */
+        .carousel-container {
+            width: 100%;
+            max-width: 960px; 
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .carousel {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .doctor-card {
+            flex-shrink: 0;
+            width: 290px;
+            margin-right: 30px;
+            background-color: #ffffff; 
+            border: 1px solid #e9ecef; 
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .carousel .doctor-card:last-child {
+            margin-right: 0;
+        }
+
+        .doctor-card img { 
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            display: block;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .doctor-card .doctor-info {
+            padding: 20px 15px;
+        }
+
+        .doctor-card h3 {
+            font-size: 1.3em; 
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #0056b3;
+        }
+
+        .doctor-card .specialty {
+            font-size: 0.95em; 
+            color: #1a73e8;
+            margin-bottom: 12px; 
+            font-weight: 500;
+            display: block;
+            min-height: 20px; 
+        }
+
+        .doctor-card .desc {
+            font-size: 0.85em; 
+            color: #6c757d; 
+            line-height: 1.5;
+            height: 4.5em; 
+            margin-bottom: 15px; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3; 
+            -webkit-box-orient: vertical;
+        }
+
+        .doctor-card .profile-link {
+            background-color: #1a73e8;
+            color: white;
+            padding: 8px 18px; 
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 0.85em; 
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            display: inline-block;
+        }
+
+        .doctor-card .profile-link:hover {
+            background-color: #0056b3;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        /* --- KẾT THÚC CSS CAROUSEL --- */
+
+        /* CSS cho nút btn-create-account (giữ lại vì không rõ có thuộc navbar không) */
+        .btn-create-account {
+            background-color: #FFD700;
+            color: #0d6efd; 
+            font-weight: bold;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border: none; 
+        }
+
+        .btn-create-account:hover {
+            background-color: #ffca2c; 
+            color: #0b5ed7;
+        }
+
+    </style>
 </head>
 
 <body>
-  {% include "navbar.html" %}
-  <br><br>
-  <center>
-    <h3 class='alert alert-success' style="margin-bottom:0px;">About Us !</h3>
-  </center>
-  <div class="jumbotron" style="margin-bottom: 0px;margin-top: 0px;">
-    <h1 class="display-4">Hello</h1>
-    <p class="lead">A service dedicated to Hospital Admin, Doctor and Patient.</p>
-    <hr class="my-4">
-    <p>Explore our Website.</p>
-    <p class="lead">
-      <a class="btn btn-primary btn-lg" href="/" role="button">HOME</a>
-    </p>
-  </div>
-  {% include "footer.html" %}
+    {% load static %}
+
+    <div class="wrapper">
+
+        {% include "patient_navbar.html" %}
+        <main>
+            <section class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 text-center">
+                        <h1 class="mb-4 text-primary fw-bold">Bệnh viện IV-Medical – Nơi gửi trọn niềm tin sức khỏe</h1>
+                        <p class="lead mb-4">Bệnh viện IV-Medical là một trong những cơ sở y tế hiện đại, uy tín hàng đầu, được xây dựng với mục tiêu mang đến dịch vụ chăm sóc sức khỏe toàn diện, chất lượng quốc tế cho cộng đồng. Chúng tôi tự hào sở hữu đội ngũ y bác sĩ giàu kinh nghiệm, tận tâm cùng hệ thống trang thiết bị tiên tiến, đáp ứng mọi nhu cầu khám chữa bệnh của người dân.</p>
+                        <div class="row mt-4">
+                            <div class="col-md-6 mb-3">
+                                <div class="p-4 bg-light rounded shadow-sm h-100">
+                                    <h4 class="text-info mb-2">Sứ mệnh của chúng tôi</h4>
+                                    <ul class="text-start mb-0" style="list-style: disc inside;">
+                                        <li>Đặt sức khỏe và sự an toàn của người bệnh lên hàng đầu.</li>
+                                        <li>Không ngừng đổi mới, ứng dụng công nghệ hiện đại vào chẩn đoán và điều trị.</li>
+                                        <li>Xây dựng môi trường thân thiện, chuyên nghiệp, lấy người bệnh làm trung tâm.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="p-4 bg-light rounded shadow-sm h-100">
+                                    <h4 class="text-info mb-2">Dịch vụ nổi bật</h4>
+                                    <ul class="text-start mb-0" style="list-style: disc inside;">
+                                        <li>Khám và điều trị đa khoa, chuyên khoa sâu</li>
+                                        <li>Tư vấn sức khỏe trực tuyến</li>
+                                        <li>Xét nghiệm, chẩn đoán hình ảnh hiện đại</li>
+                                        <li>Chăm sóc sức khỏe toàn diện cho cá nhân và gia đình</li>
+                                        <li>Hỗ trợ đặt lịch khám nhanh chóng, tiện lợi</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="fw-bold">Tầm nhìn</h5>
+                            <p>Trở thành bệnh viện thông minh, tiên phong trong chuyển đổi số y tế, góp phần nâng cao chất lượng sống và sức khỏe cộng đồng.</p>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+        </main>
+        {% include "footer.html" %}
+
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
 </body>
-
-
+</html>
 </html>

@@ -32,17 +32,20 @@
         <tr>
           <th>Tên</th>
           <th>Liên hệ</th>
-          <th>Địa chỉ</th>
+          <th>Ngày sinh</th>
+          <th>Giới tính</th>
           <th>Số lần khám</th>
-
+          
         </tr>
       </thead>
       {% for p in patients %}
       <tr>
-        <td> {{p.get_name}}</td>
-        <td>{{p.mobile}}</td>
-        <td>{{p.address}}</td>
+        <td> {{p.user.first_name}} {{p.user.last_name}}</td>
+        <td>{{p.user.phone}}</td>        
+        <td>{{ p.user.birthday|date:"d/m/Y" }}</td>
+        <td>{% if p.user.gender == 'nam' %}Nam{% else %}Nữ{% endif %}</td>
         <td>{{ p.num_appointments_with_doctor }}</td>
+        
       </tr>
       {% endfor %}
     </table>

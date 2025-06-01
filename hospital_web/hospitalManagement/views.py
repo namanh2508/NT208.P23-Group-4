@@ -1,8 +1,9 @@
+import io
 from django.contrib.auth import logout
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from django.db.models import Sum
 from django.contrib.auth.models import Group,User
-from django.http import HttpResponseRedirect,HttpResponse,HttpResponseForbidden
+from django.http import HttpResponseRedirect,HttpResponse, JsonResponse
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date,time
@@ -13,6 +14,8 @@ from hospitalManagement import models
 from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
+
+from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm, UploadForm
 from django.template.loader import get_template
 from django.utils import timezone
 from django.core.mail import EmailMultiAlternatives
@@ -21,6 +24,7 @@ from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.dateparse import parse_date
 import random
+from .models import AI_Metric, Doctor,Patient,Appointment,Service
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -30,6 +34,7 @@ from google.auth.transport.requests import Request
 import secrets
 import requests
 from django.http import JsonResponse
+from xhtml2pdf import pisa
 #googlecalendar
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -52,7 +57,17 @@ def aboutus_view(request):
 def contactus_view(request):
     return render(request, 'contactus.html')
 def index_view(request):
-    return render(request, 'index_home.html')
+    doctors_list = Doctor.objects.all() 
+    
+    
+    print(f"Số lượng bác sĩ lấy từ DB: {len(doctors_list)}") 
+
+    context = {
+        'doctors': doctors_list, 
+    }
+    
+   
+    return render(request, 'index_home.html', context)
 
 #for showing signup/login button for admin
 def adminclick_view(request):
@@ -494,8 +509,8 @@ def admin_dashboard_view(request):
     patientcount=models.Patient.objects.all().filter(user__status=True).count()
     pendingpatientcount=models.Patient.objects.all().filter(user__status=False).count()
 
-    appointmentcount=models.Appointment.objects.all().filter(status='accepted').count()
-    pendingappointmentcount=models.Appointment.objects.all().filter(status='pending').count()
+    appointmentcount=models.Service.objects.all().filter(status='accepted').count()
+    pendingappointmentcount=models.Appointment.objects.all().filter(status='accepted').count()
     mydict={
     'doctors':doctors,
     'patients':patients,
@@ -518,7 +533,7 @@ def admin_doctor_view(request):
 @login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_view_doctor_view(request):
-    doctors=models.Doctor.objects.all().filter(status=True)
+    doctors=models.Doctor.objects.all()
     return render(request,'admin_view_doctor.html',{'doctors':doctors})
 
 #chức năng xóa doctor
@@ -534,52 +549,65 @@ def delete_doctor_from_hospital_view(request,pk):
 #chức năng chỉnh sửa doctor
 @login_required(login_url='login')
 @user_passes_test(is_admin)
-def update_doctor_view(request,pk):
-    doctor=models.Doctor.objects.get(id=pk)
-    user=models.User.objects.get(id=doctor.user_id)
+def update_doctor_view(request, pk):
+    doctor = get_object_or_404(models.Doctor, id=pk)
+    user = doctor.user
 
-    userForm=forms.DoctorUserForm(instance=user)
-    doctorForm=forms.DoctorForm(request.FILES,instance=doctor)
-    mydict={'userForm':userForm,'doctorForm':doctorForm}
-    if request.method=='POST':
-        userForm=forms.DoctorUserForm(request.POST,instance=user)
-        doctorForm=forms.DoctorForm(request.POST,request.FILES,instance=doctor)
-        if userForm.is_valid() and doctorForm.is_valid():
-            user=userForm.save()
-            user.set_password(user.password)
-            user.save()
-            doctor=doctorForm.save(commit=False)
-            doctor.status=True
-            doctor.save()
-            return redirect('admin-view-doctor')
-    return render(request,'admin_update_doctor.html',context=mydict)
+    if request.method == 'POST':
+        form = forms.DoctorUserForm(request.POST, request.FILES, instance=user, doctor=doctor)
+        
+        print("--- update_doctor_view POST Request Debug ---")
+        print("request.POST data:", request.POST)
+        print("request.FILES data:", request.FILES)
+        
+        if form.is_valid():
+            print("Form is valid.")
+            if 'picture' in form.cleaned_data:
+                 print("Cleaned data for picture:", form.cleaned_data.get('picture'))
+            try:
+                saved_user = form.save() 
+
+                # Nếu bạn muốn cập nhật user.status:
+                # saved_user.status = True 
+                # saved_user.save()
+
+                print(f"Thông tin bác sĩ cho người dùng '{saved_user.username}' đã được cập nhật.")
+                if saved_user.picture:
+                    print(f"Đường dẫn ảnh trong DB: {saved_user.picture.name}")
+                    print(f"URL ảnh: {saved_user.picture.url}")
+
+                return redirect(reverse('admin-view-doctor'))
+            except Exception as e:
+                print(f"Lỗi trong quá trình form.save() hoặc xử lý: {e}")
+        else:
+            print("Form KHÔNG valid.")
+            print("Form errors:", form.errors.as_json(escape_html=True))
+    else: 
+        form = forms.DoctorUserForm(instance=user, doctor=doctor)
+        print("--- update_doctor_view GET Request (Form initialized for display) ---")
+
+    context = {
+        'form': form,
+        'doctor': doctor
+    }
+    return render(request, 'admin_update_doctor.html', context)
 
 #xem thẻ doctor add
 #chức năng thêm doctor
 @login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_add_doctor_view(request):
-    userForm=forms.DoctorUserForm()
-    doctorForm=forms.DoctorForm()
-    mydict={'userForm':userForm,'doctorForm':doctorForm}
-    if request.method=='POST':
-        userForm=forms.DoctorUserForm(request.POST)
-        doctorForm=forms.DoctorForm(request.POST, request.FILES)
-        if userForm.is_valid() and doctorForm.is_valid():
-            user=userForm.save()
-            user.set_password(user.password)
-            user.save()
+   if request.method == 'POST':
+       form = forms.DoctorSignupForm(request.POST, request.FILES)
+       if form.is_valid():
+            user = form.save()
+            doctor_group, _ = Group.objects.get_or_create(name='DOCTOR')
+            user.groups.add(doctor_group)
 
-            doctor=doctorForm.save(commit=False)
-            doctor.user=user
-            doctor.status=True
-            doctor.save()
-
-            my_doctor_group = Group.objects.get_or_create(name='DOCTOR')
-            my_doctor_group[0].user_set.add(user)
-
-        return HttpResponseRedirect('admin-view-doctor')
-    return render(request,'admin_add_doctor.html',context=mydict)
+            return HttpResponseRedirect('admin-view-doctor') 
+   else:
+            form = forms.DoctorSignupForm()
+   return render(request, 'admin_add_doctor.html', {'form': form})
 
 #xem thẻ doctor approve
 @login_required(login_url='login')
@@ -834,56 +862,74 @@ def admin_appointment_view(request):
 @login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_view_appointment_view(request):
-    appointments=models.Appointment.objects.all().filter(status=True)
+    appointments=models.Service.objects.all().filter(status='accepted')
     return render(request,'admin_view_appointment.html',{'appointments':appointments})
-
-
-
-@login_required(login_url='login')
-@user_passes_test(is_admin)
-def admin_add_appointment_view(request):
-    appointmentForm=forms.AppointmentForm()
-    mydict={'appointmentForm':appointmentForm,}
-    if request.method=='POST':
-        appointmentForm=forms.AppointmentForm(request.POST)
-        if appointmentForm.is_valid():
-            appointment=appointmentForm.save(commit=False)
-            appointment.doctorId=request.POST.get('doctorId')
-            appointment.patientId=request.POST.get('patientId')
-            appointment.doctorName=models.User.objects.get(id=request.POST.get('doctorId')).first_name
-            appointment.patientName=models.User.objects.get(id=request.POST.get('patientId')).first_name
-            appointment.status=True
-            appointment.save()
-        return HttpResponseRedirect('admin-view-appointment')
-    return render(request,'admin_add_appointment.html',context=mydict)
-
-
 
 @login_required(login_url='login')
 @user_passes_test(is_admin)
 def admin_approve_appointment_view(request):
     #those whose approval are needed
-    appointments=models.Appointment.objects.all().filter(status=False)
+    appointments=models.Appointment.objects.all().filter(status='accepted')
     return render(request,'admin_approve_appointment.html',{'appointments':appointments})
 
 
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_add_appointment_view(request):
+    if request.method == 'POST':
+        # Create service first
+        doctor = models.Doctor.objects.get(id=request.POST.get('doctor'))
+        patient = models.Patient.objects.get(id=request.POST.get('patient'))
+        
+        service = models.Service.objects.create(
+            doctor=doctor,
+            patient=patient,
+            appointmentDate=request.POST.get('appointmentDate'),
+            appointmentTime=request.POST.get('appointmentTime'),
+            status='pending'
+        )
+        
+        # Then create appointment linked to the service
+        appointment = models.Appointment.objects.create(
+            service=service,
+            method=request.POST.get('method', 'offline'),
+            price=request.POST.get('price', 0),
+            status=True
+        )
+        
+        return redirect('admin-view-appointment')
+    
+    # GET request - show form
+    doctors = models.Doctor.objects.all()
+    patients = models.Patient.objects.all()
+    return render(request, 'admin_add_appointment.html', {
+        'doctors': doctors,
+        'patients': patients
+    })
+
+
+
+
+
+
 
 @login_required(login_url='login')
 @user_passes_test(is_admin)
-def approve_appointment_view(request,pk):
-    appointment=models.Appointment.objects.get(appointmentID=pk)
-    appointment.status=True
-    appointment.save()
-    return redirect(reverse('admin-approve-appointment'))
+def approve_appointment_view(request,id):
+    service=models.Service.objects.get(id=id)
+    service.status='accepted'
+    service.save()
+    return redirect(reverse('admin-view-appointment'))
 
 
 
 @login_required(login_url='login')
 @user_passes_test(is_admin)
-def reject_appointment_view(request,pk):
-    appointment=models.Appointment.objects.get(appointmentID=pk)
-    appointment.delete()
-    return redirect('admin-approve-appointment')
+def reject_appointment_view(request,id):
+    service=models.Service.objects.get(id=id)
+    service.status='rejected'
+    service.save()
+    return redirect('admin-view-appointment')
 
 
 
@@ -904,14 +950,12 @@ def doctor_patient_view(request):
 @user_passes_test(is_doctor)
 def doctor_view_patient_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
-    patient_ids = [a.patientId.id for a in appointments]
-    patients = models.Patient.objects.filter(id__in=patient_ids)
+    services = models.Service.objects.filter(doctor=doctor)
+    patients = models.Patient.objects.filter(id__in=[service.patient.id for service in services])
     # Tính toán số lượng cuộc hẹn của mỗi bệnh nhân với bác sĩ
     for p in patients:
-        p.num_appointments_with_doctor = appointments.filter(patientId=p).count()
-    appointments = zip(appointments, patients)
-    return render(request,'doctor_view_patient.html',{'appointments': appointments, 'patients': patients})
+        p.num_appointments_with_doctor = services.filter(patient=p, status='accepted').count()
+    return render(request,'doctor_view_patient.html',{'patients': patients})
 
 
 
@@ -936,10 +980,7 @@ def doctor_appointment_view(request):
 @user_passes_test(is_doctor)
 def doctor_view_appointment_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
-    patient_ids = [a.patientId.id for a in appointments]
-    patients = models.Patient.objects.filter(id__in=patient_ids)
-    appointments = zip(appointments, patients)
+    appointments=models.Service.objects.all().filter(status="accepted",doctor=doctor).order_by('appointmentDate', 'appointmentTime')
     return render(request,'doctor_view_appointment.html',{'appointments': appointments, 'doctor': doctor})
 
 
@@ -947,8 +988,8 @@ def doctor_view_appointment_view(request):
 @user_passes_test(is_doctor)
 def doctor_delete_appointment_view(request):
     doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=doctor)
-    patient_ids = [a.patientId.id for a in appointments]
+    appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
+    patient_ids = [a.service.patient.id for a in appointments]
     patients = models.Patient.objects.filter(id__in=patient_ids)
     print("Appointments:")
     for a in appointments:
@@ -967,10 +1008,10 @@ def delete_appointment_view(request,pk):
     appointment=models.Appointment.objects.get(id=pk)
     appointment.delete()
     doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
-    appointments=models.Appointment.objects.all().filter(status=True,doctorId=request.user.id)
+    appointments=models.Appointment.objects.all().filter(status=True,service__doctor__id=request.user.id)
     patientid=[]
     for a in appointments:
-        patientid.append(a.patientId)
+        patientid.append(a.service.patient.id)
     patients=models.Patient.objects.all().filter(status=True,user_id__in=patientid)
     appointments=zip(appointments,patients)
     return render(request,'doctor_delete_appointment.html',{'appointments':appointments,'doctor':doctor})
@@ -986,24 +1027,15 @@ def doctor_dashboard_view(request):
     except models.Doctor.DoesNotExist:
         return HttpResponse("Tài khoản này chưa có thông tin bác sĩ!", status=404)
 
-    appointments = models.Appointment.objects.filter(status='approved', service__doctor=doctor).order_by('-id')
+    appointments = models.Service.objects.filter(status='accepted', doctor=doctor).order_by('-id')
     appointmentcount = appointments.count()
-    patientdischarged = models.Record.objects.filter(doctor=doctor).count()
-
-    patients = []
-    for a in appointments:
-        if a.service and a.service.patient:
-            patients.append(a.service.patient)
-
-    patientcount = len(patients)
-    appointments_and_patients = zip(appointments, patients)
+    
 
     mydict = {
         'appointmentcount': appointmentcount,
-        'patientdischarged': patientdischarged,
-        'appointments_and_patients': appointments_and_patients,
+        'appointments': appointments,
         'doctor': doctor,
-        'patientcount': patientcount,
+        
     }
 
     return render(request, 'doctor_dashboard.html', context=mydict)
@@ -1225,56 +1257,158 @@ def add_calendar_reminders(request):
     
 # # trả ra  html
 @login_required(login_url='patientlogin')
-def get_appointment_by_patient_name(request, name):
+def get_appointment_by_patient_name(request, id):
+    patient = get_object_or_404(models.Patient, id=id)
     # Lấy danh sách các cuộc hẹn dựa trên tên bệnh nhân
-    appointments = models.Appointment.objects.filter(patientId__user__first_name=name)
-    return render(request, 'patient_view_appointment.html', {'appointments': appointments})
+    services = models.Service.objects.filter(patient =patient)
+    appointment = models.Appointment.objects.filter(service__in=services)
+    return render(request, 'patient_view_appointment.html', {'appointment': appointment} )
 
 # @login_required(login_url='patientlogin')
 # def patient_view_profile(request):
 #     patient = request.user.patient
 #     return render(request, 'patient_profile.html', {'patient': patient})
 
-
+from django import forms as django_forms
 @login_required (login_url='patientlogin')
 @user_passes_test(is_patient)
-def book_appointment(request):
+def book_appointment(request, id): # id ở đây là user_id của Doctor
     try:
-        # Get the patient profile associated with the logged-in user
-        # Assumes a OneToOne relationship exists and profile is created
         patient = request.user.patient
-    except models.Patient.DoesNotExist:
-        # Handle cases where the user doesn't have a Patient profile
-        messages.error(request, "You need a patient profile to book appointments.")
-        # Redirect to a profile creation page or dashboard
-        return redirect('patient-dashboard')
+    except Patient.DoesNotExist:
+        messages.error(request, "Không tìm thấy thông tin bệnh nhân của bạn. Vui lòng cập nhật hồ sơ.")
+        return redirect('some_profile_update_url_name') # THAY BẰNG URL NAME ĐÚNG
+
+    user_doctor = models.CustomUser.objects.get(id=id)
+    selected_doctor_profile = get_object_or_404(Doctor, user=user_doctor)
+    
+    print(f"Đặt lịch với bác sĩ: {selected_doctor_profile.user.get_full_name()}")
 
     if request.method == 'POST':
         form = forms.AppointmentBookingForm(request.POST)
         if form.is_valid():
-            # Create Service instance but don't save to DB yet
+            print("Form hợp lệ (is_valid = True)")
             service = form.save(commit=False)
-            # Assign the logged-in patient
             service.patient = patient
-            # Set initial status (as defined in model default, but explicit is fine)
+            # Lấy doctor từ cleaned_data (nếu hidden field gửi đi và form của bạn xử lý đúng)
+            # Hoặc an toàn hơn là gán lại từ selected_doctor_profile
+            service.doctor = selected_doctor_profile 
             service.status = 'pending'
-            # Now save the Service instance to the database
             service.save()
-
-            messages.success(request, f"Appointment requested successfully for {service.appointmentDate.strftime('%Y-%m-%d')} at {service.appointmentTime.strftime('%H:%M')} with {service.doctor}. You will be notified upon confirmation.")
-            # Redirect to a success page or the patient's appointment list
-            return redirect('patient-view-appointment') # CHANGE THIS to your success/list URL name
-
+            
+            Appointment.objects.create(
+                service=service,
+                method=form.cleaned_data['method'],
+                status='pending'
+            )
+            messages.success(request, f"Cuộc hẹn với BS. {service.doctor.user.get_full_name()} vào ngày {service.appointmentDate.strftime('%d-%m-%Y')} lúc {service.appointmentTime.strftime('%H:%M')} đã được yêu cầu.")
+            return redirect('patient-view-appointments', id=patient.id)
         else:
-            # Form is invalid, errors will be displayed in the template
-            messages.error(request, "Please correct the errors below.")
-    else:
-        # GET request, display a blank form
-        form = forms.AppointmentBookingForm()
+            messages.error(request, "Vui lòng sửa các lỗi được chỉ ra trong form.")
+            print("Form KHÔNG hợp lệ (is_valid = False)")
+            print(f"Lỗi của form: {form.errors.as_json()}")
+            # Khi form không hợp lệ, cần render lại với form lỗi và context
+            # và đảm bảo trường doctor (nếu có trong form) vẫn là hidden và có giá trị đúng
+            if 'doctor' in form.fields:
+                 form.fields['doctor'].initial = selected_doctor_profile # Giá trị ban đầu
+                 form.fields['doctor'].widget = django_forms.HiddenInput() # Đặt làm trường ẩn
+    else: # GET request
+        # Khởi tạo form với giá trị ban đầu cho doctor
+        form = forms.AppointmentBookingForm(initial={'doctor': selected_doctor_profile})
+        # Chuyển widget của trường doctor thành HiddenInput
+        if 'doctor' in form.fields:
+            form.fields['doctor'].widget = django_forms.HiddenInput()
 
+    page_title = f"Đặt lịch khám với bác sĩ {selected_doctor_profile.user.get_full_name()}"
+    service = models.Service.objects.filter(doctor=selected_doctor_profile) 
     context = {
+        'selected_doctor_profile': selected_doctor_profile, 
         'form': form,
-        'page_title': 'Book an Appointment' # Optional: for template title
+        'page_title': page_title,
+        'service': service
     }
-    return render(request, 'patient_book_appointment.html', context) # CHANGE THIS template path
+    return render(request, 'patient_book_appointment.html', context)
 
+def check_service_by_date(request, date):
+    services = Service.objects.filter(appointmentDate=date)
+    data = [{'id': s.id, 'name': s.name} for s in services]
+    return JsonResponse({'services': data})
+
+def GetPatient(request,name):
+    patient = models.Patient.objects.get(user__first_name=name)
+    if not patient:
+        return HttpResponse("Patient not found", status=404)
+    return render(request, 'patient_profile.html', {'patient': patient})
+
+def Get_Doctor_Detail(request, doctor_id):
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    return render(request, 'doctor_detail.html', {'doctor': doctor})
+
+import logging
+from django.views.decorators.csrf import csrf_exempt
+
+logger = logging.getLogger(__name__)
+
+def extract_text_from_image(image_path):
+    # Placeholder implementation
+    logger.warning("extract_text_from_image function is not implemented.")
+    return ""
+
+def analyze_test_result(text):
+    # Placeholder implementation
+    logger.warning("analyze_test_result function is not implemented.")
+    return []
+
+def call_dermatology_ai_api(image_path):
+    # Placeholder implementation
+    logger.warning("call_dermatology_ai_api function is not implemented.")
+    return {"diagnosis": None, "confidence": None}
+
+@csrf_exempt
+def upload_image_view(request):
+    if request.method == 'POST':
+        form = UploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                ai_record = form.save(commit=False)
+                
+                # Tự động xác định loại ảnh
+                auto_type, confidence = detect_record_type_by_cnn(request.FILES['image'])
+                ai_record.record_type = auto_type
+                ai_record.save()
+
+                if ai_record.record_type == 'lab_report':
+                    text = extract_text_from_image(ai_record.image.path)
+                    metrics = analyze_test_result(text)
+                    for m in metrics:
+                        AI_Metric.objects.create(
+                            ai_record=ai_record,
+                            name=m['name'],
+                            value=m['value'],
+                            unit=m['unit'],
+                            status=m['status'],
+                            reference_range=m['range']
+                        )
+                else:  # dermatology or xray
+                    result = call_dermatology_ai_api(ai_record.image.path)
+                    ai_record.diagnosis = result.get('diagnosis')
+                    ai_record.confidence = result.get('confidence')
+                    ai_record.save()
+
+                return redirect('ai_upload_success')
+            except Exception as e:
+                logger.error(f"Error processing uploaded image: {e}")
+                messages.error(request, "There was an error processing the image. Please try again.")
+        else:
+            messages.error(request, "Invalid form submission. Please check the input.")
+    else:
+        form = UploadForm()
+    return render(request, 'ai_upload.html', {'form': form})
+
+
+def predict_view(request):
+    if request.method == 'POST' and 'image' in request.FILES:
+        image_file = request.FILES['image']
+        result = detect_record_type_by_cnn(image_file)
+        return JsonResponse({'result': result})
+    return JsonResponse({'error': 'No image uploaded'}, status=400)

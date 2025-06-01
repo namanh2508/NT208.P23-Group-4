@@ -22,7 +22,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import (
     CustomUser, Doctor, Patient, Admin as HospitalAdmin,
     Service, Record, AI_Record, Appointment, Test,
-    Medicine, Prescription, Bill
+    Medicine, Prescription, Bill, TestParameter, AI_Metric
 )
 
 # ---------- CustomUser Admin ----------
@@ -65,9 +65,9 @@ class HospitalAdminAdmin(admin.ModelAdmin):
 # ---------- Service Admin ----------
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'patient', 'doctor', 'appointmentDate', 'appointmentTime', 'status')
-    list_filter = ('status',)
-    search_fields = ('patient__user__username', 'doctor__user__username')
+    list_display = ('id', 'patient', 'doctor', 'appointmentDate', 'appointmentTime', 'status','type')
+    list_filter = ('status','type',)
+    search_fields = ('patient__user__username', 'doctor__user__username','type')
 
 # ---------- Record Admin ----------
 @admin.register(Record)
@@ -79,10 +79,15 @@ class RecordAdmin(admin.ModelAdmin):
 # ---------- AI Record Admin ----------
 @admin.register(AI_Record)
 class AIRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'patient', 'record_date', 'glucose', 'blood_pressure')
-    list_filter = ('record_date',)
+    list_display = ('id', 'patient', 'created_at', 'record_type')
+    list_filter = ('created_at',)
     search_fields = ('patient__user__username',)
-
+# ---------- AI Metric Admin ----------
+@admin.register(AI_Metric)
+class AIMetricAdmin(admin.ModelAdmin):
+    list_display = ('id',  'name', 'value','status')
+    list_filter = ('name','status')
+    search_fields = ('patient__user__username', 'name')
 # ---------- Appointment Admin ----------
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
@@ -93,8 +98,15 @@ class AppointmentAdmin(admin.ModelAdmin):
 # ---------- Test Admin ----------
 @admin.register(Test)
 class TestAdmin(admin.ModelAdmin):
-    list_display = ('id', 'service', 'glucose', 'blood_pressure', 'blood_group')
+    list_display = ('id', 'service', )
     search_fields = ('service__patient__user__username',)
+    
+# ---------- Test Parameter Admin ----------
+@admin.register(TestParameter)
+class TestParameterAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'value', 'status', 'unit')
+    list_filter = ('name',)
+    search_fields = ('test__service__patient__user__username', 'name')
 
 # ---------- Medicine Admin ----------
 @admin.register(Medicine)
