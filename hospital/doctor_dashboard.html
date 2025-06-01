@@ -1,41 +1,38 @@
-{% extends 'doctor_base.html' %}
-{% load static %}
-{% block content %}
-{%include 'doctor_dashboard_cards.html'%}
-<br><br><br><br>
-<div class="container">
-  <div class="row">
-    <div class="panel panel-primary" style="margin-left:2%;">
-      <div class="panel-heading" style="text-align:center;">
-        <h6 class="panel-title">Các cuộc hiện sắp tới</h6>
-      </div>
-      <table class="table table-hover table-striped" id="dev-table">
-        <thead class="thead-dark">
+  {% extends 'doctor_base.html' %}
+  {% load static %}
+  {% block content %}
+  {%include 'doctor_dashboard_cards.html'%}
+  <br><br><br><br>
+  <div class="container">
+    <div class="row">
+      <div class="panel panel-primary" style="margin-left:2%;">
+        <div class="panel-heading" style="text-align:center;">
+          <h6 class="panel-title">Các cuộc hiện sắp tới</h6>
+        </div>
+        <table class="table table-hover table-striped" id="dev-table">
+          <thead class="thead-dark">
+            <tr>
+              <th>Tên bệnh nhân</th>
+              <th>Ảnh</th>
+              <th>Liên lạc</th>
+              
+              <th>Thời gian</th>
+              <th>Ngày</th>
+            </tr>
+          </thead>
+          {% for a in appointments %}
           <tr>
-            <th>Tên bệnh nhân</th>
-            <th>Ảnh</th>
-            <th>Triệu chứng</th>
-            <th>Liên lạc</th>
-            <th>Địa chỉ</th>
-            <th>Thời gian</th>
-            <th>Ngày</th>
+            <td>{{a.patient.user.first_name}} {{a.patient.user.last_name}}</td>
+            <td> <img src="{{a.patient.get_picture}}" alt="Không có" height="40px" width="40px" /></td>
+            <td>{{a.patient.user.phone}}</td>
+            <td>{{ a.appointmentTime|time:"H:i" }}</td>
+            <td>{{ a.appointmentDate|date:"d/m/Y" }}</td>
           </tr>
-        </thead>
-        {% for a,p in appointments_and_patients %}
-        <tr>
-          <td>{{p.get_name}}</td>
-          <td> <img src="{{p.profile_pic.url}}" alt="Không có" height="40px" width="40px" /></td>
-          <td>{{ a.service.description|default:"Chưa ghi chú" }}</td>
-          <td>{{p.mobile}}</td>
-          <td>{{p.address}}</td>
-          <td>{{ a.service.appointmentTime|time:"H:i" }}</td>
-          <td>{{ a.service.appointmentDate|date:"d/m/Y" }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+          {% endfor %}
+        </table>
+      </div>
     </div>
   </div>
-</div>
 
 
-{% endblock content %}
+  {% endblock content %}

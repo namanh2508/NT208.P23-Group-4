@@ -176,10 +176,10 @@
     <nav class="menu" tabindex="0">
       <div class="smartphone-menu-trigger"></div>
       <header class="avatar">
-        <img src="{{ request.user.doctor.profile_pic.url }}" alt="Không có">
+        <img src="{{ doctor.get_picture }}" alt="Không có">
         <br><br>
         <h4><b>Bác sĩ</b></h>
-        <h2><b>{{request.user.last_name}} {{request.user.first_name}} </b></h2>
+        <h2><b>{{request.user.first_name}} {{request.user.last_name}} ss </b></h2>
       
       </header>
       <ul>
