@@ -112,6 +112,27 @@ def send_otp_to_email (email):
     except Exception as e:
         print(f"Lỗi gửi email: {e}")
 
+def send_forgetpass_email(email):
+    otp = generate_otp()
+
+    models.EmailOTP.objects.update_or_create(
+        email=email, 
+        defaults={'otp': otp, 'created_at': timezone.now()}
+    )
+
+    subject = "Mã OTP đặt lại mật khẩu của bạn"
+    from_email = "noreply@gmail.com"
+
+    html_content = render_to_string("forgetpass_email_template.html", {"otp": otp})
+    text_content = strip_tags(html_content)
+    try:
+        email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
+    except Exception as e:
+        print(f"Lỗi gửi email: {e}")
+
+
 def admin_signup_view(request):
     if request.method == "POST":
         form = forms.AdminSignupForm(request.POST)
@@ -478,7 +499,7 @@ def request_reset_password_view(request):
         if not models.CustomUser.objects.filter(email=email).exists():
             messages.error(request, "Email không tồn tại.")
         else:
-            send_otp_to_email(email)
+            send_forgetpass_email(email)
             request.session["reset_email"] = email
             messages.success(request, "OTP đã được gửi đến email.")
             return redirect("verify-otp")
