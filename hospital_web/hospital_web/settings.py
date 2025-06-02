@@ -127,10 +127,10 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hospital_db',
+        'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': '',
-        'HOST': 'localhost',
+        'PASSWORD': 'Laptrinhweb123',
+        'HOST': 'db.kacnfombvihfnucinmua.supabase.co',
         'PORT': '5432'
     }
 }

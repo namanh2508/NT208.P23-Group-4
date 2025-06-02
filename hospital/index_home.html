@@ -235,7 +235,7 @@
                     <div class="carousel" id="doctorCarousel">
                         {% for doctor in doctors %}
                         <div class="doctor-card">
-                            <img src="{{ doctor.user.picture.url }}" alt="Ảnh Bác sĩ {{ doctor.user.get_full_name }}">
+                            <img src="{{ doctor.get_picture }}" alt="Ảnh Bác sĩ {{ doctor.user.get_full_name }}">
                             <div class="doctor-info">
                                 <h3>{{doctor.user.get_full_name}}</h3>
                                 

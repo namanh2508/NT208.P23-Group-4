@@ -63,7 +63,12 @@ class CustomUser(AbstractUser):
         help_text='Specific permissions for this user.',
         related_query_name='customuser',
     )
-    picture = models.ImageField(upload_to='profile_pic/', blank=True, null=True)# ảnh pfp người dùng
+    picture = models.ImageField(
+    upload_to='profile_pic/',
+    default='profile_pic/OIP.jfif',  # Relative to MEDIA_ROOT
+    blank=True,
+    null=True
+    )
     phone = models.CharField(max_length=20, blank=True, null=True) # số điện thoại
     gender = models.CharField(max_length=10, blank=True, null=True,choices=GENDER) # giới tính
     birthday = models.DateField(blank=True, null=True) # ngày sinh
