@@ -147,6 +147,17 @@
               {% csrf_token %}
 
               <!-- <h4 class="mb-3">Đăng kí bệnh nhân</h4> -->
+                <!-- Last Name -->
+        <div class="form-group">
+          {{ form.last_name.label_tag }}
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+          <div class="text-danger">
+              {{ form.last_name.errors }}
+          </div>
+          {% endif %}
+          <!-- <div class="text-danger" id="last_name-error"></div> -->
+           
         <!-- First Name -->
         <div class="form-group">
           {{ form.first_name.label_tag }}
@@ -158,16 +169,7 @@
           {% endif %}
           <!-- <div class="text-danger" id="first_name-error"></div> -->
         </div>
-        <!-- Last Name -->
-        <div class="form-group">
-          {{ form.last_name.label_tag }}
-          {{ form.last_name }}
-          {% if form.last_name.errors %}
-          <div class="text-danger">
-              {{ form.last_name.errors }}
-          </div>
-          {% endif %}
-          <!-- <div class="text-danger" id="last_name-error"></div> -->
+
         </div>
         <!-- Birthday -->
         <div class="form-group">
