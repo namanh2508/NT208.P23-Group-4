@@ -264,7 +264,7 @@ class EmailOTP (models.Model):
         return f"{self.email} - {self.otp}"
     
     def is_expired(self):
-        return timezone.now() > self.created_at +timezone.timedelta(minutes=5)
+        return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
 
 # class Admin (models.Model):
 #     user = models.OneToOneField (User, on_delete=models.CASCADE)

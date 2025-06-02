@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 import google.generativeai as genai
 from django.views.generic import TemplateView
+from django.utils import timezone
 # from django.contrib.auth.models import User
 # from rest_framework import generics
 # from .serializers import UserSerializer, NoteSerializer,PatientDischargeDetailsSerializer,DoctorSerializer,PatientSerializer,DoctorDetailSerializer

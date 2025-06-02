@@ -472,6 +472,61 @@ def patient_login_view(request):
 
     return render(request, "patientlogin.html", {"form": form})
 
+def request_reset_password_view(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        if not models.CustomUser.objects.filter(email=email).exists():
+            messages.error(request, "Email không tồn tại.")
+        else:
+            send_otp_to_email(email)
+            request.session["reset_email"] = email
+            messages.success(request, "OTP đã được gửi đến email.")
+            return redirect("verify-otp")
+    return render(request, "forget_password_email.html")
+
+def verify_otp_view (request):
+    if request.method == "POST":
+        otp = request.POST.get("otp")
+        email = request.session.get("reset_email")
+
+        try:
+            otp_obj = models.EmailOTP.objects.get(email=email, otp=otp)
+            if otp_obj.is_expired():
+                messages.error(request, "OTP đã hết hạn.")
+            else:
+                request.session["otp_verified"] = True
+                request.session["otp_code"] = otp
+                return redirect("reset-password")
+        except models.EmailOTP.DoesNotExist:
+            messages.error(request, "OTP không hợp lệ.")
+    return render(request, "verify_otp.html")
+
+def reset_password_view(request):
+    if not request.session.get("otp_verified"):
+        messages.error(request, "Bạn chưa xác thực OTP.")
+        return redirect("request-reset-password")
+    
+    if request.method == "POST":
+        new_password = request.POST.get("new_password")
+        email = request.session.get("reset_email")
+        otp = request.session.get("otp_code")
+
+        try:
+            otp_obj = models.EmailOTP.objects.get(email=email, otp=otp)
+            if otp_obj.is_expired():
+                messages.error(request, "OTP đã hết hạn.")
+            else:
+                user = models.CustomUser.objects.get(email=email)
+                user.set_password(new_password)
+                user.save()
+                otp_obj.delete()
+                request.session.flush()
+                messages.success(request, "Đặt lại mật khẩu thành công.")
+                return redirect("patientlogin")
+        except (models.EmailOTP.DoesNotExist, models.CustomUser.DoesNotExist):
+            messages.error(request, "Có lỗi xảy ra.")
+    return render(request, "reset_password.html")
+
 #---------AFTER ENTERING CREDENTIALS WE CHECK WHETHER USERNAME AND PASSWORD IS OF ADMIN,DOCTOR OR PATIENT
 def afterlogin_view(request):
     if is_admin(request.user):

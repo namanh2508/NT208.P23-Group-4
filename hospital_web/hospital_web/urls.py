@@ -23,6 +23,10 @@ urlpatterns = [
     path('adminlogin/', views.admin_login_view,name='adminlogin'),
     path('doctorlogin/', views.doctor_login_view,name='doctorlogin'),
     path('patientlogin/', views.patient_login_view, name='patientlogin'),
+    path('verify-otp/', views.verify_otp_view, name='verify-otp'),
+    path('forgot-password/', views.request_reset_password_view, name='request-reset-password'),
+    path('reset-password/', views.reset_password_view, name='reset-password'),
+
     
     path('patient-dashboard', views.patient_dashboard_view, name='patient-dashboard'),
     path('logout/', views.logout_view, name='logout'),
