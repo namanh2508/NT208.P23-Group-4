@@ -34,8 +34,8 @@ class CustomUserSignupForm(forms.ModelForm):
         labels = {
             'username': 'Tên đăng nhập',
             'email': 'Email',
-            'first_name': 'Họ',
-            'last_name': 'Tên',
+            'first_name': 'Tên',
+            'last_name': 'Họ',
             'phone': 'Số điện thoại',
             'birthday': 'Ngày sinh',
             'picture': 'Ảnh đại diện',
@@ -43,8 +43,8 @@ class CustomUserSignupForm(forms.ModelForm):
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên đăng nhập'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Nhập email'}),
-            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập họ'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập họ'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại'}),
             'birthday': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'picture': forms.FileInput(attrs={'class': 'form-control-file'}),

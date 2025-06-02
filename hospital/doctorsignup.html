@@ -153,6 +153,16 @@
     <h2>Đăng ký làm bác sĩ</h2>
     <form method="post" novalidate>
         {% csrf_token %}
+                <!-- Last Name -->
+        <div class="form-group">
+          {{ form.last_name.label_tag }}
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+          <div class="text-danger">
+              {{ form.last_name.errors }}
+          </div>
+          {% endif %}
+        </div>
         <!-- First Name -->
         <div class="form-group">
           {{ form.first_name.label_tag }}
@@ -160,16 +170,6 @@
           {% if form.first_name.errors %}
           <div class="text-danger">
               {{ form.first_name.errors }}
-          </div>
-          {% endif %}
-        </div>
-        <!-- Last Name -->
-        <div class="form-group">
-          {{ form.last_name.label_tag }}
-          {{ form.last_name }}
-          {% if form.last_name.errors %}
-          <div class="text-danger">
-              {{ form.last_name.errors }}
           </div>
           {% endif %}
         </div>
