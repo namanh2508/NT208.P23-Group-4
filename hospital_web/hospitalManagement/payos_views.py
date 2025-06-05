@@ -26,16 +26,24 @@ def create_payment_view(request, id):
         if len(des) > 25:
             des = f"BN {current_user.first_name}"
         
-        print(f"Đang xử lý appointment với id: {id}")
-        # Kiểm tra xem có bao nhiêu appointment với id này
-        appointments = models.Appointment.objects.filter(id=id)
-        print(f"Số lượng appointment tìm thấy: {appointments.count()}")
-        for app in appointments:
-            print(f"Appointment ID: {app.id}, Service: {app.service}, Status: {app.status}")
-        
+        # Lấy thông tin cuộc hẹn hiện tại
         my_appointment = models.Appointment.objects.get(id=id)
-        print(f"Appointment được chọn: ID={my_appointment.id}, Service={my_appointment.service}")
         
+        # Kiểm tra xem có cuộc hẹn nào đã thanh toán (status='accepted') 
+        # trùng thời gian với cuộc hẹn này không
+        conflicting_appointments = models.Appointment.objects.filter(
+            service__doctor=my_appointment.service.doctor,
+            date=my_appointment.date,
+            time=my_appointment.time,
+            status='accepted'
+        ).exclude(id=id)
+
+        if conflicting_appointments.exists():
+            return HttpResponse(
+                "Khung giờ này đã có người đặt và thanh toán. Vui lòng chọn khung giờ khác.", 
+                status=400
+            )
+
         item = ItemData(name="Phí khám bệnh", quantity=1, price=2000)
         payment_data = PaymentData(
             orderCode=int(time.time()),
@@ -45,12 +53,9 @@ def create_payment_view(request, id):
             cancelUrl=MY_DOMAIN + '/cancel', 
             returnUrl=MY_DOMAIN + "/success", 
         )
-        print(f"OrderCode mới: {payment_data.orderCode}")
         
-        # Kiểm tra trước khi cập nhật
-        print(f"OrderCode cũ: {my_appointment.orderCode}")
+        # Cập nhật orderCode cho cuộc hẹn
         models.Appointment.objects.filter(id=id).update(orderCode=payment_data.orderCode)
-        print(f"Đã cập nhật orderCode thành công")
         
         payment_link_response = payos_instance.createPaymentLink(payment_data) 
         return redirect(payment_link_response.checkoutUrl)

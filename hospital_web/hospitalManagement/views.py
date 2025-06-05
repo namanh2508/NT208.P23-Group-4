@@ -14,6 +14,7 @@ from hospitalManagement import models
 from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
+from django import forms as django_forms
 
 from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm, UploadForm
 from django.template.loader import get_template
@@ -1345,7 +1346,26 @@ def get_appointment_by_patient_name(request, id):
 #     patient = request.user.patient
 #     return render(request, 'patient_profile.html', {'patient': patient})
 
-from django import forms as django_forms
+@login_required(login_url='login')
+def patient_profile_view(request):
+    patient = Patient.objects.get(user=request.user)
+    user = request.user
+    context = {
+        'patient': patient,
+        'user': user,
+        'patient_name': f"{user.first_name} {user.last_name}",
+        'patient_profile': {
+            'dob': user.birthday,
+            'gender': user.gender,
+            'phone': user.phone,
+            'email': user.email,
+            'address': patient.address if hasattr(patient, 'address') else None,
+            # Thêm các trường thông tin khác nếu có
+        }
+    }
+    return render(request, 'patient_profile.html', context)
+
+
 @login_required (login_url='patientlogin')
 @user_passes_test(is_patient)
 def book_appointment(request, id): # id ở đây là user_id của Doctor
@@ -1410,8 +1430,8 @@ def check_service_by_date(request, date):
     data = [{'id': s.id, 'name': s.name} for s in services]
     return JsonResponse({'services': data})
 
-def GetPatient(request,name):
-    patient = models.Patient.objects.get(user__first_name=name)
+def GetPatient(request,id):
+    patient = models.Patient.objects.get(id=id)
     if not patient:
         return HttpResponse("Patient not found", status=404)
     return render(request, 'patient_profile.html', {'patient': patient})

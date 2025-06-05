@@ -138,27 +138,53 @@
 
                             {# --- Phần Thông tin cá nhân --- #}
                             <section id="thong-tin-ca-nhan" class="mb-4">
-                                <h5 class="card-title mb-3 border-bottom pb-2"><i class="fas fa-id-card fa-fw me-2"></i>Thông Tin Cơ Bản</h5>
-                                <div class="row">
-                                    <div class="col-md-6 mb-2">
-                                        <strong>Ngày sinh:</strong> {{ patient_profile.dob|date:"d/m/Y"|default:"Chưa cập nhật" }} {# Ví dụ format ngày #}
-                                         {# Hiển thị tuổi nếu có ngày sinh #}
-                                         {% if patient_profile.dob %}({{ patient_profile.get_age|default:"?" }} tuổi){% endif %}
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        <strong>Giới tính:</strong> {{ patient_profile.get_gender_display|default:"Chưa cập nhật" }} {# Ví dụ dùng get_..._display #}
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        <strong>Điện thoại:</strong> {{ patient.mobile|default:"Chưa cập nhật" }}
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        <strong>Email:</strong> {{ request.user.email|default:"Chưa cập nhật" }}
-                                    </div>
-                                    <div class="col-12 mb-2">
-                                        <strong>Địa chỉ:</strong> {{ patient.address|default:"Chưa cập nhật" }}
-                                    </div>
-                                </div>
-                            </section>
+    <h5 class="card-title mb-3 border-bottom pb-2">
+        <i class="fas fa-id-card fa-fw me-2"></i>Thông Tin Cơ Bản
+    </h5>
+    <div class="row">
+        <div class="col-md-6 mb-2">
+            <strong>Ngày sinh:</strong> 
+            {% if user.birthday %}
+                {{ user.birthday|date:"d/m/Y" }}
+                <span class="text-muted">({{ user.birthday|timesince }} tuổi)</span>
+            {% else %}
+                Chưa cập nhật
+            {% endif %}
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Giới tính:</strong> 
+            {% if user.gender %}
+                {{ user.get_gender_display }}
+            {% else %}
+                Chưa cập nhật
+            {% endif %}
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Điện thoại:</strong> 
+            {% if user.phone %}
+                {{ user.phone }}
+            {% else %}
+                Chưa cập nhật
+            {% endif %}
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Email:</strong> 
+            {% if user.email %}
+                {{ user.email }}
+            {% else %}
+                Chưa cập nhật
+            {% endif %}
+        </div>
+        <div class="col-12 mb-2">
+            <strong>Địa chỉ:</strong> 
+            {% if patient.address %}
+                {{ patient.address }}
+            {% else %}
+                Chưa cập nhật
+            {% endif %}
+        </div>
+    </div>
+</section>
 
                             {# --- Phần Thông tin Y tế tóm tắt --- #}
                             <section id="thong-tin-y-te" class="mb-4">
@@ -186,7 +212,7 @@
                                     {% endfor %}
                                      {# === Kết thúc vòng lặp === #}
                                 </div>
-                                <a href="{% url 'patient-view-appointments' request.user.first_name %}" {# Ví dụ URL tới tất cả lịch hẹn #} class="mt-2 d-block">Xem tất cả lịch hẹn &rarr;</a>
+                                <a href="{% url 'patient-view-appointments' request.user.id %}" {# Ví dụ URL tới tất cả lịch hẹn #} class="mt-2 d-block">Xem tất cả lịch hẹn &rarr;</a>
                             </section>
 
                             {# --- Phần Thông tin khác --- #}
