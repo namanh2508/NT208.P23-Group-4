@@ -108,7 +108,7 @@ urlpatterns = [
     path('check_service/<str:date>', views.check_service_by_date, name='check_service'),
     path('patient-view-appointment/<str:id>', views.get_appointment_by_patient_name, name='patient-view-appointments'),
     path('all_doctors/', views.all_doctors_view, name='all_doctors'),
-    
+    path('patient/upload-test-result/', views.upload_test_result, name='upload_test_result'),
     path('doctor/<int:doctor_id>/', views.Get_Doctor_Detail, name='doctor_detail'),
     path('patient_view_profile/<str:id>', views.GetPatient, name='patient_view_profile'),
     

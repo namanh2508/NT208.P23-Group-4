@@ -38,7 +38,7 @@
                              <div class="sidebar-nav">
                                  <a href="{% url 'patient_view_profile' request.user.id %}" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
                                   <a href="{% url 'patient-view-appointments' request.user.id %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
-                                  <a href="" style="color: black;" class="nav-link d-block">Đăng ký xét nghiệm</a>
+                                  <a href="{% url 'upload_test_result' %}" style="color: black;" class="nav-link d-block">Đăng ký xét nghiệm</a>
                                   <a href="" style="color: black;" class="nav-link d-block">Mua thuốc</a>
 
                          <a href="/logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>

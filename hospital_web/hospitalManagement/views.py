@@ -15,8 +15,8 @@ from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from hospitalManagement import forms
 from django import forms as django_forms
-
-from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm, UploadForm
+from .forms import UploadTestResultForm
+from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
 from django.template.loader import get_template
 from django.utils import timezone
 from django.core.mail import EmailMultiAlternatives
@@ -1460,51 +1460,71 @@ def call_dermatology_ai_api(image_path):
     logger.warning("call_dermatology_ai_api function is not implemented.")
     return {"diagnosis": None, "confidence": None}
 
-@csrf_exempt
-def upload_image_view(request):
-    if request.method == 'POST':
-        form = UploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                ai_record = form.save(commit=False)
+# @csrf_exempt
+# def upload_image_view(request):
+#     if request.method == 'POST':
+#         form = UploadForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             try:
+#                 ai_record = form.save(commit=False)
                 
-                # Tự động xác định loại ảnh
-                auto_type, confidence = detect_record_type_by_cnn(request.FILES['image'])
-                ai_record.record_type = auto_type
-                ai_record.save()
+#                 # Tự động xác định loại ảnh
+#                 auto_type, confidence = detect_record_type_by_cnn(request.FILES['image'])
+#                 ai_record.record_type = auto_type
+#                 ai_record.save()
 
-                if ai_record.record_type == 'lab_report':
-                    text = extract_text_from_image(ai_record.image.path)
-                    metrics = analyze_test_result(text)
-                    for m in metrics:
-                        AI_Metric.objects.create(
-                            ai_record=ai_record,
-                            name=m['name'],
-                            value=m['value'],
-                            unit=m['unit'],
-                            status=m['status'],
-                            reference_range=m['range']
-                        )
-                else:  # dermatology or xray
-                    result = call_dermatology_ai_api(ai_record.image.path)
-                    ai_record.diagnosis = result.get('diagnosis')
-                    ai_record.confidence = result.get('confidence')
-                    ai_record.save()
+#                 if ai_record.record_type == 'lab_report':
+#                     text = extract_text_from_image(ai_record.image.path)
+#                     metrics = analyze_test_result(text)
+#                     for m in metrics:
+#                         AI_Metric.objects.create(
+#                             ai_record=ai_record,
+#                             name=m['name'],
+#                             value=m['value'],
+#                             unit=m['unit'],
+#                             status=m['status'],
+#                             reference_range=m['range']
+#                         )
+#                 else:  # dermatology or xray
+#                     result = call_dermatology_ai_api(ai_record.image.path)
+#                     ai_record.diagnosis = result.get('diagnosis')
+#                     ai_record.confidence = result.get('confidence')
+#                     ai_record.save()
 
-                return redirect('ai_upload_success')
-            except Exception as e:
-                logger.error(f"Error processing uploaded image: {e}")
-                messages.error(request, "There was an error processing the image. Please try again.")
-        else:
-            messages.error(request, "Invalid form submission. Please check the input.")
+#                 return redirect('ai_upload_success')
+#             except Exception as e:
+#                 logger.error(f"Error processing uploaded image: {e}")
+#                 messages.error(request, "There was an error processing the image. Please try again.")
+#         else:
+#             messages.error(request, "Invalid form submission. Please check the input.")
+#     else:
+#         form = UploadForm()
+#     return render(request, 'ai_upload.html', {'form': form})
+
+
+# def predict_view(request):
+#     if request.method == 'POST' and 'image' in request.FILES:
+#         image_file = request.FILES['image']
+#         result = detect_record_type_by_cnn(image_file)
+#         return JsonResponse({'result': result})
+#     return JsonResponse({'error': 'No image uploaded'}, status=400)
+
+@login_required (login_url='patientlogin')
+def upload_test_result(request):
+    if request.method == 'POST':
+        form = UploadTestResultForm(request.POST, request.FILES)
+        if form.is_valid():
+            instance = form.save(commit=False)
+
+            # Nếu chọn "Khác", dùng custom_test thay thế
+            if form.cleaned_data['test'] == 'other':
+                instance.test_name = form.cleaned_data['custom_test']
+            else:
+                instance.test_name = dict(TEST_CHOICES).get(form.cleaned_data['test'], '')
+
+            instance.save()
+            messages.success(request, "Tải lên kết quả xét nghiệm thành công.")
+            return redirect('some_success_url')
     else:
-        form = UploadForm()
-    return render(request, 'ai_upload.html', {'form': form})
-
-
-def predict_view(request):
-    if request.method == 'POST' and 'image' in request.FILES:
-        image_file = request.FILES['image']
-        result = detect_record_type_by_cnn(image_file)
-        return JsonResponse({'result': result})
-    return JsonResponse({'error': 'No image uploaded'}, status=400)
+        form = UploadTestResultForm()
+    return render(request, 'upload_test_result.html', {'form': form})

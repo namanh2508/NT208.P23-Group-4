@@ -1,9 +1,10 @@
 
 from django.conf import settings
-from django.utils import timezone
+from django.utils import timezone 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User,Permission,Group
+from django.core.validators import FileExtensionValidator
 from decimal import Decimal
 from django.utils import timezone
 import datetime
@@ -214,6 +215,31 @@ class TestParameter(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.value} {self.unit} ({self.status})"
+    
+#--------------------- Upload Test Result --------------------
+class UploadTestResult(models.Model):
+    TEST_CHOICES = [
+        ('blood', 'Máu'),
+        ('urine', 'Nước tiểu'),
+        ('cancer', 'Ung thư'),
+        ('other', 'Khác'),
+    ]
+
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE, related_name='upload_test_results')
+    test_type = models.CharField(max_length=20, choices=TEST_CHOICES)
+    custom_test_name = models.CharField(max_length=100, blank=True, null=True)
+
+    file = models.FileField(upload_to='test_results/', blank=True, null=True)
+    test_date = models.DateField()
+    description = models.TextField(blank=True, null=True)
+    test_place = models.CharField(max_length=100, blank=True, null=True)
+
+    def get_display_test_name(self):
+        return dict(self.TEST_CHOICES).get(self.test_type) if self.test_type != 'other' else self.custom_test_name
+
+    def __str__(self):
+        return f"KQ XN - {self.get_display_test_name()} - {self.patient.user.get_full_name()} ({self.test_date})"
+    
 
 # -------------------- Medicine --------------------
 class Medicine(models.Model):

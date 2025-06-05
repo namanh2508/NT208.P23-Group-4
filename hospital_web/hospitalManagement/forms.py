@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 from . import models
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.validators import RegexValidator
-
+from .models import UploadTestResult
 from .models import APPOINTMENT_METHOD, TYPE_OF_SERVICE, Appointment, Service, Doctor, Patient 
 from django.utils import timezone
 import datetime
@@ -523,7 +523,44 @@ class PatientProfileForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control'}),
         }
         
-class UploadForm(forms.ModelForm):
+TEST_CHOICES = [
+    ('blood', 'Máu'),
+    ('urine', 'Nước tiểu'),
+    ('cancer', 'Ung thư'),
+    ('other', 'Khác'),
+]
+class UploadTestResultForm(forms.ModelForm):
+    test = forms.ChoiceField(
+        choices=TEST_CHOICES,
+        label="Loại xét nghiệm",
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'test-type'})
+    )
+
+    custom_test = forms.CharField(
+        required=False,
+        label="Loại xét nghiệm khác",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nhập loại xét nghiệm...',
+            'id': 'custom-test-input'
+        })
+    )
+
     class Meta:
-        model = models.AI_Record
-        fields = ['patient', 'image']
+        model = UploadTestResult
+        fields = ['patient', 'test', 'custom_test', 'file', 'test_date', 'description', 'test_place']
+        widgets = {
+            'patient': forms.Select(attrs={'class': 'form-select'}),
+            'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'test_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'test_place': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    def clean(self):
+        cleaned_data = super().clean()
+        test_type = cleaned_data.get('test')
+        custom_test = cleaned_data.get('custom_test')
+        
+        if test_type == 'other' and not custom_test:
+            raise forms.ValidationError("Vui lòng nhập loại xét nghiệm khác")
+        return cleaned_data
