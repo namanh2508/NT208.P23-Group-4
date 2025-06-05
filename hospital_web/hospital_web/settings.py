@@ -112,28 +112,20 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-    
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'defaultdb',  # Tên cơ sở dữ liệu
-#         'USER': 'avnadmin',      # Tên người dùng root
-#         'PASSWORD': 'AVNS_OFptgXjJKY7U1I642x4',   # Mật khẩu root_pw
-#         'HOST': 'pg-22aad830-gm-cd7f.h.aivencloud.com',    # Địa chỉ máy chủ (localhost nếu trên máy tính của bạn)
-#         'PORT': '21644',         # Cổng (mặc định là 5432)
-#     }
-# }a
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'Laptrinhweb123',
-        'HOST': 'db.kacnfombvihfnucinmua.supabase.co',
-        'PORT': '5432'
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'defaultdb',
+        'USER': 'avnadmin',
+        'PASSWORD': 'AVNS_Dd8AN4gnRm2cET54DAH',
+        'HOST': 'test-gm-57fa.f.aivencloud.com',
+        'PORT': '10290',
+        'OPTIONS': {
+            'sslmode': 'require',  # Required for Aiven
+        },
     }
 }
+
 
 
 
