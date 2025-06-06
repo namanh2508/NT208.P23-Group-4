@@ -16,157 +16,171 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 {# --- Các mục menu khác giữ nguyên --- #}
-                 <li class="nav-item">
-                     <a class="nav-link" href="/">Trang chủ</a>
-                 </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="/all_doctors">Bác sĩ</a>
-                 </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="/aboutus">Về chúng tôi</a>
-                 </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="/contactus">Liên lạc</a>
-                 </li>
-                 {% if request.user.is_authenticated %}
-                 <li class="nav-item">
-                     <button class="btn-profile" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
-                         <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-icon" alt="Profile">
-                     </button>
-                     <div class="collapse" id="sidebarMenu">
-                         <div class="sidebar">
-                             <div class="sidebar-nav">
-                                 <a href="{% url 'patient_view_profile' request.user.id %}" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
-                                  <a href="{% url 'patient-view-appointments' request.user.id %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
-                                  <a href="{% url 'upload_test_result' %}" style="color: black;" class="nav-link d-block">Đăng ký xét nghiệm</a>
-                                  <a href="" style="color: black;" class="nav-link d-block">Mua thuốc</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Trang chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/all_doctors">Bác sĩ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/aboutus">Về chúng tôi</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/contactus">Liên lạc</a>
+                </li>
+                {% if request.user.is_authenticated %}
+                <li class="nav-item">
+                    <button class="btn-profile" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="profile-icon" alt="Profile">
+                    </button>
+                    <div class="collapse" id="sidebarMenu">
+                        <div class="sidebar">
+                            <div class="sidebar-nav">
+                                <a href="{% url 'patient_view_profile' request.user.id %}" style="color: black;" class="nav-link d-block">Hồ sơ của tôi</a>
+                                <a href="{% url 'patient-view-appointments' request.user.id %}" style="color: black;" class="nav-link d-block">Danh sách cuộc hẹn</a>
+                                <a href="{% url 'upload_test_result' %}" style="color: black;" class="nav-link d-block">Đăng ký xét nghiệm</a>
+                                <a href="" style="color: black;" class="nav-link d-block">Mua thuốc</a>
+                                <a href="{% url 'medicine_list' %}" style="color: black;" class="nav-link d-block">Xem thuốc</a>
+                                <a href="{% url 'google-link' %}" style="color: black;" class="nav-link d-block">Link Google Account</a>
+                                <form action="{% url 'add_calendar_reminders' %}" method="post" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="nav-link d-block" style="background: none; border: none; padding: 0; color: black;">Thêm nhắc nhở calendar</button>
+                                </form>
+                                <a href="/logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="btn btn-create-account py-2 px-4" href="{% url 'patientsignup' %}">Create Account</a>
+                </li>
+                {% endif %}
 
-                         <a href="/logout" style="color: black;" class="nav-link d-block">Đăng xuất</a>
-                 </div>
-         </div>
-     </div>
- </li>
- {% else %}
- <li class="nav-item">
-     <a class="btn btn-create-account py-2 px-4" href="{% url 'patientsignup' %}">Create Account</a>
- </li>
-{% endif %}
-                
                 {# --- Hết các mục menu --- #}
             </ul>
         </div>
     </div>
 </nav>
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 <style>
-  /* --- CSS CHO LOGO --- */
-  .navbar-logo-img {
-  height: 40px; /* Điều chỉnh chiều cao mong muốn cho logo */
-  width: auto; /* Chiều rộng sẽ tự động thay đổi theo tỷ lệ */
-  margin-right: 8px; /* Nếu bạn có thêm chữ bên cạnh logo, tạo khoảng cách */
-  vertical-align: middle; /* Giúp căn chỉnh logo thẳng hàng giữa dòng */
-}
+    /* --- CSS CHO LOGO --- */
+    .navbar-logo-img {
+        height: 40px; /* Điều chỉnh chiều cao mong muốn cho logo */
+        width: auto; /* Chiều rộng sẽ tự động thay đổi theo tỷ lệ */
+        margin-right: 8px; /* Nếu bạn có thêm chữ bên cạnh logo, tạo khoảng cách */
+        vertical-align: middle; /* Giúp căn chỉnh logo thẳng hàng giữa dòng */
+    }
 
-/* Tùy chỉnh thêm thẻ <a> chứa logo nếu cần */
-.navbar-brand {
-  padding-top: 5px; /* Giảm padding trên/dưới mặc định của Bootstrap */
-  padding-bottom: 5px;
-  /* display: flex; và align-items: center; đã thêm ở trên giúp căn giữa logo và text (nếu có) */
-}
-/* --- KẾT THÚC CSS CHO LOGO --- */
+    /* Tùy chỉnh thêm thẻ <a> chứa logo nếu cần */
+    .navbar-brand {
+        padding-top: 5px; /* Giảm padding trên/dưới mặc định của Bootstrap */
+        padding-bottom: 5px;
+        /* display: flex; và align-items: center; đã thêm ở trên giúp căn giữa logo và text (nếu có) */
+    }
+    /* --- KẾT THÚC CSS CHO LOGO --- */
 
-/* --- CSS CŨ CỦA BẠN --- */
-html, body {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-}
+    /* --- CSS CŨ CỦA BẠN --- */
+    html, body {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
 
-/* ... (giữ nguyên phần còn lại của CSS cũ) ... */
+    /* ... (giữ nguyên phần còn lại của CSS cũ) ... */
 
-.wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
+    .wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
 
-.footer {
-    background-color: #f8f9fa;
-    padding: 10px 0;
-    text-align: center;
-    margin-top: auto; /* Đẩy footer xuống cuối */
-}
+    .footer {
+        background-color: #f8f9fa;
+        padding: 10px 0;
+        text-align: center;
+        margin-top: auto; /* Đẩy footer xuống cuối */
+    }
 
-.navbar-nav .nav-link {
-    color: white;
-    margin-right: 20px;
-    transition: color 0.3s ease;
-}
+    .navbar-nav .nav-link {
+        color: white;
+        margin-right: 20px;
+        transition: color 0.3s ease;
+    }
 
-.navbar-nav .nav-link:hover {
-    color: #FFD700;
-}
+        .navbar-nav .nav-link:hover {
+            color: #FFD700;
+        }
 
-.btn-profile {
-    background: none;
-    border: none;
-    padding: 0;
-}
+    .btn-profile {
+        background: none;
+        border: none;
+        padding: 0;
+    }
 
-.profile-icon {
-    width: 24px; /* Giảm kích thước */
-    height: 24px;
-}
+    .profile-icon {
+        width: 24px; /* Giảm kích thước */
+        height: 24px;
+    }
 
-/* --- CSS ĐÃ SỬA CHO SIDEBAR MENU --- */
+    /* --- CSS ĐÃ SỬA CHO SIDEBAR MENU --- */
 
-.navbar-nav .nav-item {
-    position: relative;
-    
-}
+    .navbar-nav .nav-item {
+        position: relative;
+    }
 
-#sidebarMenu {
-    position: absolute;
-    top: 100%;
-    left: -10%;
-    z-index: 1000;
-    
-}
-.sidebar {
-    background-color: #f8f9fa;
-    padding: 5px;
-    border-radius: 8px;
-    width: 120px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    position: relative;
-}
-/* --- KẾT THÚC CSS ĐÃ SỬA --- */
+    #sidebarMenu {
+        position: absolute;
+        top: 100%;
+        left: -10%;
+        z-index: 1000;
+    }
 
-.sidebar-nav .nav-link {
-    padding: 5px 10px;
-    font-size: 12px;
-    margin-left: 10px;
-    margin-right: 10px;
-    
-}
-.nav-item {
-    display: flex;
-    align-items: center; /* Căn giữa theo chiều dọc */
-}
-/* Đoạn CSS trùng lặp đã bỏ */
+    .sidebar {
+        background-color: #f8f9fa;
+        padding: 5px;
+        border-radius: 8px;
+        width: 120px;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    /* --- KẾT THÚC CSS ĐÃ SỬA --- */
 
-.btn-create-account {
-    background-color: #FFD700;
-    color: #6366F1;
-    font-weight: bold;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
+    .sidebar-nav .nav-link {
+        padding: 5px 10px;
+        font-size: 12px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
 
-.btn-create-account:hover {
-    background-color: #6366F1;
-    color: #FFD700;
-}
-/* Đoạn CSS trùng lặp đã bỏ */
+    .nav-item {
+        display: flex;
+        align-items: center; /* Căn giữa theo chiều dọc */
+    }
+    /* Đoạn CSS trùng lặp đã bỏ */
+
+    .btn-create-account {
+        background-color: #FFD700;
+        color: #6366F1;
+        font-weight: bold;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+        .btn-create-account:hover {
+            background-color: #6366F1;
+            color: #FFD700;
+        }
+    /* Đoạn CSS trùng lặp đã bỏ */
 </style>
