@@ -1180,13 +1180,13 @@ def add_calendar_reminders(request):
         creds = get_google_credentials(user)
         
         if creds is None:
-            print("[ERROR] Google credentials not found for user:", user)
+            messages.error(request, "Không tìm thấy quyền Google để thêm lời nhắc.")
             return redirect('patient-dashboard')
 
         try:
             service = build('calendar', 'v3', credentials=creds)
         except Exception as e:
-            print("[ERROR] Failed to build Google Calendar service:", e)
+            messages.error(request, "Không thể kết nối với Google Calendar.")
             return redirect('patient-dashboard')
 
         try:
@@ -1194,27 +1194,24 @@ def add_calendar_reminders(request):
             prescriptions = models.Prescription.objects.filter(service__patient=patient)
 
             if not prescriptions:
-                print("[INFO] No prescriptions found for patient:", patient)
+                messages.info(request, "Bạn chưa có đơn thuốc nào.")
                 return redirect('patient-dashboard')
 
             total_events = 0
             for prescription in prescriptions:
                 med = prescription.medicine
                 if not med or not med.times_per_day or not prescription.amount:
-                    print(f"[WARNING] Skipping prescription with missing data: {prescription}")
                     continue
 
                 total_pills = prescription.amount
                 daily_times = med.times_per_day
                 days_needed = math.ceil(total_pills / daily_times)
 
-                print(f"[INFO] Creating {daily_times} reminders per day for {days_needed} days for medicine: {med.name}")
-
                 now = dj_now()
                 for day_offset in range(days_needed):
                     reminder_count = daily_times if (day_offset < days_needed - 1) else total_pills % daily_times or daily_times
                     for dose in range(reminder_count):
-                        event_time = now + timedelta(days=day_offset, hours=8 + 4 * dose)  # 8AM, 12PM, 4PM...
+                        event_time = now + timedelta(days=day_offset, hours=8 + 4 * dose)
                         event = {
                             'summary': f'Dùng thuốc: {med.name}',
                             'description': med.description or '',
@@ -1227,13 +1224,15 @@ def add_calendar_reminders(request):
                                 'timeZone': 'Asia/Ho_Chi_Minh',
                             },
                         }
-                        created_event = service.events().insert(calendarId='primary', body=event).execute()
-                        print(f"[SUCCESS] Created reminder for {med.name} at {event_time}")
+                        service.events().insert(calendarId='primary', body=event).execute()
                         total_events += 1
 
-            print(f"[INFO] Total reminders created for user {user}: {total_events}")
+            if total_events > 0:
+                messages.success(request, f"Đã tạo {total_events} lời nhắc dùng thuốc.")
+            else:
+                messages.warning(request, "Không có lời nhắc nào được tạo vì thiếu thông tin đơn thuốc.")
         except Exception as e:
-            print("[EXCEPTION] Error while creating calendar reminders:", e)
+            messages.error(request, "Có lỗi xảy ra khi tạo lời nhắc: " + str(e))
 
     return redirect('patient-dashboard')
 
