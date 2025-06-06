@@ -1233,7 +1233,7 @@ def add_calendar_reminders(request):
                 messages.warning(request, "Không có lời nhắc nào được tạo vì thiếu thông tin đơn thuốc.")
         except Exception as e:
             messages.error(request, "Có lỗi xảy ra khi tạo lời nhắc: " + str(e))
-
+    messages.error(request, "Chỉ chấp nhận yêu cầu POST")
     return redirect('patient-dashboard')
 
 
