@@ -37,10 +37,10 @@ import requests
 from django.http import JsonResponse
 from xhtml2pdf import pisa
 #googlecalendar
+from datetime import datetime, timedelta, time
+from django.utils.timezone import get_current_timezone, make_aware
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 import math
-from django.utils.timezone import now as dj_now
 # Create your views here.
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -1178,16 +1178,14 @@ def add_calendar_reminders(request):
     if request.method == 'POST':
         user = request.user
         creds = get_google_credentials(user)
-        
+
         if creds is None:
             messages.error(request, "Không tìm thấy quyền Google để thêm lời nhắc.")
-            return redirect('patient-dashboard')
 
         try:
             service = build('calendar', 'v3', credentials=creds)
-        except Exception as e:
+        except Exception:
             messages.error(request, "Không thể kết nối với Google Calendar.")
-            return redirect('patient-dashboard')
 
         try:
             patient = models.Patient.objects.get(user=user)
@@ -1195,35 +1193,45 @@ def add_calendar_reminders(request):
 
             if not prescriptions:
                 messages.info(request, "Bạn chưa có đơn thuốc nào.")
-                return redirect('patient-dashboard')
 
             total_events = 0
-            for prescription in prescriptions:
+            tz = get_current_timezone() #lấy timezone hiện tại
+            today = datetime.now(tz).date() #lấy ngày hôm nay
+            TIME_SLOTS = [8, 12, 16, 20]# Khung giờ chia thuốc (24h format)
+
+            for prescription in prescriptions: #mỗi loop là 1 object prescription liên kết khóa ngoại với patient 
                 med = prescription.medicine
                 if not med or not med.times_per_day or not prescription.amount:
                     continue
 
-                total_pills = prescription.amount
-                daily_times = med.times_per_day
-                days_needed = math.ceil(total_pills / daily_times)
+                total_pills = prescription.amount #tổng số viên thuốc
+                daily_times = med.times_per_day #số lần uống thuốc mỗi ngày
+                days_needed = math.ceil(total_pills / daily_times) #số ngày uống thuốc
 
-                now = dj_now()
-                for day_offset in range(days_needed):
-                    reminder_count = daily_times if (day_offset < days_needed - 1) else total_pills % daily_times or daily_times
-                    for dose in range(reminder_count):
-                        event_time = now + timedelta(days=day_offset, hours=8 + 4 * dose)
+                for day_offset in range(days_needed): # chạy từ 0->day_needed-1, loop theo từng ngày
+                    reminder_count = (
+                        daily_times if (day_offset < days_needed - 1) #lấy lần uống thuốc trong ngày để chia theo khung giờ
+                        else total_pills % daily_times or daily_times #ngày cuối cùng lấy số dư của tổng số thuốc / số thuốc mỗi ngày hoặc số thuốc mỗi ngày nếu chia hết)
+                    )
+
+                    for dose_index in range(reminder_count): # chạy từ 0->reminder_count-1, loop theo từng khung giờ
+                        slot_hour = TIME_SLOTS[dose_index % len(TIME_SLOTS)] #xếp từng viên thuốc vào 1 khung giờ, wrap around nếu như dose_index lớn hơn index lớn nhất của time slot
+                        event_date = today + timedelta(days=day_offset) #lấy ngày 
+                        event_datetime = make_aware(datetime.combine(event_date, time(hour=slot_hour)), tz) #tạo object datetime hoàn chỉnh, kèm theo timezone chính xác
+                        #tạo event
                         event = {
                             'summary': f'Dùng thuốc: {med.name}',
                             'description': med.description or '',
                             'start': {
-                                'dateTime': event_time.isoformat(),
+                                'dateTime': event_datetime.isoformat(),
                                 'timeZone': 'Asia/Ho_Chi_Minh',
                             },
                             'end': {
-                                'dateTime': (event_time + timedelta(minutes=30)).isoformat(),
+                                'dateTime': (event_datetime + timedelta(minutes=30)).isoformat(),
                                 'timeZone': 'Asia/Ho_Chi_Minh',
                             },
                         }
+                        #add event vào calendar
                         service.events().insert(calendarId='primary', body=event).execute()
                         total_events += 1
 
@@ -1231,9 +1239,9 @@ def add_calendar_reminders(request):
                 messages.success(request, f"Đã tạo {total_events} lời nhắc dùng thuốc.")
             else:
                 messages.warning(request, "Không có lời nhắc nào được tạo vì thiếu thông tin đơn thuốc.")
+
         except Exception as e:
             messages.error(request, "Có lỗi xảy ra khi tạo lời nhắc: " + str(e))
-    messages.error(request, "Chỉ chấp nhận yêu cầu POST")
     return redirect('patient-dashboard')
 
 
