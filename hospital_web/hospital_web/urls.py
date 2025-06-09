@@ -19,6 +19,8 @@ urlpatterns = [
     path('adminsignup/', views.admin_signup_view,name='adminsignup'),
     path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
     path('patientsignup/', views.patient_signup_view,name='patientsignup'),
+    path('chatui/', views.ChatPageView.as_view(), name='chat-ui'),
+
 
     path('adminlogin/', views.admin_login_view,name='adminlogin'),
     path('doctorlogin/', views.doctor_login_view,name='doctorlogin'),

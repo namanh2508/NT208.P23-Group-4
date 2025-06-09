@@ -113,5 +113,4 @@ class GeminiChatView(APIView):
         except Exception as e:
             return Response({"error": "Gemini API error", "details": str(e)}, status=500)
         
-class ChatPageView(TemplateView):
-    template_name = "chatbot.html"
+
