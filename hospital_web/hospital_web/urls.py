@@ -111,7 +111,7 @@ urlpatterns = [
     path('patient/upload-test-result/', views.upload_test_result, name='upload_test_result'),
     path('doctor/<int:doctor_id>/', views.Get_Doctor_Detail, name='doctor_detail'),
     path('patient_view_profile/<str:id>', views.GetPatient, name='patient_view_profile'),
-    
+    path('patient_view_test_result/<str:id>', views.view_test_result, name='patient_view_test_result'),
     path('xac-nhan-cuoc-hen/<str:id>', views.approve_appointment_view, name='approve_appointment_view'),
     path('huy-cuoc-hen/<str:id>', views.reject_appointment_view, name='reject_appointment_view'),
     #payos

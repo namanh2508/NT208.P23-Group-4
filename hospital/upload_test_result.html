@@ -61,59 +61,44 @@
                                 {% csrf_token %}
 
                                 {% if form.non_field_errors %}
-                                <div class="alert alert-danger">
-                                    {% for error in form.non_field_errors %}
-                                        <p class="mb-0">{{ error }}</p>
-                                    {% endfor %}
-                                </div>
+                                ...
                                 {% endif %}
 
                                 <div class="row g-3">
-
-                                    
-
+                                    <!-- Các trường cũ -->
                                     <div class="col-md-6">
                                         <label class="form-label"><strong>Loại xét nghiệm:</strong></label>
-                                        {% render_field form.test class="form-select form-select-lg" id="test-type" %}
-                                        {% if form.test.errors %}
-                                            <div class="text-danger small mt-1">
-                                                {{ form.test.errors.0 }}
-                                            </div>
-                                        {% endif %}
+                                        {% render_field form.test_type class="form-select form-select-lg" id="test-type" %}
+                                        {% if form.test_type.errors %}<div class="text-danger small mt-1">{{ form.test_type.errors.0 }}</div>{% endif %}
                                     </div>
 
                                     <div class="col-md-6" id="custom-test-group" >
                                         <label class="form-label"><strong>Nhập loại xét nghiệm khác:</strong></label>
-                                        {% render_field form.custom_test class="form-control form-control-lg" id="custom-test-input" %}
-                                        {% if form.custom_test.errors %}
-                                            <div class="text-danger small mt-1">
-                                                {{ form.custom_test.errors.0 }}
-                                            </div>
-                                        {% endif %}
+                                        {% render_field form.custom_test_name class="form-control form-control-lg" id="custom-test-input" %}
+                                        {% if form.custom_test_name.errors %}<div class="text-danger small mt-1">{{ form.custom_test_name.errors.0 }}</div>{% endif %}
                                     </div>
 
                                     <div class="col-md-6">
                                         <label class="form-label"><strong>Ngày xét nghiệm:</strong></label>
                                         {% render_field form.test_date class="form-control form-control-lg" type="date" %}
-                                        {% if form.test_date.errors %}
-                                            <div class="text-danger small mt-1">
-                                                {{ form.test_date.errors.0 }}
-                                            </div>
-                                        {% endif %}
+                                        {% if form.test_date.errors %}<div class="text-danger small mt-1">{{ form.test_date.errors.0 }}</div>{% endif %}
                                     </div>
 
                                     <div class="col-md-6">
                                         <label class="form-label"><strong>Nơi thực hiện:</strong></label>
                                         {% render_field form.test_place class="form-control form-control-lg" placeholder="Bệnh viện A, Phòng khám B..." %}
-                                        {% if form.test_place.errors %}
-                                            <div class="text-danger small mt-1">
-                                                {{ form.test_place.errors.0 }}
-                                            </div>
-                                        {% endif %}
+                                        {% if form.test_place.errors %}<div class="text-danger small mt-1">{{ form.test_place.errors.0 }}</div>{% endif %}
                                     </div>
 
                                     <div class="col-12">
-                                        <label class="form-label"><strong>Tệp kết quả xét nghiệm (ảnh/pdf):</strong></label>
+                                        <label class="form-label"><strong>Mô tả thêm:</strong></label>
+                                        {% render_field form.description class="form-control form-control-lg" rows="3" placeholder="Ghi chú, chỉ số quan trọng, triệu chứng đi kèm..." %}
+                                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    
+                                    <!-- ĐƯA VÀO TRONG ROW -->
+                                    <div class="col-12">
+                                        <label class="form-label"><strong>Tải lên file kết quả:</strong></label>
                                         {% render_field form.file class="form-control form-control-lg" %}
                                         {% if form.file.errors %}
                                             <div class="text-danger small mt-1">
@@ -122,20 +107,11 @@
                                         {% endif %}
                                     </div>
 
-                                    <div class="col-12">
-                                        <label class="form-label"><strong>Mô tả thêm:</strong></label>
-                                        {% render_field form.description class="form-control form-control-lg" rows="3" placeholder="Ghi chú, chỉ số quan trọng, triệu chứng đi kèm..." %}
-                                        {% if form.description.errors %}
-                                            <div class="text-danger small mt-1">
-                                                {{ form.description.errors.0 }}
-                                            </div>
-                                        {% endif %}
+                                    <!-- ĐƯA VÀO TRONG ROW -->
+                                    <div class="col-12 mt-3">
+                                        <button type="submit" class="btn btn-primary btn-lg">Tải lên</button>
                                     </div>
-                                </div>
-
-                                <div class="d-grid mt-4 pt-3 border-top">
-                                    <button type="submit" class="btn btn-primary btn-lg">Tải lên kết quả</button>
-                                </div>
+                                </div> <!-- Kết thúc thẻ div.row.g-3 -->
                             </form>
                         </div>
                     </div>
@@ -147,7 +123,7 @@
 
     <footer class="footer mt-auto">
         <div class="container text-center">
-            <span class="text-muted">&copy; {% now "Y" %} Tên Bệnh Viện/Phòng Khám Của Bạn.</span>
+            <span class="text-muted">&copy; {% now "Y" %} BỆNH VIỆN QUỐC TẾ IV MEDICAL</span>
         </div>
     </footer>
 

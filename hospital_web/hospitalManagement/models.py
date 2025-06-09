@@ -231,6 +231,7 @@ class UploadTestResult(models.Model):
 
     file = models.FileField(upload_to='test_results/', blank=True, null=True)
     test_date = models.DateField()
+    ocr_text = models.TextField(blank=True, null=True)  # Lưu trữ kết quả OCR từ file
     description = models.TextField(blank=True, null=True)
     test_place = models.CharField(max_length=100, blank=True, null=True)
 

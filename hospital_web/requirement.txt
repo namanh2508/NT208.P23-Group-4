@@ -13,3 +13,6 @@ PyJWT
 pytz
 python-dotenv
 google-generativeai
+google-cloud-vision
+easyocr
+torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
