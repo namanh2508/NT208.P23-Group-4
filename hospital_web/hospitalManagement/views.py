@@ -25,6 +25,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.dateparse import parse_date
+from django.views.generic import TemplateView
 import random
 import easyocr
 from PIL import Image
@@ -572,6 +573,8 @@ def logout_view(request):
     logout(request)
     return redirect('index')
 
+class ChatPageView(TemplateView):
+    template_name = "chatbot.html"
 
 #---------------------------------------------------------------------------------
 #------------------------ ADMIN RELATED VIEWS START ------------------------------
