@@ -543,7 +543,12 @@ def reset_password_view(request):
                 user.set_password(new_password)
                 user.save()
                 otp_obj.delete()
-                request.session.flush()
+                if 'reset_email' in request.session:
+                    del request.session['reset_email']
+                if 'otp_verified' in request.session:
+                    del request.session['otp_verified']
+                if 'otp_code' in request.session:
+                    del request.session['otp_code']
                 messages.success(request, "Đặt lại mật khẩu thành công.")
                 return redirect("patientlogin")
         except (models.EmailOTP.DoesNotExist, models.CustomUser.DoesNotExist):
