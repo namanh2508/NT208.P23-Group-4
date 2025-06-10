@@ -103,7 +103,7 @@
                         <a href="#ho-so-benh-an" class="list-group-item list-group-item-action">
                             <i class="fas fa-file-medical fa-fw me-2"></i> Hồ Sơ Bệnh Án
                         </a>
-                        <a href="#ket-qua" class="list-group-item list-group-item-action">
+                        <a href="{% url 'patient_view_test_result' request.user.id %}" class="list-group-item list-group-item-action">
                             <i class="fas fa-notes-medical fa-fw me-2"></i> Kết Quả Xét Nghiệm
                         </a>
                         <a href="#thanh-toan" class="list-group-item list-group-item-action">

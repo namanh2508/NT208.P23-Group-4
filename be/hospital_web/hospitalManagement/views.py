@@ -1,9 +1,10 @@
-import io
+import io,os
+import re
 from django.contrib.auth import logout
 from django.shortcuts import render,redirect,get_object_or_404
 from django.db.models import Sum
 from django.contrib.auth.models import Group,User
-from django.http import HttpResponseRedirect,HttpResponse, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseForbidden
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date,time
@@ -26,7 +27,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.dateparse import parse_date
 from django.views.generic import TemplateView
 import random
-from .models import AI_Metric, Doctor,Patient,Appointment,Service
+import easyocr
+from PIL import Image
+from .models import AI_Metric, Doctor, Patient, Appointment, Service
+from google.cloud import vision
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -1524,22 +1528,145 @@ def call_dermatology_ai_api(image_path):
 #         return JsonResponse({'result': result})
 #     return JsonResponse({'error': 'No image uploaded'}, status=400)
 
-@login_required (login_url='patientlogin')
+def parse_blood_test_results(ocr_text):
+    """
+    Phân tích văn bản OCR thô từ kết quả xét nghiệm huyết học
+    để trích xuất các cặp (chỉ số, giá trị).
+    """
+    # Danh sách các từ khóa xét nghiệm chúng ta quan tâm
+    TEST_KEYWORDS = [
+        'WBC', 'NEU', 'LYM', 'MONO', 'BASO', 'EOS',
+        'RBC', 'HGB', 'HCT', 'MCV', 'MCH', 'MCHC',
+        'RDW', 'PLT', 'MPV'
+    ]
+    
+    results = {}
+    lines = ocr_text.split('\n')
+
+    for i, line in enumerate(lines):
+        for keyword in TEST_KEYWORDS:
+            # Tìm xem dòng có chứa từ khóa không
+            if keyword in line:
+                # Tìm giá trị số. Chúng ta sẽ tìm ở dòng hiện tại và 2 dòng tiếp theo
+                # phòng trường hợp OCR tách số ra dòng khác.
+                value_found = None
+                search_area = lines[i:i+3] # Vùng tìm kiếm giá trị
+                
+                for search_line in search_area:
+                    # Regex để tìm số thập phân hoặc số nguyên
+                    match = re.search(r'\b\d+\.?\d*\b', search_line)
+                    if match:
+                        # Đảm bảo số tìm được không phải là một phần của từ khóa khác
+                        # và chưa được gán cho một kết quả nào
+                        potential_value = match.group(0)
+                        if potential_value not in results.values():
+                           value_found = potential_value
+                           break # Thoát khỏi vòng lặp tìm kiếm khi đã thấy giá trị
+                
+                if value_found:
+                    results[keyword] = value_found
+    
+    return results
+try:
+    reader = easyocr.Reader(['vi', 'en'], gpu=True)
+    print("EasyOCR reader initialized successfully.")
+except Exception as e:
+    reader = None
+    print(f"Error initializing EasyOCR reader: {e}")
+
+@login_required(login_url='patientlogin')
 def upload_test_result(request):
+    if reader is None:
+        messages.error(request, "Lỗi: Dịch vụ OCR chưa sẵn sàng. Vui lòng liên hệ quản trị viên.")
+        return redirect('patient-dashboard')
+
     if request.method == 'POST':
         form = UploadTestResultForm(request.POST, request.FILES)
         if form.is_valid():
             instance = form.save(commit=False)
+            instance.patient = request.user.patient
 
-            # Nếu chọn "Khác", dùng custom_test thay thế
-            if form.cleaned_data['test'] == 'other':
-                instance.test_name = form.cleaned_data['custom_test']
-            else:
-                instance.test_name = dict(TEST_CHOICES).get(form.cleaned_data['test'], '')
+            if instance.test_type == 'other':
+                instance.test_type = form.cleaned_data.get('custom_test_name', 'Khác')
 
+            # Lưu instance mà không có file trước để lấy ID (nếu cần)
+            # Hoặc chỉ lưu các trường khác file
             instance.save()
-            messages.success(request, "Tải lên kết quả xét nghiệm thành công.")
-            return redirect('some_success_url')
+
+            # Kiểm tra xem có file nào được upload không
+            if 'file' in request.FILES:
+                try:
+                    uploaded_file = request.FILES['file']
+                    
+                    
+                    
+                    # 1. Tua lại con trỏ về đầu file
+                    uploaded_file.seek(0)
+                    
+                    # 2. Đọc nội dung file
+                    file_bytes = uploaded_file.read()
+
+                    # 3. (Phòng vệ) Kiểm tra xem buffer có thực sự rỗng không
+                    if not file_bytes:
+                        raise ValueError("File được tải lên không có nội dung hoặc không thể đọc được.")
+                        
+                    
+
+                    # --- BẮT ĐẦU SỬA LỖI ---
+
+                    # 1. Gọi EasyOCR để lấy kết quả chi tiết nhất.
+                    # Bỏ tham số 'paragraph=True'.
+                    detailed_result = reader.readtext(file_bytes)
+                    
+                    # 2. Trích xuất CHỈ phần văn bản (item[1]) từ mỗi tuple trong kết quả.
+                    # Điều này đảm bảo text_list là một danh sách phẳng chỉ chứa các chuỗi.
+                    text_list = [item[1] for item in detailed_result]
+
+                    # 3. Bây giờ, việc join sẽ luôn an toàn.
+                    ocr_text = "\n".join(text_list)
+                    # Thay vì chỉ lưu text thô, chúng ta phân tích nó
+                    parsed_results = parse_blood_test_results(ocr_text)
+                    
+                    # Tạo một chuỗi định dạng đẹp hơn để lưu và hiển thị
+                    formatted_text = "Kết quả phân tích tự động:\n"
+                    formatted_text += "----------------------------\n"
+                    for key, value in parsed_results.items():
+                        formatted_text += f"{key:<10}: {value}\n" # Định dạng cột
+                    
+                    # Lưu cả hai dạng text vào DB nếu bạn muốn
+                    instance.ocr_text = formatted_text # Lưu dạng đã định dạng
+                    # instance.raw_ocr_text = ocr_text # Bạn có thể thêm một trường để lưu text thô
+                    instance.save(update_fields=['ocr_text'])
+
+                    messages.success(request, "Kết quả xét nghiệm đã được tải lên và xử lý bằng EasyOCR thành công!")
+                    return redirect('patient_view_test_result', id=instance.id)
+
+                except Exception as e:
+                    messages.error(request, f"Lỗi khi xử lý ảnh với EasyOCR: {e}")
+                    # Vẫn chuyển hướng để người dùng không bị kẹt
+                    return redirect('patient_view_test_result', id=instance.id)
+            else:
+                messages.warning(request, "Thông tin đã được lưu nhưng bạn chưa tải lên file kết quả.")
+                return redirect('patient-dashboard')
+        else:
+            messages.error(request, "Có lỗi trong form. Vui lòng kiểm tra lại.")
     else:
         form = UploadTestResultForm()
+
     return render(request, 'upload_test_result.html', {'form': form})
+
+# Đảm bảo bạn có view này và URL tương ứng
+@login_required(login_url='patientlogin')
+def view_test_result(request, id):
+    try:
+        test_result = request.user.patient.upload_test_results.get(id=id)
+    except Exception as e:
+        messages.error(request, "Không tìm thấy kết quả xét nghiệm.")
+        return redirect('patient-dashboard')
+
+    # Chúng ta không cần truyền extracted_text nữa vì nó đã được lưu trong test_result.ocr_text
+    return render(request, 'test_result.html', {
+        'test_result': test_result,
+        'extracted_text': test_result.ocr_text # Lấy text trực tiếp từ model
+    })
+

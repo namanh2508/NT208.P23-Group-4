@@ -529,14 +529,16 @@ TEST_CHOICES = [
     ('cancer', 'Ung thư'),
     ('other', 'Khác'),
 ]
+
 class UploadTestResultForm(forms.ModelForm):
-    test = forms.ChoiceField(
+    # Đổi tên cho khớp với model để dễ quản lý
+    test_type = forms.ChoiceField(
         choices=TEST_CHOICES,
         label="Loại xét nghiệm",
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'test-type'})
     )
 
-    custom_test = forms.CharField(
+    custom_test_name = forms.CharField(
         required=False,
         label="Loại xét nghiệm khác",
         widget=forms.TextInput(attrs={
@@ -548,19 +550,27 @@ class UploadTestResultForm(forms.ModelForm):
 
     class Meta:
         model = UploadTestResult
-        fields = ['patient', 'test', 'custom_test', 'file', 'test_date', 'description', 'test_place']
+        # Đã loại bỏ 'patient'.
+        # Cập nhật tên trường cho khớp với model và form.
+        fields = ['test_type', 'custom_test_name', 'file', 'test_date', 'description', 'test_place']
         widgets = {
-            'patient': forms.Select(attrs={'class': 'form-select'}),
             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'test_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'test_place': forms.TextInput(attrs={'class': 'form-control'}),
         }
+        
     def clean(self):
         cleaned_data = super().clean()
-        test_type = cleaned_data.get('test')
-        custom_test = cleaned_data.get('custom_test')
+        test_type = cleaned_data.get('test_type')
+        custom_test_name = cleaned_data.get('custom_test_name')
         
-        if test_type == 'other' and not custom_test:
-            raise forms.ValidationError("Vui lòng nhập loại xét nghiệm khác")
+        # Nếu chọn 'Khác' mà không nhập gì thì báo lỗi
+        if test_type == 'other' and not custom_test_name:
+            self.add_error('custom_test_name', "Vui lòng nhập loại xét nghiệm khác khi đã chọn 'Khác'.")
+            
+        # Nếu không chọn 'Khác' mà lại nhập thì xóa dữ liệu đó đi
+        if test_type != 'other':
+            cleaned_data['custom_test_name'] = ''
+            
         return cleaned_data
