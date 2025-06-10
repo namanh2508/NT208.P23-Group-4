@@ -1,0 +1,305 @@
+.
+├── README.md
+├── fe
+│   ├── README.md
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── src
+│   │   ├── App.jsx
+│   │   ├── Components
+│   │   │   ├── About
+│   │   │   │   ├── About.css
+│   │   │   │   └── About.jsx
+│   │   │   ├── Background
+│   │   │   │   ├── Background.css
+│   │   │   │   └── Background.jsx
+│   │   │   ├── Book
+│   │   │   │   ├── Book.css
+│   │   │   │   └── Book.jsx
+│   │   │   ├── Doctor
+│   │   │   │   ├── Doctor.css
+│   │   │   │   └── Doctor.jsx
+│   │   │   ├── Footer
+│   │   │   │   ├── Footer.css
+│   │   │   │   └── Footer.jsx
+│   │   │   ├── Form.css
+│   │   │   ├── Form.jsx
+│   │   │   ├── Hero
+│   │   │   │   ├── Hero.css
+│   │   │   │   └── Hero.jsx
+│   │   │   ├── Navbar
+│   │   │   │   ├── Navbar.css
+│   │   │   │   └── Navbar.jsx
+│   │   │   ├── OurServs
+│   │   │   │   ├── OurServs.css
+│   │   │   │   └── OurServs.jsx
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   └── api.js
+│   │   ├── Pages
+│   │   │   ├── Auth.css
+│   │   │   ├── Chatbot
+│   │   │   │   ├── ChatBot.jsx
+│   │   │   │   ├── ChatForm.jsx
+│   │   │   │   ├── ChatMessage.jsx
+│   │   │   │   ├── ChatbotIcon.jsx
+│   │   │   │   ├── index.css
+│   │   │   │   └── info.js
+│   │   │   ├── HomePage.jsx
+│   │   │   ├── NotFound.css
+│   │   │   ├── NotFound.jsx
+│   │   │   ├── SignIn.jsx
+│   │   │   └── SignUp.jsx
+│   │   ├── assets
+│   │   │   ├── Electrocardiogram.png
+│   │   │   ├── ai.svg
+│   │   │   ├── arrow.svg
+│   │   │   ├── calender.svg
+│   │   │   ├── chevron-down.svg
+│   │   │   ├── chevron.svg
+│   │   │   ├── comment.svg
+│   │   │   ├── doctor1.png
+│   │   │   ├── doctor2.png
+│   │   │   ├── doctor3.png
+│   │   │   ├── doctor4.png
+│   │   │   ├── doctor5.png
+│   │   │   ├── facebook.svg
+│   │   │   ├── image1.jpg
+│   │   │   ├── image2.jpg
+│   │   │   ├── image3.jpg
+│   │   │   ├── image4.jpg
+│   │   │   ├── location.svg
+│   │   │   ├── magnifying.svg
+│   │   │   ├── mail.svg
+│   │   │   ├── notfound.png
+│   │   │   ├── pause.svg
+│   │   │   ├── phone.svg
+│   │   │   ├── play.svg
+│   │   │   ├── stethoscope.svg
+│   │   │   ├── syringe.svg
+│   │   │   ├── twitter.svg
+│   │   │   ├── video1.mp4
+│   │   │   ├── xmark.svg
+│   │   │   └── youtube.svg
+│   │   ├── constant.js
+│   │   ├── index.css
+│   │   └── main.jsx
+│   └── vite.config.js
+├── hospital
+│   ├── Doctor-Ronaldo.jpg
+│   ├── aboutus.html
+│   ├── admin_add_appointment.html
+│   ├── admin_add_doctor.html
+│   ├── admin_add_patient.html
+│   ├── admin_appointment.html
+│   ├── admin_approve_appointment.html
+│   ├── admin_approve_doctor.html
+│   ├── admin_approve_patient.html
+│   ├── admin_base.html
+│   ├── admin_dashboard.html
+│   ├── admin_dashboard_cards.html
+│   ├── admin_discharge_patient.html
+│   ├── admin_doctor.html
+│   ├── admin_doctor_patient_card.html
+│   ├── admin_patient.html
+│   ├── admin_update_doctor.html
+│   ├── admin_update_patient.html
+│   ├── admin_view_appointment.html
+│   ├── admin_view_doctor.html
+│   ├── admin_view_doctor_Specialisation.html
+│   ├── admin_view_patient.html
+│   ├── adminlogin.html
+│   ├── adminsignup.html
+│   ├── ai_upload.html
+│   ├── all_doctors.html
+│   ├── appointment_form.html
+│   ├── cancel.html
+│   ├── chatbot.html
+│   ├── contactus.html
+│   ├── contactussuccess.html
+│   ├── doctor_appointment.html
+│   ├── doctor_base.html
+│   ├── doctor_dashboard.html
+│   ├── doctor_dashboard_cards.html
+│   ├── doctor_delete_appointment.html
+│   ├── doctor_detail.html
+│   ├── doctor_patient.html
+│   ├── doctor_view_appointment.html
+│   ├── doctor_view_discharge_patient.html
+│   ├── doctor_view_patient.html
+│   ├── doctor_wait_for_approval.html
+│   ├── doctorlogin.html
+│   ├── doctorsignup.html
+│   ├── download_bill.html
+│   ├── footer.html
+│   ├── forget_password_email.html
+│   ├── forgetpass_email_template.html
+│   ├── homebase.html
+│   ├── images
+│   │   └── Doctor-Ronaldo.jpg
+│   ├── index.html
+│   ├── index_home.html
+│   ├── media
+│   │   ├── profile_pic
+│   │   │   ├── DoctorProfilePic
+│   │   │   │   ├── background.png
+│   │   │   │   ├── doctor1.jpg
+│   │   │   │   ├── doctor10.jpg
+│   │   │   │   ├── doctor10_eYMCx6B.jpg
+│   │   │   │   ├── doctor11.jpg
+│   │   │   │   ├── doctor12.jpg
+│   │   │   │   ├── doctor13.jpg
+│   │   │   │   ├── doctor14.jpg
+│   │   │   │   ├── doctor1_s9yK4oR.jpg
+│   │   │   │   ├── doctor1_ywmG22R.jpg
+│   │   │   │   ├── doctor2.jpg
+│   │   │   │   ├── doctor3.jpg
+│   │   │   │   ├── doctor4.jpg
+│   │   │   │   ├── doctor4_0Qm8iai.jpg
+│   │   │   │   ├── empty_folder.png
+│   │   │   │   ├── empty_folder_yVrtf5h.png
+│   │   │   │   ├── images.jpg
+│   │   │   │   ├── images_7e6mqsY.jpg
+│   │   │   │   ├── images_Dr2kYrg.jpg
+│   │   │   │   ├── images_RT6arCN.jpg
+│   │   │   │   ├── images_Rj7pnxG.jpg
+│   │   │   │   └── images_fYxmCV4.jpg
+│   │   │   ├── OIP.jfif
+│   │   │   ├── PatientProfilePic
+│   │   │   │   ├── download.webp
+│   │   │   │   ├── empty_folder.png
+│   │   │   │   ├── empty_folder_uOatBLe.png
+│   │   │   │   ├── images.jpg
+│   │   │   │   └── images_1.jpg
+│   │   │   ├── doctor1.jpg
+│   │   │   ├── mypicture.jpg
+│   │   │   ├── mypicture_uObz5Uh.jpg
+│   │   │   ├── mypicture_yxOi8MD.jpg
+│   │   │   └── signature.jpg
+│   │   ├── service_images
+│   │   │   └── test.png
+│   │   └── test_results
+│   │       ├── lab1.jpg
+│   │       ├── lab1_Ylp15QP.jpg
+│   │       ├── lab1_ZJ0tfzb.jpg
+│   │       ├── lab2.jpg
+│   │       ├── lab2_PY2jWju.jpg
+│   │       ├── labtest.jpg
+│   │       ├── labtest_AwAqtIP.jpg
+│   │       ├── labtest_G3YSfPC.jpg
+│   │       ├── labtest_URlwcoy.jpg
+│   │       ├── labtest_XsDDT5k.jpg
+│   │       ├── labtest_khvMaop.jpg
+│   │       ├── labtest_lQQeOi7.jpg
+│   │       ├── labtest_mHKCyre.jpg
+│   │       ├── labtest_pMfUn4e.jpg
+│   │       └── labtest_xGEzknS.jpg
+│   ├── medicine_list.html
+│   ├── meeting.html
+│   ├── navbar.html
+│   ├── otp_email_template.html
+│   ├── patient_appointment.html
+│   ├── patient_base.html
+│   ├── patient_book_appointment.html
+│   ├── patient_dashboard.html
+│   ├── patient_dashboard_cards.html
+│   ├── patient_discharge.html
+│   ├── patient_final_bill.html
+│   ├── patient_generate_bill.html
+│   ├── patient_navbar.html
+│   ├── patient_profile.html
+│   ├── patient_view_appointment.html
+│   ├── patient_wait_for_approval.html
+│   ├── patientlogin.html
+│   ├── patientsignup.html
+│   ├── reset_password.html
+│   ├── stafflogin.html
+│   ├── success.html
+│   ├── test_result.html
+│   ├── upload_test_result.html
+│   └── verify_otp.html
+├── hospital_web
+│   ├── __init__.py
+│   ├── api
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── migrations
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── hospitalManagement
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── forms.py
+│   │   ├── management
+│   │   │   ├── __init__.py
+│   │   │   └── commands
+│   │   │       ├── __init__.py
+│   │   │       ├── fetch_medicines.py
+│   │   │       └── fetch_medicines_AI.py
+│   │   ├── meeting_views.py
+│   │   ├── migrations
+│   │   │   ├── 0001_initial.py
+│   │   │   ├── 0002_appointment_ordercode_alter_customuser_status.py
+│   │   │   ├── 0003_remove_testparameter_test_and_more.py
+│   │   │   ├── 0004_emailotp_remove_message_room_remove_message_sender_and_more.py
+│   │   │   ├── 0005_uploadtestresult.py
+│   │   │   ├── 0006_uploadtestresult_ocr_text.py
+│   │   │   └── __init__.py
+│   │   ├── models.py
+│   │   ├── payos_views.py
+│   │   ├── tests.py
+│   │   ├── utils
+│   │   │   ├── __init__.py
+│   │   │   └── gemini_client.py
+│   │   └── views.py
+│   ├── hospital_web
+│   │   ├── __init__.py
+│   │   ├── asgi.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   ├── images
+│   │   └── Doctor-Ronaldo.jpg
+│   ├── labels.txt
+│   ├── manage.py
+│   ├── profile_pic
+│   │   ├── DoctorProfilePic
+│   │   │   ├── doctor2.jpg
+│   │   │   ├── empty_folder.png
+│   │   │   ├── empty_folder_yVrtf5h.png
+│   │   │   ├── images.jpg
+│   │   │   ├── images_7e6mqsY.jpg
+│   │   │   ├── images_Dr2kYrg.jpg
+│   │   │   ├── images_Rj7pnxG.jpg
+│   │   │   ├── images_UNnDvZB.jpg
+│   │   │   ├── images_Vf8wUAc.jpg
+│   │   │   └── images_fYxmCV4.jpg
+│   │   └── PatientProfilePic
+│   │       ├── empty_folder.png
+│   │       └── empty_folder_uOatBLe.png
+│   ├── render.yaml
+│   ├── requirement.txt
+│   └── requirements.txt
+├── static
+│   └── images
+│       ├── background.jpeg
+│       ├── background.jpg
+│       ├── csvc.jpg
+│       ├── hinh phong vip.jpg
+│       ├── lobby.jpg
+│       ├── logi.jpg
+│       ├── logo.avif
+│       ├── pictur33.jpeg
+│       ├── v987-18a.eps
+│       └── v987-18a.jpg
+├── testGPU.py
+└── tree.txt
+
+38 directories, 265 files
