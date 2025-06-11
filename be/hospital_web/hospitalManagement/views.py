@@ -1626,7 +1626,7 @@ def parse_blood_test_results(ocr_text):
     
     return results
 try:
-    reader = easyocr.Reader(['vi', 'en'], gpu=True)
+    reader = easyocr.Reader(['vi', 'en'], gpu=False)
     print("EasyOCR reader initialized successfully.")
 except Exception as e:
     reader = None
