@@ -185,7 +185,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'
 ]
 SITE_ID = 1  # Required by django-allauth
-SITE_URL = 'http://127.0.0.1:8000'  # Used for building redirect_uri
+SITE_URL = 'http://www.lekhoiblog.id.vn'  # Used for building redirect_uri
 
 # Set a secure session cookie
 SESSION_COOKIE_SECURE = False  # Set to False only in local development
