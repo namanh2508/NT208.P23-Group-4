@@ -31,6 +31,7 @@ import easyocr
 from PIL import Image
 from .models import AI_Metric, Doctor, Patient, Appointment, Service
 from google.cloud import vision
+import threading
 #oauth setup
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -211,7 +212,7 @@ def patient_signup_view(request):
 
             request.session["pending_email"] = form_data['email']
             request.session["pending_form_data"] = form_data
-            send_otp_to_email(form_data['email'])
+            threading.Thread(target=send_otp_to_email, args=(form_data['email'],)).start()
             messages.info(request, "Mã OTP đã được gửi tới email. Vui lòng xác thực.")
             return render(request, 'verify_otp.html')
 
@@ -538,7 +539,7 @@ def request_reset_password_view(request):
         if not models.CustomUser.objects.filter(email=email).exists():
             messages.error(request, "Email không tồn tại.")
         else:
-            send_forgetpass_email(email)
+            threading.Thread(target=send_forgetpass_email, args=(email,)).start()
             request.session["reset_email"] = email
             messages.success(request, "OTP đã được gửi đến email.")
             return redirect("verify-otp")
