@@ -6,7 +6,7 @@ from hospitalManagement import meeting_views
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from django.conf.urls.static import static
 from api import views
-
+from api.views import *
 # from api.views import CreateUserView
 
 from hospitalManagement import views
@@ -21,6 +21,14 @@ urlpatterns = [
     path('patientsignup/', views.patient_signup_view,name='patientsignup'),
     path('chatui/', views.ChatPageView.as_view(), name='chat-ui'),
 
+    path("api/patient/register/", CreatePatientUserView.as_view(), name="register"),
+    path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),
+    path("api-auth/", include("rest_framework.urls")),
+    path('api/doctors/', GetAllDoctor.as_view(), name='doctor-list'),
+    path('api/doctors/<int:doctor_id>/', DoctorDetailView.as_view(), name='doctor-detail'),
+    path('api/book-appointment/<int:doctor_id>/', BookAppointmentAPIView.as_view(), name='api-book-appointment'),
+    path('api/patient/profile/', PatientProfileAPIView.as_view(), name='patient-profile'),
 
     path('adminlogin/', views.admin_login_view,name='adminlogin'),
     path('doctorlogin/', views.doctor_login_view,name='doctorlogin'),

@@ -143,44 +143,53 @@
     </h5>
     <div class="row">
         <div class="col-md-6 mb-2">
-            <strong>Ngày sinh:</strong> 
+            <strong>Ngày sinh:</strong>
             {% if user.birthday %}
-                {{ user.birthday|date:"d/m/Y" }}
-                <span class="text-muted">({{ user.birthday|timesince }} tuổi)</span>
+            {{ user.birthday|date:"d/m/Y" }}
+            <span class="text-muted">({{ user.birthday|timesince }} tuổi)</span>
             {% else %}
-                Chưa cập nhật
+            Chưa cập nhật
             {% endif %}
         </div>
         <div class="col-md-6 mb-2">
-            <strong>Giới tính:</strong> 
+            <strong>Giới tính:</strong>
             {% if user.gender %}
-                {{ user.get_gender_display }}
+            {{ user.get_gender_display }}
             {% else %}
-                Chưa cập nhật
+            Chưa cập nhật
             {% endif %}
         </div>
         <div class="col-md-6 mb-2">
-            <strong>Điện thoại:</strong> 
+            <strong>Điện thoại:</strong>
             {% if user.phone %}
-                {{ user.phone }}
+            {{ user.phone }}
             {% else %}
-                Chưa cập nhật
+            Chưa cập nhật
             {% endif %}
         </div>
         <div class="col-md-6 mb-2">
-            <strong>Email:</strong> 
+            <strong>Email:</strong>
             {% if user.email %}
-                {{ user.email }}
+            {{ user.email }}
             {% else %}
-                Chưa cập nhật
+            Chưa cập nhật
             {% endif %}
         </div>
         <div class="col-12 mb-2">
-            <strong>Địa chỉ:</strong> 
+            <strong>Địa chỉ:</strong>
             {% if patient.address %}
-                {{ patient.address }}
+            {{ patient.address }}
             {% else %}
-                Chưa cập nhật
+            Chưa cập nhật
+            {% endif %}
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Tài khoản Google:</strong>
+            {% if googlelinked %}
+            <span class="text-success"><i class="fas fa-check-circle me-1"></i> Đã liên kết</span>
+            {% else %}
+            <span class="text-danger"><i class="fas fa-times-circle me-1"></i> Chưa liên kết</span>
+            <a href="{% url 'google-link' %}" class="btn btn-link btn-sm">Liên kết ngay</a>
             {% endif %}
         </div>
     </div>

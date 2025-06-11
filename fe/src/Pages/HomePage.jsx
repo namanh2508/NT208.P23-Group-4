@@ -40,7 +40,7 @@ const HomePage = ({ isAuthenticated }) => {
         <OurServs />
       </div>
       <Book/>
-      <Doctor/>
+      <Doctor isAuthenticated={isAuthenticated}/>
       <Footer/>
       <ChatBot/>
     </div>

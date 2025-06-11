@@ -19,5 +19,41 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
+export const getDoctors = async () => {
+  try {
+    const response = await api.get('/api/doctors/');
+    return response.data;  
+  } catch (error) {
+    console.error('Error: ', error);
+    return [];  
+  }
+};
+export const createAppointment = async (doctorId, appointmentData) => {
+  try {
+    const response = await api.post(`/api/book-appointment/${doctorId}/`, appointmentData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating appointment:", error);
+    throw error;
+  }
+};
+export const getDoctorById = async (doctorId) => {
+  try {
+    const response = await api.get(`/api/doctors/${doctorId}/`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching doctor details:", error);
+    throw error;
+  }
+};
+export const getPatientProfile = async () => {
+  try {
+    const response = await api.get('/api/patient/profile/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching patient profile:', error);
+    throw error;
+  }
+};
 export default api;
+
