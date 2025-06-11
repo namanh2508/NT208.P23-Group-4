@@ -2,6 +2,8 @@ from django.contrib.auth.models import User,Group, Permission
 from rest_framework import serializers
 # from .models import Note
 from hospitalManagement.models import Appointment,Doctor,Patient,CustomUser,Admin
+from datetime import datetime
+from hospitalManagement.models import Service, Appointment, Test
 # from hospitalManagement.models import PatientDischargeDetails
 
 
@@ -200,4 +202,129 @@ class PatientSerializer(serializers.ModelSerializer):
 class SymptomSerializer(serializers.Serializer):
     symptoms = serializers.CharField()
 
+class PatientRegisterSerializer(serializers.ModelSerializer):
+    family_phone = serializers.CharField(required=False, allow_blank=True)
+    weight = serializers.IntegerField(required=False)
+    height = serializers.IntegerField(required=False)
+    description = serializers.CharField(required=False, allow_blank=True)
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    gender = serializers.ChoiceField(choices=CustomUser._meta.get_field('gender').choices, required=False)
+    birthday = serializers.DateField(required=False)
+    picture = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'username', 'password', 'first_name', 'last_name', 'email',
+            'phone', 'gender', 'birthday', 'picture',
+            'family_phone', 'weight', 'height', 'description',
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        patient_data = {
+            'family_phone': validated_data.pop('family_phone', None),
+            'weight': validated_data.pop('weight', None),
+            'height': validated_data.pop('height', None),
+            'description': validated_data.pop('description', None),
+        }
+
+        password = validated_data.pop('password')
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+        user.save()
+
+        patient_group, _ = Group.objects.get_or_create(name="PATIENT")
+        user.groups.add(patient_group)
+
+        Patient.objects.create(user=user, **patient_data)
+
+        return user
     
+class DoctorSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    department = serializers.SerializerMethodField()
+    picture = serializers.SerializerMethodField()
+    class Meta:
+        model = Doctor
+        fields = ['id', 'full_name', 'department','picture']
+
+    def get_full_name(self, obj):
+        return obj.user.get_full_name()
+
+    def get_department(self, obj):
+        return obj.get_department
+    def get_picture(self, obj):
+        request = self.context.get('request')
+        if obj.user.picture and request:
+            return request.build_absolute_uri(obj.user.picture.url)  
+        return None
+    
+APPOINTMENT_METHOD= [
+    ('online','Tư vấn online'),
+    ('offline','Khám bệnh trực tiếp')
+]
+TYPE_OF_SERVICE = [
+    ('appointment', 'Đăng ký khám bệnh'),
+    ('test', 'Xét nghiệm'),   
+]
+class AppointmentBookingSerializer(serializers.Serializer):
+    appointmentDate = serializers.DateField()
+    appointmentTime = serializers.TimeField()
+    description = serializers.CharField(required=False, allow_blank=True)
+    type = serializers.ChoiceField(choices=TYPE_OF_SERVICE)
+    method = serializers.ChoiceField(choices=APPOINTMENT_METHOD)
+
+    def create(self, validated_data):
+        request = self.context['request']
+        patient = request.user.patient
+        doctor_id = self.context['doctor_id']
+        doctor = Doctor.objects.get(id=doctor_id)
+
+        service = Service.objects.create(
+            patient=patient,
+            doctor=doctor,
+            appointmentDate=validated_data['appointmentDate'],
+            appointmentTime=validated_data['appointmentTime'],
+            description=validated_data.get('description', ''),
+            type=validated_data.get('type', ''),
+            status='pending'
+        )
+
+        if validated_data['type'] == 'appointment':
+            Appointment.objects.create(
+                service=service,
+                method=validated_data['method'],
+                status='pending'
+            )
+        elif validated_data['type'] == 'test':
+            Test.objects.create(
+                service=service,
+                Test_date=validated_data['appointmentDate']  # hoặc timezone.now() nếu không muốn dùng ngày hẹn
+            )
+
+        return service
+    
+class PatientProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+    email = serializers.EmailField(source='user.email')
+    phone = serializers.CharField(source='user.phone', allow_null=True)
+    gender = serializers.CharField(source='user.gender', allow_null=True)
+    birthday = serializers.DateField(source='user.birthday', allow_null=True)
+    picture = serializers.ImageField(source='user.picture', allow_null=True)
+
+    class Meta:
+        model = Patient
+        fields = [
+            'username', 'first_name', 'last_name', 'email',
+            'phone', 'gender', 'birthday', 'picture',
+            'family_phone', 'weight', 'height', 'description'
+        ]

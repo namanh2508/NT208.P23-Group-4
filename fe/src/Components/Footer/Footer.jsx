@@ -32,12 +32,12 @@ const Footer = () => {
             </ul>
           </div>
           <div className="footer-column">
-            <h3 className="footer-title">Support</h3>
+            <h3 className="footer-title">Features</h3>
             <ul className="footer-list">
-              <li><a href="!#">Top</a></li>
-              <li><a href="!#">Jung</a></li>
-              <li><a href="!#">Mid</a></li>
-              <li><a href="!#">AD carry</a></li>
+              <li><a href="!#">Nobita</a></li>
+              <li><a href="!#">Shizuka</a></li>
+              <li><a href="!#">Dỏaemon</a></li>
+              <li><a href="!#">Xeko</a></li>
             </ul>
           </div>
           <div className="footer-column">
@@ -47,7 +47,7 @@ const Footer = () => {
                 <a href="!#"><img src={location} alt="" className="footer-icon2"/><strong>Location:</strong> UIT university</a>
               </li>
               <li>
-                <a href="!#"><img src={mail} alt="" className="footer-icon2"/><strong>Email:</strong> hahahah@gmail.com</a>
+                <a href="!#"><img src={mail} alt="" className="footer-icon2"/><strong>Email:</strong> abcd@gmail.com</a>
               </li>
               <li>
                 <a href="!#"><img src={phone} alt="" className="footer-icon2"/><strong>Phone:</strong> +0000 0000 000</a>

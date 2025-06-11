@@ -31,6 +31,7 @@
     background: none;
     color: aliceblue;
     overflow: hidden;
+    cursor: pointer;
 }
 
 #btn::after {

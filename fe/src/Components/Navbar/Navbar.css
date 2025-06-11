@@ -26,12 +26,9 @@
 .nav-menu li {
     cursor: pointer;
     transition: transform 0.3s, color 0.3s;
+    
 }
 
-.nav-menu li:not(.nav-signin):hover {
-    color: #0D47A1;
-    transform: scale(1.1);
-}
 
 .nav-signin {
     border-radius: 50px;
@@ -41,10 +38,7 @@
 }
 
 .nav-signin:hover {
-    background: #0D47A1;
     cursor: pointer;
-    color: #fff; 
-    transform: scale(1.1);
 }
 .nav-service {
     display: flex;
@@ -85,4 +79,41 @@
 .dropdown li:hover {
     background: #0D47A1;
     color: white;
+}
+.nav-account {
+  position: relative;
+  cursor: pointer;
+}
+
+.account-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  list-style: none;
+  padding: 10px 0;
+  width: 160px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  z-index: 100;
+  color: #0D47A1;
+  font-size: 15px;
+}
+
+.account-dropdown li {
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+.account-dropdown li:hover {
+  background-color: #0D47A1;
+  color: #fff;
+  
 }

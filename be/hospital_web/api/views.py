@@ -1,16 +1,21 @@
 from django.shortcuts import render,get_object_or_404
 from requests import models
+from django.contrib.auth.models import User
+from rest_framework import generics
 import hospitalManagement.models
 from django.http import HttpResponseForbidden
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.conf import settings
-# from .serializers import SymptomSerializer
+from .serializers import *
+from .serializers import AppointmentBookingSerializer
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 import google.generativeai as genai
 from django.views.generic import TemplateView
-from django.utils import timezone
+from hospitalManagement.models import CustomUser,Doctor
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import RetrieveAPIView
 # from django.contrib.auth.models import User
 # from rest_framework import generics
 # from .serializers import UserSerializer, NoteSerializer,PatientDischargeDetailsSerializer,DoctorSerializer,PatientSerializer,DoctorDetailSerializer
@@ -113,4 +118,56 @@ class GeminiChatView(APIView):
         except Exception as e:
             return Response({"error": "Gemini API error", "details": str(e)}, status=500)
         
+class CreatePatientUserView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = PatientRegisterSerializer
+    permission_classes = [AllowAny]
 
+class GetAllDoctor(generics.ListAPIView):
+    queryset = Doctor.objects.all()
+    serializer_class = DoctorSerializer
+    permission_classes = [AllowAny]
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+class DoctorDetailView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, doctor_id):
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+        except Doctor.DoesNotExist:
+            return Response({"error": "Doctor not found"}, status=404)
+
+        serializer = DoctorSerializer(doctor, context={"request": request})
+        return Response(serializer.data, status=200)
+
+class BookAppointmentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, doctor_id):
+        try:
+            patient = request.user.patient
+        except:
+            return Response({"error": "Bạn chưa có thông tin hồ sơ bệnh nhân."}, status=400)
+
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+        except Doctor.DoesNotExist:
+            return Response({"error": "Không tìm thấy bác sĩ."}, status=404)
+
+        serializer = AppointmentBookingSerializer(data=request.data, context={'request': request, 'doctor_id': doctor_id})
+        if serializer.is_valid():
+            service = serializer.save()
+            return Response({
+                "message": "Đặt lịch thành công.",
+                "service_id": service.id
+            }, status=201)
+        else:
+            return Response(serializer.errors, status=400)
+
+class PatientProfileAPIView(RetrieveAPIView):
+    serializer_class = PatientProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return Patient.objects.get(user=self.request.user)

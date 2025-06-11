@@ -1,12 +1,14 @@
 import HomePage from "./Pages/HomePage"
-import SigninPage from "./Pages/SignIn"
-import SignupPage from "./Pages/SignUp"
+import SigninPage from "./Pages/SignIn/SignIn"
+import SignupPage from "./Pages/SignUp/SignUp"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import ProtectedRoute from "./Components/ProtectedRoute"
-import NotFound from "./Pages/NotFound"
+import NotFound from "./Pages/NotFound/NotFound"
 import { useEffect, useState } from "react"
 import { ACCESS_TOKEN } from "./constant"
-import ChatBot from "./Pages/Chatbot/ChatBot"
+import AppointmentPage from './Pages/Appointment/Appointment'
+import AllDoctor from "./Pages/All_Doctor/AllDoctor"
+import ProfilePage from "./Pages/Profile/Profile"
 function Logout() {
   localStorage.clear()
   return <Navigate to="/login" />
@@ -41,6 +43,9 @@ function App() {
         <Route path="*" element={<NotFound isAuthenticated={isAuthenticated}/>} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="/logout" element={<Logout />} />  
+        <Route path="/doctor" element={<AllDoctor isAuthenticated={isAuthenticated}/>} />    
+        <Route path="/appointments/:doctorId" element={<AppointmentPage isAuthenticated={isAuthenticated}/>} />
+        <Route path="/profile" element={<ProfilePage isAuthenticated={isAuthenticated}/>} />
         </Routes>
     </BrowserRouter>
   );
