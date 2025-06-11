@@ -599,17 +599,13 @@ def afterlogin_view(request):
     elif is_doctor(request.user):
         return redirect('doctor-dashboard')
     elif is_patient(request.user):
-        accountapproval = models.Patient.objects.filter(user=request.user, user__status=True)
-        if accountapproval:
-            return redirect('patient-dashboard')
-        else:
-            return render(request,'patient_wait_for_approval.html')
-    else: return redirect('index')
+        return redirect('patient-dashboard')
+    else: return redirect('index_home')
 
 #-logout handle
 def logout_view(request):
     logout(request)
-    return redirect('index')
+    return redirect('index_home')
 
 class ChatPageView(TemplateView):
     template_name = "chatbot.html"
