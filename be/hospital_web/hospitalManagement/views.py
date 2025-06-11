@@ -167,49 +167,82 @@ def doctor_signup_view(request):
         form = forms.DoctorSignupForm()
     return render(request, 'doctorsignup.html', {'form': form})
 
+BYPASS_OTP = True  # Toggle this to False in production
 def patient_signup_view(request):
     if request.method == "POST":
+        # OTP submission
         if 'otp_submit' in request.POST:
+            if BYPASS_OTP:
+                form_data = request.session.get("pending_form_data")
+                if form_data:
+                    return complete_signup_from_session(form_data, request)
+                messages.error(request, "Không tìm thấy dữ liệu đăng ký.")
+                return redirect('patientsignup')
+
             email = request.session.get("pending_email")
             input_otp = request.POST.get("otp")
             try:
                 record = models.EmailOTP.objects.get(email=email)
                 if record.otp == input_otp and not record.is_expired():
-                    user = models.CustomUser.objects.get(email=email)
-                    user.is_active=True
-                    user.save()
-                    del request.session["pending_email"]
-                    messages.success(request, "Xác thực OTP thành công! Vui lòng đăng nhập")
-                    return redirect ('patientlogin')
+                    form_data = request.session.get("pending_form_data")
+                    return complete_signup_from_session(form_data, request)
                 else:
                     messages.error(request, "Mã OTP không đúng hoặc đã hết hạn.")
             except models.EmailOTP.DoesNotExist:
                 messages.error(request, "Không tìm thấy yêu cầu xác thực OTP.")
             return render(request, 'verify_otp.html')
-        
+
+        # Form submission
         form = forms.PatientSignupForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
-            patient = models.Patient.objects.create(
-                user = user,
-                family_phone = form.cleaned_data['family_phone'],
-                weight = form.cleaned_data['weight'],
-                height = form.cleaned_data['height']
-            )
-            patient_group, _ = Group.objects.get_or_create(name='PATIENT')
-            user.groups.add(patient_group)
+            form_data = {
+                'email': form.cleaned_data['email'],
+                'username': form.cleaned_data['username'],
+                'first_name': form.cleaned_data['first_name'],
+                'last_name': form.cleaned_data['last_name'],
+                'password': form.cleaned_data['password'],
+                'family_phone': form.cleaned_data['family_phone'],
+                'weight': form.cleaned_data['weight'],
+                'height': form.cleaned_data['height'],
+            }
 
-            send_otp_to_email(user.email)
-            request.session["pending_email"] = user.email
+            if BYPASS_OTP:
+                return complete_signup_from_session(form_data, request)
+
+            request.session["pending_email"] = form_data['email']
+            request.session["pending_form_data"] = form_data
+            send_otp_to_email(form_data['email'])
             messages.info(request, "Mã OTP đã được gửi tới email. Vui lòng xác thực.")
             return render(request, 'verify_otp.html')
-            # messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
-            # return redirect('patientlogin')
+
     else:
         form = forms.PatientSignupForm()
     return render(request, 'patientsignup.html', {'form': form})
+
+def complete_signup_from_session(form_data, request):
+    user = models.CustomUser(
+        email=form_data['email'],
+        username=form_data['username'],
+        first_name=form_data['first_name'],
+        last_name=form_data['last_name'],
+        is_active=True
+    )
+    user.set_password(form_data['password'])
+    user.save()
+
+    patient = models.Patient.objects.create(
+        user=user,
+        family_phone=form_data['family_phone'],
+        weight=form_data['weight'],
+        height=form_data['height']
+    )
+    patient_group, _ = Group.objects.get_or_create(name='PATIENT')
+    user.groups.add(patient_group)
+
+    request.session.pop("pending_email", None)
+    request.session.pop("pending_form_data", None)
+    messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
+    return redirect('patientlogin')
 
 # hàm này kích hoạt khi bấm nút login bằng google
 
@@ -1450,11 +1483,14 @@ def check_service_by_date(request, date):
     return JsonResponse({'services': data})
 
 def GetPatient(request,id):
-    patient = models.Patient.objects.get(id=id)
-    if not patient:
-        return HttpResponse("Patient not found", status=404)
-    return render(request, 'patient_profile.html', {'patient': patient})
+    patient = get_object_or_404(models.Patient, user=request.user)
 
+    googlelinked = request.user.socialaccount_set.filter(provider='google').exists()
+
+    return render(request, 'patient_profile.html', {
+        'patient': patient,
+        'googlelinked': googlelinked
+    })
 def Get_Doctor_Detail(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     return render(request, 'doctor_detail.html', {'doctor': doctor})
