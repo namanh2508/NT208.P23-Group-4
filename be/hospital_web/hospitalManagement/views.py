@@ -1482,19 +1482,13 @@ def check_service_by_date(request, date):
     data = [{'id': s.id, 'name': s.name} for s in services]
     return JsonResponse({'services': data})
 
-<<<<<<< HEAD
+
 def GetPatient(request,user_id):
     patient = models.Patient.objects.get(user_id=user_id)
     if not patient:
         return HttpResponse("Patient not found", status=404)
     return render(request, 'patient_profile.html', {'patient': patient})
-=======
-def GetPatient(request,id):
-    patient = get_object_or_404(models.Patient, user=request.user)
->>>>>>> 5b03a10457d0ad35e7d43b8aced2a99937c552f3
-
     googlelinked = request.user.socialaccount_set.filter(provider='google').exists()
-
     return render(request, 'patient_profile.html', {
         'patient': patient,
         'googlelinked': googlelinked
