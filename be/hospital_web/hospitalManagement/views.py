@@ -1348,9 +1348,9 @@ def add_calendar_reminders(request):
     
 # # trả ra  html
 @login_required(login_url='patientlogin')
-def get_appointment_by_patient_name(request, id):
-    patient = get_object_or_404(models.Patient, id=id)
-    # Lấy danh sách các cuộc hẹn dựa trên tên bệnh nhân
+def get_appointment_by_patient_name(request, user_id):
+    patient = get_object_or_404(models.Patient, user_id=user_id)
+   
     services = models.Service.objects.filter(patient =patient)
     appointment = models.Appointment.objects.filter(service__in=services)
     return render(request, 'patient_view_appointment.html', {'appointment': appointment} )
@@ -1412,7 +1412,7 @@ def book_appointment(request, id): # id ở đây là user_id của Doctor
                 status='pending'
             )
             messages.success(request, f"Cuộc hẹn với BS. {service.doctor.user.get_full_name()} vào ngày {service.appointmentDate.strftime('%d-%m-%Y')} lúc {service.appointmentTime.strftime('%H:%M')} đã được yêu cầu.")
-            return redirect('patient-view-appointments', id=patient.id)
+            return redirect('patient-view-appointments', user_id=request.user.id)  # Sửa id thành user_id
         else:
             messages.error(request, "Vui lòng sửa các lỗi được chỉ ra trong form.")
             print("Form KHÔNG hợp lệ (is_valid = False)")
@@ -1444,8 +1444,8 @@ def check_service_by_date(request, date):
     data = [{'id': s.id, 'name': s.name} for s in services]
     return JsonResponse({'services': data})
 
-def GetPatient(request,id):
-    patient = models.Patient.objects.get(id=id)
+def GetPatient(request,user_id):
+    patient = models.Patient.objects.get(user_id=user_id)
     if not patient:
         return HttpResponse("Patient not found", status=404)
     return render(request, 'patient_profile.html', {'patient': patient})
@@ -1454,6 +1454,26 @@ def Get_Doctor_Detail(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
     return render(request, 'doctor_detail.html', {'doctor': doctor})
 
+@login_required(login_url='patientlogin')
+def cancel_appointment_view(request, appointment_id):
+    try:
+        appointment = models.Appointment.objects.get(id=appointment_id)
+        
+        # Kiểm tra xem người dùng hiện tại có phải là chủ của cuộc hẹn
+        if appointment.service.patient.user != request.user:
+            messages.error(request, "Bạn không có quyền hủy cuộc hẹn này.")
+            return redirect('patient-view-appointments', user_id=request.user.id)
+            
+        # Xóa cuộc hẹn
+        appointment.delete()
+        
+        messages.success(request, "Cuộc hẹn đã được hủy thành công.")
+        return redirect('patient-view-appointments', user_id=request.user.id)
+        
+    except models.Appointment.DoesNotExist:
+        messages.error(request, "Không tìm thấy cuộc hẹn.")
+        return redirect('patient-view-appointments', user_id=request.user.id)
+    
 import logging
 from django.views.decorators.csrf import csrf_exempt
 
@@ -1607,30 +1627,29 @@ def upload_test_result(request):
                         
                     
 
-                    # --- BẮT ĐẦU SỬA LỖI ---
+                    
 
-                    # 1. Gọi EasyOCR để lấy kết quả chi tiết nhất.
-                    # Bỏ tham số 'paragraph=True'.
+                   
+                    
                     detailed_result = reader.readtext(file_bytes)
                     
-                    # 2. Trích xuất CHỈ phần văn bản (item[1]) từ mỗi tuple trong kết quả.
-                    # Điều này đảm bảo text_list là một danh sách phẳng chỉ chứa các chuỗi.
+                    
                     text_list = [item[1] for item in detailed_result]
 
-                    # 3. Bây giờ, việc join sẽ luôn an toàn.
+                    
                     ocr_text = "\n".join(text_list)
-                    # Thay vì chỉ lưu text thô, chúng ta phân tích nó
+                    
                     parsed_results = parse_blood_test_results(ocr_text)
                     
-                    # Tạo một chuỗi định dạng đẹp hơn để lưu và hiển thị
+                    
                     formatted_text = "Kết quả phân tích tự động:\n"
                     formatted_text += "----------------------------\n"
                     for key, value in parsed_results.items():
                         formatted_text += f"{key:<10}: {value}\n" # Định dạng cột
                     
-                    # Lưu cả hai dạng text vào DB nếu bạn muốn
+                    
                     instance.ocr_text = formatted_text # Lưu dạng đã định dạng
-                    # instance.raw_ocr_text = ocr_text # Bạn có thể thêm một trường để lưu text thô
+                    
                     instance.save(update_fields=['ocr_text'])
 
                     messages.success(request, "Kết quả xét nghiệm đã được tải lên và xử lý bằng EasyOCR thành công!")
@@ -1650,7 +1669,7 @@ def upload_test_result(request):
 
     return render(request, 'upload_test_result.html', {'form': form})
 
-# Đảm bảo bạn có view này và URL tương ứng
+
 @login_required(login_url='patientlogin')
 def view_test_result(request, id):
     try:
@@ -1664,4 +1683,5 @@ def view_test_result(request, id):
         'test_result': test_result,
         'extracted_text': test_result.ocr_text # Lấy text trực tiếp từ model
     })
+
 

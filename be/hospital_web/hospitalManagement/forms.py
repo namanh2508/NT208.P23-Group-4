@@ -411,11 +411,7 @@ class AppointmentBookingForm(forms.ModelForm):
     )
     
     
-    type = forms.ChoiceField(
-        choices=TYPE_OF_SERVICE,
-        label="loại dịch vụ",
-        widget= forms.Select(attrs={'class': 'form-control'})
-    )
+
     
     
     method = forms.ChoiceField(

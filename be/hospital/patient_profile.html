@@ -212,7 +212,7 @@
                                     {% endfor %}
                                      {# === Kết thúc vòng lặp === #}
                                 </div>
-                                <a href="{% url 'patient-view-appointments' request.user.id %}" {# Ví dụ URL tới tất cả lịch hẹn #} class="mt-2 d-block">Xem tất cả lịch hẹn &rarr;</a>
+                                <a href="{% url 'patient-view-appointments' user_id=user.id %}" {# Ví dụ URL tới tất cả lịch hẹn #} class="mt-2 d-block">Xem tất cả lịch hẹn &rarr;</a>
                             </section>
 
                             {# --- Phần Thông tin khác --- #}

@@ -5,6 +5,7 @@ from payos import PayOS, ItemData, PaymentData
 import time
 import json
 from .models import AI_Metric, Doctor,Patient,Appointment,Service
+from django.contrib.auth.decorators import login_required
 from hospitalManagement import models
 TEMP_PAYOS_CLIENT_ID = "c387c8ae-5f34-4aea-b098-d0f2851064ea"
 TEMP_PAYOS_API_KEY = "211b8012-101c-4dc9-8f87-1392c037f207"
@@ -19,6 +20,7 @@ MY_DOMAIN = 'http://127.0.0.1:8000'
 TEMP_PAYOS_RETURN_URL = '/' 
 TEMP_PAYOS_CANCEL_URL = '/'
 
+@login_required(login_url='patientlogin')
 def create_payment_view(request, id):
     try:
         current_user = request.user
@@ -33,8 +35,8 @@ def create_payment_view(request, id):
         # trùng thời gian với cuộc hẹn này không
         conflicting_appointments = models.Appointment.objects.filter(
             service__doctor=my_appointment.service.doctor,
-            date=my_appointment.date,
-            time=my_appointment.time,
+            service__appointmentDate=my_appointment.service.appointmentDate,
+            service__appointmentTime=my_appointment.service.appointmentTime,
             status='accepted'
         ).exclude(id=id)
 
@@ -44,6 +46,9 @@ def create_payment_view(request, id):
                 status=400
             )
 
+        # Tạo mô tả chi tiết hơn cho thanh toán
+        service_info = f"{my_appointment.service.appointmentDate.strftime('%d/%m/%Y')} {my_appointment.service.appointmentTime.strftime('%H:%M')}"
+        
         item = ItemData(name="Phí khám bệnh", quantity=1, price=2000)
         payment_data = PaymentData(
             orderCode=int(time.time()),
@@ -69,7 +74,7 @@ def success_view(request):
     return render(request, 'success.html', {'current_user': current_user}) 
 
 def cancel_view(request):
-    current_user = request.user
+    current_user = request.user 
     return render(request, 'cancel.html', {'current_user': current_user})
 
 @csrf_exempt
