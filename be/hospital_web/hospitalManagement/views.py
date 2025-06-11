@@ -167,7 +167,7 @@ def doctor_signup_view(request):
         form = forms.DoctorSignupForm()
     return render(request, 'doctorsignup.html', {'form': form})
 
-BYPASS_OTP = True  # Toggle this to False in production
+BYPASS_OTP = False  # Toggle this to False in production
 def patient_signup_view(request):
     if request.method == "POST":
         # OTP submission
@@ -1487,7 +1487,6 @@ def GetPatient(request,user_id):
     patient = models.Patient.objects.get(user_id=user_id)
     if not patient:
         return HttpResponse("Patient not found", status=404)
-    return render(request, 'patient_profile.html', {'patient': patient})
     googlelinked = request.user.socialaccount_set.filter(provider='google').exists()
     return render(request, 'patient_profile.html', {
         'patient': patient,
