@@ -1222,11 +1222,13 @@ def add_calendar_reminders(request):
 
         if creds is None:
             messages.error(request, "Không tìm thấy quyền Google để thêm lời nhắc.")
+            return redirect('patient-dashboard')
 
         try:
             service = build('calendar', 'v3', credentials=creds)
         except Exception:
             messages.error(request, "Không thể kết nối với Google Calendar.")
+            return redirect('patient-dashboard')
 
         try:
             patient = models.Patient.objects.get(user=user)
@@ -1234,6 +1236,7 @@ def add_calendar_reminders(request):
 
             if not prescriptions:
                 messages.info(request, "Bạn chưa có đơn thuốc nào.")
+                return redirect('patient-dashboard')
 
             total_events = 0
             tz = get_current_timezone() #lấy timezone hiện tại
@@ -1278,11 +1281,14 @@ def add_calendar_reminders(request):
 
             if total_events > 0:
                 messages.success(request, f"Đã tạo {total_events} lời nhắc dùng thuốc.")
+                return redirect('patient-dashboard')
             else:
                 messages.warning(request, "Không có lời nhắc nào được tạo vì thiếu thông tin đơn thuốc.")
+                return redirect('patient-dashboard')
 
         except Exception as e:
             messages.error(request, "Có lỗi xảy ra khi tạo lời nhắc: " + str(e))
+            return redirect('patient-dashboard')
     return redirect('patient-dashboard')
 
 
