@@ -261,7 +261,7 @@ Truy cập http://localhost:8000
 - **Appointment**: Cuộc hẹn khám
 - **Medicine**: Thuốc
 - **Prescription**: Đơn thuốc
-- **AI_Record**: Kết quả phân tích AI
+
 
 ## 🔌 API Endpoints
 
@@ -291,11 +291,7 @@ POST /api/chat/              # Chatbot AI
 
 ## 🤝 Đóng góp
 
-1. Fork repository
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
+https://docs.google.com/spreadsheets/d/1WHjiuY4fgUMsBKskFfWrQ4nhuX5jWF9kYpFMSTdWC9E/edit?gid=0#gid=0
 
 ## 📞 Liên hệ
 
