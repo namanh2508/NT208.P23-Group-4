@@ -108,7 +108,7 @@ def send_otp_to_email (email):
         defaults= {'otp': otp, 'created_at': timezone.now()})
     
     subject = "Mã xác thực OTP của bạn"
-    from_email = "noreply@gmail.com"
+    from_email = settings.EMAIL_HOST_USER
 
     html_content = render_to_string("otp_email_template.html", {"otp": otp})
     text_content = strip_tags(html_content)
@@ -128,7 +128,7 @@ def send_forgetpass_email(email):
     )
 
     subject = "Mã OTP đặt lại mật khẩu của bạn"
-    from_email = "noreply@gmail.com"
+    from_email = settings.EMAIL_HOST_USER
 
     html_content = render_to_string("forgetpass_email_template.html", {"otp": otp})
     text_content = strip_tags(html_content)
