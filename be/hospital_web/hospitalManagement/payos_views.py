@@ -16,7 +16,7 @@ payos_instance = PayOS(
     api_key=TEMP_PAYOS_API_KEY,
     checksum_key=TEMP_PAYOS_CHECKSUM_KEY
 )
-MY_DOMAIN = 'http://127.0.0.1:8000'
+MY_DOMAIN = 'https://lekhoiblog.id.vn'
 TEMP_PAYOS_RETURN_URL = '/' 
 TEMP_PAYOS_CANCEL_URL = '/'
 

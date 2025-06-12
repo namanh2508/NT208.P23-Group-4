@@ -86,6 +86,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'hospital_web.urls'
 CSRF_TRUSTED_ORIGINS = [
     'https://deep-urchin-plainly.ngrok-free.app',
+    'https://lekhoiblog.id.vn',
     # Thêm các domain khác nếu cần, ví dụ domain production của bạn sau này
     # 'https://your-production-domain.com',
 ]
