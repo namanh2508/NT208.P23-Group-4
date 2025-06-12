@@ -192,9 +192,9 @@ SITE_URL = 'http://www.lekhoiblog.id.vn'  # Used for building redirect_uri
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict' may block OAuth redirects
 SESSION_COOKIE_AGE = 15 * 60
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SECURE = False
+
 #------------------------------------------------
 
 CORS_ALLOW_ALL_ORIGINS = True
