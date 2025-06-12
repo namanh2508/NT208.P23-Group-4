@@ -127,8 +127,8 @@ DATABASES = {
     }
 }
 
-
-
+OPENAI_API_KEY = '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'
+HUGGINGFACE_API_TOKEN = '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'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -189,10 +189,12 @@ SITE_ID = 1  # Required by django-allauth
 SITE_URL = 'https://lekhoiblog.id.vn'  # Used for building redirect_uri
 
 # Set a secure session cookie
-SESSION_COOKIE_SECURE = False  # Set to False only in local development
+
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict' may block OAuth redirects
 SESSION_COOKIE_AGE = 15 * 60
+
+SESSION_COOKIE_SECURE = False
 
 #------------------------------------------------
 
