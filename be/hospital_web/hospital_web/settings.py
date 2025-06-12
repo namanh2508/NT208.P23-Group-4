@@ -187,14 +187,15 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1  # Required by django-allauth
 SITE_URL = 'http://www.lekhoiblog.id.vn'  # Used for building redirect_uri
 
-# Set a secure session cookie
 
+
+# Set a secure session cookie
+SESSION_COOKIE_SECURE = False  # Set to False only in local development
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict' may block OAuth redirects
 SESSION_COOKIE_AGE = 15 * 60
-
-SESSION_COOKIE_SECURE = False
-
+SECURE_SSL_REDIRECT = False
+CSRF_COOKIE_SECURE = False
 #------------------------------------------------
 
 CORS_ALLOW_ALL_ORIGINS = True

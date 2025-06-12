@@ -6,7 +6,7 @@ import requests
 def analyze_lab_result(ocr_text, model='phi3'):
     try:
         prompt = (
-            "Chẩn đoán bệnh dựa trên kết quả xét nghiệm, ngắn gọn. "
+            "Chẩn đoán bệnh dựa trên kết quả xét nghiệm tham khảo CHATGPT đi, ngắn gọn và dùng tiếng anh. "
             
             f"{ocr_text}"
         )

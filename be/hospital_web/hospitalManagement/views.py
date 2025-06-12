@@ -1609,7 +1609,7 @@ def parse_blood_test_results(ocr_text):
         for keyword in TEST_KEYWORDS:
             # Tìm xem dòng có chứa từ khóa không
             if keyword in line:
-                # Tìm giá trị số. Chúng ta sẽ tìm ở dòng hiện tại và 2 dòng tiếp theo
+                
                 # phòng trường hợp OCR tách số ra dòng khác.
                 value_found = None
                 search_area = lines[i:i+3] # Vùng tìm kiếm giá trị
@@ -1623,7 +1623,7 @@ def parse_blood_test_results(ocr_text):
                         potential_value = match.group(0)
                         if potential_value not in results.values():
                            value_found = potential_value
-                           break # Thoát khỏi vòng lặp tìm kiếm khi đã thấy giá trị
+                           break 
                 
                 if value_found:
                     results[keyword] = value_found
@@ -1694,12 +1694,12 @@ def upload_test_result(request):
                     instance.gpt_result = gpt_result
                     instance.save(update_fields=['ocr_text', 'gpt_result'])
 
-                    messages.success(request, "Kết quả xét nghiệm đã được tải lên và xử lý bằng EasyOCR thành công!")
+                    messages.success(request, "Kết quả xét nghiệm đã được tải lên  thành công!")
                     return redirect('patient_view_test_result', id=instance.id)
 
                 except Exception as e:
                     messages.error(request, f"Lỗi khi xử lý ảnh với EasyOCR: {e}")
-                    # Vẫn chuyển hướng để người dùng không bị kẹt
+                    
                     return redirect('patient_view_test_result', id=instance.id)
             else:
                 messages.warning(request, "Thông tin đã được lưu nhưng bạn chưa tải lên file kết quả.")
@@ -1720,7 +1720,7 @@ def view_test_result(request, id):
         messages.error(request, "Không tìm thấy kết quả xét nghiệm.")
         return redirect('patient-dashboard')
 
-    # Chúng ta không cần truyền extracted_text nữa vì nó đã được lưu trong test_result.ocr_text
+    
     return render(request, 'test_result.html', {
     'test_result': test_result,
     'extracted_text': test_result.ocr_text,

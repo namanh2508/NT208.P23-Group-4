@@ -1,0 +1,4422 @@
+
+
+=============================================
+File: be\hospital_web\api\admin.py
+=============================================
+from django.contrib import admin
+
+# Register your models here.
+
+
+=============================================
+File: be\hospital_web\api\apps.py
+=============================================
+from django.apps import AppConfig
+
+
+class ApiConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'api'
+
+
+
+=============================================
+File: be\hospital_web\api\models.py
+=============================================
+from django.db import models
+from django.contrib.auth.models import User
+from django.conf import settings
+
+# class Note(models.Model):
+#     title = models.CharField(max_length=100)
+#     content = models.TextField()
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     def __str__(self):
+#         return self.title
+
+
+=============================================
+File: be\hospital_web\api\serializers.py
+=============================================
+from django.contrib.auth.models import User,Group, Permission
+from rest_framework import serializers
+# from .models import Note
+from hospitalManagement.models import Appointment,Doctor,Patient,CustomUser,Admin
+from datetime import datetime
+from hospitalManagement.models import Service, Appointment, Test
+# from hospitalManagement.models import PatientDischargeDetails
+
+
+# class UserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ["id", "username", "password"]
+#         extra_kwargs = {"password": {"write_only": True}}
+
+#     def create(self, validated_data):
+#         print(validated_data)
+#         user = User.objects.create_user(**validated_data)
+#         return user
+
+# class DoctorSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Doctor
+#         fields='__all__'
+#         depth = 1 
+# class DoctorDetailSerializer(serializers.ModelSerializer):
+#     first_name = serializers.SerializerMethodField()
+#     last_name = serializers.SerializerMethodField()
+#     class Meta:
+#         model = Doctor
+#         fields=['first_name','last_name','mobile','department','profile_pic']
+#         depth = 1
+#     def get_first_name(self, obj):
+#         return obj.user.first_name
+
+#     def get_last_name(self, obj):
+#         return obj.user.last_name
+    
+    
+# class PatientSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Patient
+#         fields='__all__'
+#         depth = 1
+
+# class NoteSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Note
+#         fields = ["id", "title", "content", "created_at", "author"]
+#         extra_kwargs = {"author": {"read_only": True}}
+# class AppointmentSerializer(serializers.ModelSerializer):
+#     doctorMobile = serializers.SerializerMethodField() 
+#     doctorDepartment = serializers.SerializerMethodField()
+#     doctorPicture = serializers.SerializerMethodField()
+#     class Meta:
+#         model= Appointment
+#         fields=["appointmentID","patientName","doctorName","doctorMobile","doctorDepartment", "doctorPicture","appointmentDate"]
+    
+#     def get_doctorMobile(self,obj):
+#         # Truy cập đối tượng Doctor thông qua doctorId
+#          return obj.doctorId.mobile if obj.doctorId else None
+    
+#     def get_doctorDepartment(self,obj):
+#         # Truy cập đối tượng Doctor thông qua doctorId
+#          return obj.doctorId.department if obj.doctorId else None
+     
+#     def get_doctorPicture(self,obj):
+#         # Truy cập đối tượng Doctor thông qua doctorId
+#         return obj.doctorId.profile_pic.url if obj.doctorId.profile_pic else None
+     
+     
+     
+# class PatientDischargeDetailsSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = PatientDischargeDetails
+#         fields = '__all__'
+
+
+
+
+# -------------------------------------------API mới------------------------------------------------------
+
+DEPARTMENT = [
+    ('Cardiology', 'Cardiology'),
+    ('Neurology', 'Neurology'),
+    ('Pediatrics', 'Pediatrics'),
+    ('Orthopedics', 'Orthopedics'),
+    ('Dermatology', 'Dermatology'),
+    ('Radiology', 'Radiology'),
+    ('Psychiatry', 'Psychiatry'),
+    ('General Medicine', 'General Medicine'),
+    ('Surgery', 'Surgery'),
+    ('Obstetrics and Gynecology', 'Obstetrics and Gynecology'),
+    ('Ophthalmology', 'Ophthalmology'),
+    ('ENT', 'ENT'),
+    ('Gastroenterology', 'Gastroenterology'),
+    ('Urology', 'Urology'),
+    ('Oncology', 'Oncology'),
+    ('Endocrinology', 'Endocrinology'),
+]
+
+# API này cho biết user đó thuộc nhóm nào
+# sử dụng cho CustomUsserSerializer
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ('id', 'name')
+
+# API này cho biết user đó có quyền gì
+# sử dụng cho CustomUsserSerializer
+class PermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Permission
+        fields = ('id', 'name', 'codename')
+
+# API cho phép hiện thị thông tin các nhân của user
+# và cho phép tạo/cập nhật user với thông tin cá nhân
+class CustomUserSerializer(serializers.ModelSerializer):
+    
+    groups = GroupSerializer(many=True, read_only=True) 
+    user_permissions = PermissionSerializer(many=True, read_only=True) 
+
+    class Meta:
+        model = CustomUser
+        # Liệt kê các trường sẽ hiển thị/chỉnh sửa qua API
+        fields = (
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'picture', 'phone', 'gender', 'birthday',
+            'multi_factor_enabled', 'ip_address_last_login',
+            'is_active', 'is_staff', 'date_joined',
+            'groups', 'user_permissions'
+            
+        )
+        read_only_fields = ('ip_address_last_login', 'date_joined', 'is_staff') # Các trường chỉ đọc
+
+
+    # API để cập nhật thông tin cá nhân của user
+    
+    # Nếu  muốn cho phép tạo/cập nhật user với password:
+    # Cần thêm 'password' vào fields và extra_kwargs
+    # extra_kwargs = {'password': {'write_only': True, 'style': {'input_type': 'password'}}}
+    # Và override phương thức create/update để hash password
+    # def create(self, validated_data):
+    #     user = CustomUser.objects.create_user(**validated_data) # Dùng create_user để hash password
+    #     return user
+    #
+    # def update(self, instance, validated_data):
+    #     password = validated_data.pop('password', None)
+    #     user = super().update(instance, validated_data)
+    #     if password:
+    #         user.set_password(password)
+    #         user.save()
+    #     return user
+
+# API hiện thị thông tin chi tiết của bác sĩ
+# và cho phép tạo/cập nhật bác sĩ với thông tin user
+class DoctorSerializer(serializers.ModelSerializer):
+    # Hiển thị chi tiết user thay vì chỉ ID
+    user = CustomUserSerializer(read_only=True) # Chỉ đọc thông tin user khi lấy Doctor
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(), source='user', write_only=True
+    ) # Cho phép gán user bằng ID khi tạo/cập nhật Doctor
+    department_display = serializers.CharField(source='get_department', read_only=True) # Hiển thị tên khoa
+
+    class Meta:
+        model = Doctor
+        fields = ('id', 'user', 'user_id', 'department', 'department_display', 'description')
+       
+
+# API hiện thị thông tin chi tiết của admin
+# và cho phép cập nhật Admin với thông tin user
+class AdminSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(), source='user', write_only=True
+    )
+
+    class Meta:
+        model = Admin
+        fields = ('id', 'user', 'user_id')
+
+
+
+# hỗ trợ hiển thị tên đầy đủ thông tin cho bệnh nhân
+# và cho phép tạo/cập nhật bệnh nhân với thông tin user
+class PatientSerializer(serializers.ModelSerializer):
+    # Cho phép user là null nên cần required=False
+    user = CustomUserSerializer(read_only=True, required=False)
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(), source='user', write_only=True, allow_null=True, required=False
+    )
+    user_full_name = serializers.CharField(source='user.get_full_name', read_only=True, allow_null=True) # Hiển thị tên đầy đủ
+
+    class Meta:
+        model = Patient
+        fields = (
+            'id', 'user', 'user_id', 'user_full_name', 'family_phone',
+            'weight', 'height', 'symptom', 'description', 'picture'
+        )    
+
+#API người dùng nhập triệu chứng chuẩn đoán, chatgpt trả lời
+class SymptomSerializer(serializers.Serializer):
+    symptoms = serializers.CharField()
+
+class PatientRegisterSerializer(serializers.ModelSerializer):
+    family_phone = serializers.CharField(required=False, allow_blank=True)
+    weight = serializers.IntegerField(required=False)
+    height = serializers.IntegerField(required=False)
+    description = serializers.CharField(required=False, allow_blank=True)
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    gender = serializers.ChoiceField(choices=CustomUser._meta.get_field('gender').choices, required=False)
+    birthday = serializers.DateField(required=False)
+    picture = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'username', 'password', 'first_name', 'last_name', 'email',
+            'phone', 'gender', 'birthday', 'picture',
+            'family_phone', 'weight', 'height', 'description',
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        patient_data = {
+            'family_phone': validated_data.pop('family_phone', None),
+            'weight': validated_data.pop('weight', None),
+            'height': validated_data.pop('height', None),
+            'description': validated_data.pop('description', None),
+        }
+
+        password = validated_data.pop('password')
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+        user.save()
+
+        patient_group, _ = Group.objects.get_or_create(name="PATIENT")
+        user.groups.add(patient_group)
+
+        Patient.objects.create(user=user, **patient_data)
+
+        return user
+    
+class DoctorSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    department = serializers.SerializerMethodField()
+    picture = serializers.SerializerMethodField()
+    class Meta:
+        model = Doctor
+        fields = ['id', 'full_name', 'department','picture']
+
+    def get_full_name(self, obj):
+        return obj.user.get_full_name()
+
+    def get_department(self, obj):
+        return obj.get_department
+    def get_picture(self, obj):
+        request = self.context.get('request')
+        if obj.user.picture and request:
+            return request.build_absolute_uri(obj.user.picture.url)  
+        return None
+    
+APPOINTMENT_METHOD= [
+    ('online','Tư vấn online'),
+    ('offline','Khám bệnh trực tiếp')
+]
+TYPE_OF_SERVICE = [
+    ('appointment', 'Đăng ký khám bệnh'),
+    ('test', 'Xét nghiệm'),   
+]
+class AppointmentBookingSerializer(serializers.Serializer):
+    appointmentDate = serializers.DateField()
+    appointmentTime = serializers.TimeField()
+    description = serializers.CharField(required=False, allow_blank=True)
+    type = serializers.ChoiceField(choices=TYPE_OF_SERVICE)
+    method = serializers.ChoiceField(choices=APPOINTMENT_METHOD)
+
+    def create(self, validated_data):
+        request = self.context['request']
+        patient = request.user.patient
+        doctor_id = self.context['doctor_id']
+        doctor = Doctor.objects.get(id=doctor_id)
+
+        service = Service.objects.create(
+            patient=patient,
+            doctor=doctor,
+            appointmentDate=validated_data['appointmentDate'],
+            appointmentTime=validated_data['appointmentTime'],
+            description=validated_data.get('description', ''),
+            type=validated_data.get('type', ''),
+            status='pending'
+        )
+
+        if validated_data['type'] == 'appointment':
+            Appointment.objects.create(
+                service=service,
+                method=validated_data['method'],
+                status='pending'
+            )
+        elif validated_data['type'] == 'test':
+            Test.objects.create(
+                service=service,
+                Test_date=validated_data['appointmentDate']  # hoặc timezone.now() nếu không muốn dùng ngày hẹn
+            )
+
+        return service
+    
+class PatientProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+    email = serializers.EmailField(source='user.email')
+    phone = serializers.CharField(source='user.phone', allow_null=True)
+    gender = serializers.CharField(source='user.gender', allow_null=True)
+    birthday = serializers.DateField(source='user.birthday', allow_null=True)
+    picture = serializers.ImageField(source='user.picture', allow_null=True)
+
+    class Meta:
+        model = Patient
+        fields = [
+            'username', 'first_name', 'last_name', 'email',
+            'phone', 'gender', 'birthday', 'picture',
+            'family_phone', 'weight', 'height', 'description'
+        ]
+
+
+=============================================
+File: be\hospital_web\api\tests.py
+=============================================
+from django.test import TestCase
+
+# Create your tests here.
+
+
+
+=============================================
+File: be\hospital_web\api\urls.py
+=============================================
+from django.urls import path
+from . import views
+from .views import GeminiChatView
+
+urlpatterns = [
+   #  path("notes/", views.NoteListCreate.as_view(), name="note-list"),
+   #  path("notes/delete/<int:pk>/", views.NoteDelete.as_view(), name="delete-note"),
+    
+   path('appointment/patient/<int:patient_id>/', views.patient_appointments_view, name='patient_appointments'),
+   # path("diagnose/", views.DiagnoseView.as_view(), name="diagnose"),
+   path("chat/", views.GeminiChatView.as_view(), name='chat'),
+   #  path('createuser/', views.CreateUserView.as_view(), name='create-user'),
+   #  path('doctor/<str:name>/', views.GetDoctorByName.as_view(), name='doctor_by_name'),
+   #  path('doctor/',views.GetAllDoctor.as_view(), name="All-doctor"),
+]
+
+
+=============================================
+File: be\hospital_web\api\views.py
+=============================================
+from django.shortcuts import render,get_object_or_404
+from requests import models
+from django.contrib.auth.models import User
+from rest_framework import generics
+import hospitalManagement.models
+from django.http import HttpResponseForbidden
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.conf import settings
+from .serializers import *
+from .serializers import AppointmentBookingSerializer
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+import google.generativeai as genai
+from django.views.generic import TemplateView
+from hospitalManagement.models import CustomUser,Doctor
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import RetrieveAPIView
+# from django.contrib.auth.models import User
+# from rest_framework import generics
+# from .serializers import UserSerializer, NoteSerializer,PatientDischargeDetailsSerializer,DoctorSerializer,PatientSerializer,DoctorDetailSerializer
+# from .serializers import AppointmentSerializer
+# from rest_framework.permissions import IsAuthenticated, AllowAny
+# from .models import Note
+# from hospitalManagement.models import Appointment,Doctor,Patient
+# from hospitalManagement.models import PatientDischargeDetails
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+
+
+# class NoteListCreate(generics.ListCreateAPIView):
+#     serializer_class = NoteSerializer
+#     permission_classes = [AllowAny]
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         return Note.objects.filter(author=user)
+
+#     def perform_create(self, serializer):
+#         if serializer.is_valid():
+#             serializer.save(author=self.request.user)
+#         else:
+#             print(serializer.errors)
+
+
+# class NoteDelete(generics.DestroyAPIView):
+#     serializer_class = NoteSerializer
+#     permission_classes = [AllowAny]
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         return Note.objects.filter(author=user)
+
+
+# class CreateUserView(generics.CreateAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+#     permission_classes = [AllowAny]
+
+# class GetAllPatientDischargeDetail(generics.ListAPIView):
+#     queryset = PatientDischargeDetails.objects.all() # Lấy tất cả đối tượng Product
+#     serializer_class = PatientDischargeDetailsSerializer
+
+# class GetAllDoctor(generics.ListAPIView):
+#     queryset = Doctor.objects.all()
+#     serializer_class = DoctorSerializer
+#     permission_classes = [AllowAny]
+    
+# class GetAllPatient(generics.ListAPIView):
+#     queryset = Patient.objects.all()
+#     serializer_class = PatientSerializer
+#     permission_classes = [AllowAny]
+    
+# class GetAppointmentByPatientName(generics.ListAPIView):
+#     serializer_class = AppointmentSerializer
+#     permission_classes = [AllowAny]
+
+#     def get_queryset(self):
+#         name = self.kwargs['name']
+#         return Appointment.objects.filter(patientId__user__first_name=name)# Lọc theo tên bệnh nhân trong User model
+
+
+# class GetDoctorByName(generics.ListAPIView):
+#     serializer_class = DoctorDetailSerializer
+#     permission_classes = [AllowAny]
+
+#     def get_queryset(self):
+#         name = self.kwargs['name']
+#         return Doctor.objects.filter(user__first_name=name)  # Lọc theo tên bác sĩ trong User model
+def patient_appointments_view(request,patientID):
+    patient = get_object_or_404(models.Patient, pk=patientID)
+    if not (request.user.is_staff or request.user == patient.user):
+        return HttpResponseForbidden("Bạn không có quyền xem lịch hẹn này.")
+    appointments = models.Appointment.objects.filter(patient=patient).order_by('-appointmentDate')
+    context = {
+        'patient': patient,
+        'appointments': appointments,
+    }
+    return render(request, '' , context) # thêm file.html để hiển thị các lịch hẹn của 1 patient
+
+genai.configure(api_key="AIzaSyDqT2XW78e3x_X4lKgXSgAzJEIdA64LUfE")
+model = genai.GenerativeModel(model_name="gemini-2.0-flash")
+
+class GeminiChatView(APIView):
+    def post(self, request):
+        message = request.data.get("message", "")
+        if not message:
+            return Response({"error": "No message provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Pass message as a list
+            response = model.generate_content([message])
+            text_reply = getattr(response, 'text', 'No response text available')
+
+            return Response({"reply": text_reply})
+        except Exception as e:
+            return Response({"error": "Gemini API error", "details": str(e)}, status=500)
+        
+class CreatePatientUserView(generics.CreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = PatientRegisterSerializer
+    permission_classes = [AllowAny]
+
+class GetAllDoctor(generics.ListAPIView):
+    queryset = Doctor.objects.all()
+    serializer_class = DoctorSerializer
+    permission_classes = [AllowAny]
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+class DoctorDetailView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, doctor_id):
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+        except Doctor.DoesNotExist:
+            return Response({"error": "Doctor not found"}, status=404)
+
+        serializer = DoctorSerializer(doctor, context={"request": request})
+        return Response(serializer.data, status=200)
+
+class BookAppointmentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, doctor_id):
+        try:
+            patient = request.user.patient
+        except:
+            return Response({"error": "Bạn chưa có thông tin hồ sơ bệnh nhân."}, status=400)
+
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+        except Doctor.DoesNotExist:
+            return Response({"error": "Không tìm thấy bác sĩ."}, status=404)
+
+        serializer = AppointmentBookingSerializer(data=request.data, context={'request': request, 'doctor_id': doctor_id})
+        if serializer.is_valid():
+            service = serializer.save()
+            return Response({
+                "message": "Đặt lịch thành công.",
+                "service_id": service.id
+            }, status=201)
+        else:
+            return Response(serializer.errors, status=400)
+
+class PatientProfileAPIView(RetrieveAPIView):
+    serializer_class = PatientProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return Patient.objects.get(user=self.request.user)
+
+
+=============================================
+File: be\hospital_web\api\__init__.py
+=============================================
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\management\commands\fetch_medicines.py
+=============================================
+from django.core.management.base import BaseCommand
+import requests
+from hospitalManagement.models import Medicine
+
+class Command(BaseCommand):
+    help = 'Fetches up to 10 valid medicine entries from OpenFDA API and stores them in the database'
+
+    def handle(self, *args, **kwargs):
+        total_to_save = 10
+        saved_count = 0
+        offset = 0
+        seen_offsets = 0
+        max_attempts = 10  # avoid infinite loop
+
+        self.stdout.write("Fetching valid medicine entries from OpenFDA...")
+
+        while saved_count < total_to_save and seen_offsets < max_attempts:
+            url = f"https://api.fda.gov/drug/label.json?limit=10&skip={offset}"
+            try:
+                response = requests.get(url)
+                response.raise_for_status()
+                data = response.json().get("results", [])
+            except requests.RequestException as e:
+                self.stderr.write(f"API request failed: {e}")
+                return
+
+            if not data:
+                self.stdout.write("No more data received from OpenFDA.")
+                break
+
+            for item in data:
+                generic_name = item.get("openfda", {}).get("generic_name", [None])[0]
+                brand_name = item.get("openfda", {}).get("brand_name", [None])[0]
+                manufacturer = item.get("openfda", {}).get("manufacturer_name", [None])[0]
+
+                # Prefer a clean, purpose-driven field
+                usage = item.get("indications_and_usage", [None])[0]
+                fallback_description = item.get("description", [None])[0]
+                raw_description = usage or fallback_description
+
+                # Skip invalid entries
+                if not generic_name or not brand_name or not manufacturer or not raw_description:
+                    continue
+
+                # Format name and truncate description
+                combined_name = f"{brand_name} ({generic_name})"
+                description_words = raw_description.split()
+                short_description = ' '.join(description_words[:100])
+                if len(description_words) > 100:
+                    short_description += '...'
+
+                try:
+                    medicine, created = Medicine.objects.get_or_create(
+                        name=combined_name,
+                        brand=manufacturer,
+                        defaults={
+                            'description': short_description,
+                            'times_per_day': 0,
+                            'price': 0.00
+                        }
+                    )
+                    if created:
+                        saved_count += 1
+                        self.stdout.write(self.style.SUCCESS(f"[{saved_count}/{total_to_save}] Saved: {medicine.name}"))
+                        if saved_count >= total_to_save:
+                            break
+                except Exception as e:
+                    self.stderr.write(f"Error saving medicine: {e}")
+                    continue
+
+            offset += 10
+            seen_offsets += 1
+
+        self.stdout.write(self.style.SUCCESS(f"Done. {saved_count} medicine entries saved."))
+        if saved_count < total_to_save:
+            self.stdout.write(self.style.WARNING("Could not find enough valid entries."))
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\management\commands\fetch_medicines_AI.py
+=============================================
+from django.core.management.base import BaseCommand
+import requests
+import time
+from hospitalManagement.models import Medicine
+from hospitalManagement.utils.gemini_client import process_medicine_description_with_gemini
+
+class Command(BaseCommand):
+    help = 'Fetches medicine entries from OpenFDA, processes descriptions with Gemini, and saves to DB'
+
+    def handle(self, *args, **kwargs):
+        saved_count = 0
+        gemini_calls = 0
+        offset = 0
+        limit = 100
+        gemini_quota=30;
+        self.stdout.write("Fetching valid medicine entries from OpenFDA...")
+        try:
+            while True:
+                url = f"https://api.fda.gov/drug/label.json?limit={limit}&skip={offset}"
+                try:
+                    response = requests.get(url)
+                    response.raise_for_status()
+                    data = response.json().get("results", [])
+                except requests.RequestException as e:
+                    self.stderr.write(f"API request failed: {e}")
+                    return
+
+                if not data:
+                    self.stdout.write("No more data received from OpenFDA.")
+                    break
+
+                for item in data:
+                    # Extract fields
+                    generic_name = item.get("openfda", {}).get("generic_name", [None])[0]
+                    brand_name = item.get("openfda", {}).get("brand_name", [None])[0]
+                    manufacturer = item.get("openfda", {}).get("manufacturer_name", [None])[0]
+                    usage = item.get("indications_and_usage", [None])[0]
+                    description = item.get("description", [None])[0]
+
+                    if not all([generic_name, brand_name, manufacturer, usage, description]):
+                        continue
+
+                    combined_name = f"{brand_name} ({generic_name})".strip().title()
+                    manufacturer = manufacturer.strip().title()
+
+                    # Skip existing
+                    if Medicine.objects.filter(name=combined_name, brand=manufacturer).exists():
+                        self.stdout.write(f"Skipped existing medicine: {combined_name}")
+                        continue
+
+                    try:
+                        ai_result = process_medicine_description_with_gemini(usage, description)
+                        gemini_calls += 1
+
+                        translated_summary = ai_result.get("translated_summary", "")
+                        times_per_day = ai_result.get("times_per_day", 0)
+                        estimated_price = ai_result.get("estimated_price", 0.0)
+
+                        Medicine.objects.create(
+                            name=combined_name,
+                            brand=manufacturer,
+                            description=translated_summary,
+                            times_per_day=times_per_day,
+                            price=estimated_price
+                        )
+
+                        saved_count += 1
+                        self.stdout.write(self.style.SUCCESS(f"[{saved_count}] Saved: {combined_name}"))
+
+                        # Pause after reaching Gemini quota
+                        if gemini_calls >= gemini_quota:
+                            self.stdout.write("Reached maximum Gemini calls per minute. Waiting 65 seconds to refresh quota...")
+                            time.sleep(65)
+                            gemini_calls = 0
+
+                    except Exception as e:
+                        self.stderr.write(self.style.ERROR(f"Processing failed for '{combined_name}': {e}. Stopping command to preserve quota."))
+                        return
+
+                # Move to next batch
+                offset += limit
+        except KeyboardInterrupt:
+            self.stdout.write(self.style.WARNING("\nCommand interrupted by user."))
+        finally:
+            self.stdout.write(self.style.SUCCESS(f"Total medicine entries saved before exit: {saved_count}"))
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\management\commands\__init__.py
+=============================================
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\management\__init__.py
+=============================================
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\utils\gemini_client.py
+=============================================
+import json
+import google.generativeai as genai
+
+# Configure Gemini SDK once at import
+genai.configure(api_key="AIzaSyCyJiVy8beS2XiDEBz7vosPP5Sh65yp5zU")
+model = genai.GenerativeModel(model_name="gemini-2.0-flash-lite")
+
+def process_medicine_description_with_gemini(usage: str, description: str) -> dict:
+    """
+    Sends a prompt to Gemini to translate, summarize, and estimate dosage and price.
+    Returns a dict with keys: translated_summary (str), times_per_day (int), estimated_price (float)
+    """
+    prompt = (
+        "B?n l� m?t tr? l� y t?. H�y ph�n t�ch m� t? thu?c sau d�y, sau d�:"
+        "1. D?ch n?i dung sang ti?ng Vi?t."
+        "2. T�m t?t m?c d�ch v� c�ch s? d?ng."
+        "3. U?c t�nh s? l?n d�ng thu?c m?i ng�y (times_per_day) d?a tr�n c�ng d?ng v� ch? d?nh thu?c, ngay c? khi th�ng tin kh�ng d?y d?."
+        "4. U?c t�nh gi� thu?c trung b�nh m?i vi�n b?ng Vi?t Nam d?ng (price) d?a tr�n gi� th? tru?ng u?c t�nh."
+        "**QUAN TR?NG**: Lu�n tr? v? K?T QU? DUY NH?T ? d?nh d?ng JSON theo m?u du?i d�y, kh�ng c� b?t k? ch� th�ch n�o kh�c b�n ngo�i JSON:"
+        "Tr? v? k?t qu? ? d?nh d?ng JSON nhu sau:"
+        "{"
+        "\"translated_summary\": \"<m� t? ch?c nang thu?c ng?n g?n, du?i 100 ch? c�i, d� d?ch>\","
+        "\"times_per_day\": <s? nguy�n>,"
+        "\"estimated_price\": <s? th?c>"
+        "}"
+        f"Du?i d�y l� m� t? thu?c:{description}"
+        f"Du?i d�y l� c�ng d?ng v� ch? d?nh thu?c:{usage}"
+    )
+    response = model.generate_content([prompt])
+    text = getattr(response, 'text', None)
+    # Remove markdown code fences if present
+    if text.startswith("```"):
+        # strip fences
+        # remove leading ```json or ```
+        lines = text.splitlines()
+        # filter out lines that are exactly code fence markers
+        cleaned = []
+        for line in lines:
+            if line.strip().startswith('```'):
+                continue
+            cleaned.append(line)
+        text = ''.join(cleaned).strip()
+    if text is None:
+        raise RuntimeError("No text returned from Gemini response")
+
+    try:
+        result = json.loads(text)
+    except json.JSONDecodeError as e:
+        # Raise with full text content for debugging
+        raise ValueError(f"Gemini returned invalid JSON:{text} Error: {e}")
+
+    # Validate keys
+    for key in ("translated_summary", "times_per_day", "estimated_price"):
+        if key not in result:
+            raise KeyError(f"Missing '{key}' in Gemini response")
+
+    return result
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\utils\HuggingFace_test_result__analysis.py
+=============================================
+import requests
+from django.conf import settings
+
+import requests
+
+def analyze_lab_result(ocr_text, model='phi3'):
+    try:
+        prompt = (
+            "Chẩn đoán bệnh dựa trên kết quả xét nghiệm tham khảo CHATGPT đi, ngắn gọn. "
+            
+            f"{ocr_text}"
+        )
+
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": model,
+                "prompt": prompt,
+                "stream": False
+            }
+        )
+        response.raise_for_status()
+        return response.json().get("response", "Không có phản hồi từ mô hình.")
+    
+    except Exception as e:
+        return f"Lỗi khi kết nối Ollama: {e}"
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\utils\__init__.py
+=============================================
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\admin.py
+=============================================
+# from django.contrib import admin
+# from .models import Doctor,Patient,Appointment,PatientDischargeDetails
+# # Register your models here.
+# class DoctorAdmin(admin.ModelAdmin):
+#     pass
+# admin.site.register(Doctor, DoctorAdmin)
+
+# class PatientAdmin(admin.ModelAdmin):
+#     pass
+# admin.site.register(Patient, PatientAdmin)
+
+# class AppointmentAdmin(admin.ModelAdmin):
+#     pass
+# admin.site.register(Appointment, AppointmentAdmin)
+
+# class PatientDischargeDetailsAdmin(admin.ModelAdmin):
+#     pass
+# admin.site.register(PatientDischargeDetails, PatientDischargeDetailsAdmin)
+
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import (
+    CustomUser, Doctor, Patient, Admin as HospitalAdmin,
+    Service, Record, AI_Record, Appointment, Test,
+    Medicine, Prescription, Bill, TestParameter, AI_Metric
+)
+
+# ---------- CustomUser Admin ----------
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    model = CustomUser
+    list_display = ('username', 'email', 'first_name', 'last_name', 'gender', 'birthday', 'status', 'is_staff')
+    list_filter = ('gender', 'status', 'is_staff', 'is_superuser')
+    search_fields = ('username', 'email', 'first_name', 'last_name')
+    fieldsets = UserAdmin.fieldsets + (
+        ("Additional Info", {
+            "fields": ("picture", "phone", "gender", "birthday", "multi_factor_enabled", "ip_address_last_login", "status")
+        }),
+    )
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ("Additional Info", {
+            "fields": ("picture", "phone", "gender", "birthday", "multi_factor_enabled", "ip_address_last_login", "status")
+        }),
+    )
+
+# ---------- Doctor Admin ----------
+@admin.register(Doctor)
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ('user', 'department', 'get_department')
+    list_filter = ('department',)
+    search_fields = ('user__username', 'user__first_name', 'user__last_name')
+
+# ---------- Patient Admin ----------
+@admin.register(Patient)
+class PatientAdmin(admin.ModelAdmin):
+    list_display = ('user', 'family_phone', 'weight', 'height')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name')
+
+# ---------- Admin Admin ----------
+@admin.register(HospitalAdmin)
+class HospitalAdminAdmin(admin.ModelAdmin):
+    list_display = ('user',)
+    search_fields = ('user__username', 'user__first_name', 'user__last_name')
+
+# ---------- Service Admin ----------
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ('id', 'patient', 'doctor', 'appointmentDate', 'appointmentTime', 'status','type')
+    list_filter = ('status','type',)
+    search_fields = ('patient__user__username', 'doctor__user__username','type')
+
+# ---------- Record Admin ----------
+@admin.register(Record)
+class RecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'patient', 'doctor', 'record_date')
+    list_filter = ('record_date',)
+    search_fields = ('patient__user__username', 'doctor__user__username')
+
+# ---------- AI Record Admin ----------
+@admin.register(AI_Record)
+class AIRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'patient', 'created_at', 'record_type')
+    list_filter = ('created_at',)
+    search_fields = ('patient__user__username',)
+# ---------- AI Metric Admin ----------
+@admin.register(AI_Metric)
+class AIMetricAdmin(admin.ModelAdmin):
+    list_display = ('id',  'name', 'value','status')
+    list_filter = ('name','status')
+    search_fields = ('patient__user__username', 'name')
+# ---------- Appointment Admin ----------
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'service', 'method', 'price', 'status')
+    list_filter = ('status', 'method')
+    search_fields = ('service__patient__user__username',)
+
+# ---------- Test Admin ----------
+@admin.register(Test)
+class TestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'service', )
+    search_fields = ('service__patient__user__username',)
+    
+# ---------- Test Parameter Admin ----------
+@admin.register(TestParameter)
+class TestParameterAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'value', 'status', 'unit')
+    list_filter = ('name',)
+    search_fields = ('test__service__patient__user__username', 'name')
+
+# ---------- Medicine Admin ----------
+@admin.register(Medicine)
+class MedicineAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'brand', 'price', 'times_per_day')
+    search_fields = ('name', 'brand')
+
+# ---------- Prescription Admin ----------
+@admin.register(Prescription)
+class PrescriptionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'medicine', 'service', 'amount', 'total_price')
+    search_fields = ('service__patient__user__username', 'medicine__name')
+
+# ---------- Bill Admin ----------
+@admin.register(Bill)
+class BillAdmin(admin.ModelAdmin):
+    list_display = ('id', 'patient', 'release_date', 'pay_date', 'total_price', 'status', 'method')
+    list_filter = ('status', 'method')
+    search_fields = ('patient__user__username',)
+
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\apps.py
+=============================================
+from django.apps import AppConfig
+
+
+class HospitalmanagementConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'hospitalManagement'
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\forms.py
+=============================================
+from datetime import date, timedelta
+from django import forms
+from django.contrib.auth.models import User, Group
+from . import models
+from django.contrib.auth.forms import AuthenticationForm
+from django.core.validators import RegexValidator
+from .models import UploadTestResult
+from .models import APPOINTMENT_METHOD, TYPE_OF_SERVICE, Appointment, Service, Doctor, Patient 
+from django.utils import timezone
+import datetime
+
+#for signup
+class CustomUserSignupForm(forms.ModelForm):
+    password = forms.CharField(
+        label="Mật khẩu",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nhập mật khẩu'}),
+        required=True
+    )
+    confirm_password = forms.CharField(
+        label="Xác nhận mật khẩu",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Xác nhận mật khẩu'}),
+        required=True
+    )
+    gender = forms.ChoiceField(
+        choices=models.GENDER,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-inline'}),
+        label="Giới tính",
+        required=True
+    )
+
+    class Meta:
+        model = models.CustomUser
+        fields = ['username', 'email', 'first_name', 'last_name', 'phone', 'birthday', 'picture']
+        labels = {
+            'username': 'Tên đăng nhập',
+            'email': 'Email',
+            'first_name': 'Tên',
+            'last_name': 'Họ',
+            'phone': 'Số điện thoại',
+            'birthday': 'Ngày sinh',
+            'picture': 'Ảnh đại diện',
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên đăng nhập'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Nhập email'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập tên'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập họ'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại'}),
+            'birthday': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'picture': forms.FileInput(attrs={'class': 'form-control-file'}),
+            # 'gender': forms.RadioSelect(choices=models.GENDER),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("password") != cleaned_data.get("confirm_password"):
+            raise forms.ValidationError("Mật khẩu xác nhận không khớp!")
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone and (not phone.isdigit() or len(phone) not in [10, 11]):
+            raise forms.ValidationError("Số điện thoại phải là 10 hoặc 11 chữ số và chỉ chứa số.")
+        return phone
+    # Check if email already exists
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if models.CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email đã tồn tại. Vui lòng chọn email khác.")
+        return email
+
+    # Check if username already exists
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if models.CustomUser.objects.filter(username=username).exists():
+            raise forms.ValidationError("Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.")
+        return username
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.is_active = True
+        user.set_password(self.cleaned_data["password"])
+        user.gender = self.cleaned_data.get("gender")
+        if commit:
+            user.save()
+        return user
+    
+class AdminSignupForm(CustomUserSignupForm):
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.is_staff = True
+        if commit:
+            user.save ()
+            models.Admin.objects.create(user=user)
+        return user
+class DoctorSignupForm(CustomUserSignupForm):
+    department = forms.ChoiceField(
+        label="Khoa",
+        choices=models.DEPARTMENT,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    description = forms.CharField(
+        label="Mô tả kinh nghiệm",
+        widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Nhập kinh nghiệm làm việc'}),
+        required=False
+    )
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if commit:
+            user.save ()
+            models.Doctor.objects.create(
+                user=user,
+                department=self.cleaned_data["department"],
+                description=self.cleaned_data["description"]
+            )
+        return user
+class PatientSignupForm(CustomUserSignupForm):
+    family_phone = forms.CharField(
+        max_length=11,
+        required=True,
+        label="Số điện thoại người thân",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nhập số điện thoại người thân'})
+    )
+    weight = forms.IntegerField(
+        label="Cân nặng (kg)",
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Nhập cân nặng (kg)'})
+    )
+    height = forms.IntegerField(
+        label="Chiều cao (cm)",
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Nhập chiều cao (cm)'})
+    )
+    def clean_family_phone(self):
+        family_phone = self.cleaned_data.get('family_phone')
+        if family_phone and (not family_phone.isdigit() or len(family_phone) not in [10, 11]):
+            raise forms.ValidationError("Số điện thoại người thân phải là 10 hoặc 11 chữ số.")
+        return family_phone
+    def save(self, commit=True):
+        user = super().save(commit)
+        if commit:
+            models.Patient.objects.create(
+                user=user,
+                family_phone=self.cleaned_data.get('family_phone'),
+                weight=self.cleaned_data.get('weight'),
+                height=self.cleaned_data.get('height')
+            )
+        return user
+
+#login form
+class LoginForm(forms.ModelForm):
+    username = forms.CharField(
+        label="Tên đăng nhập",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Tên đăng nhập'}),
+        required=True
+    )
+    password = forms.CharField(
+        label="Mật khẩu",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nhập mật khẩu'}),
+        required=True
+    )
+#for updating profile only
+class CustomUserUpdateForm(forms.ModelForm):
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone and (not phone.isdigit() or len(phone) not in [10, 11]):
+            raise forms.ValidationError("Số điện thoại phải hợp lệ (10 hoặc 11 chữ số).")
+        return phone
+    class Meta:
+        model = models.CustomUser
+        fields = ['first_name', 'last_name', 'username', 'email', 'birthday',
+                  'gender', 'phone', 'picture', 'multi_factor_enabled']
+        labels = {
+            'first_name': 'Họ',
+            'last_name': 'Tên',
+            'username': 'Tên đăng nhập',
+            'email': 'Email',
+            'birthday': 'Ngày sinh',
+            'gender': 'Giới tính',
+            'phone': 'Số điện thoại',
+            'picture': 'Ảnh đại diện',
+            'multi_factor_enabled': 'Bật xác thực hai bước',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'birthday': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'gender': forms.RadioSelect(choices=models.GENDER),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'picture': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'multi_factor_enabled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+class AdminDoctorForm(forms.ModelForm): # form để admin quản lý thông tin
+    class Meta:
+        model = models.Doctor
+        fields = ['user', 'department', 'description']
+        labels = {
+            'user': 'Bác sĩ (tài khoản)',
+            'department': 'Khoa',
+            'description': 'Mô tả chuyên môn',
+        }
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'department': forms.Select(choices=models.DEPARTMENT, attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+class AdminPatientForm(forms.ModelForm):
+    class Meta:
+        model = models.Patient
+        fields = ['user', 'family_phone', 'weight', 'height', 'description']
+        labels = {
+            'user': 'Người dùng',
+            'family_phone': 'Số điện thoại người thân',
+            'weight': 'Cân nặng (kg)',
+            'height': 'Chiều cao (cm)',
+            'description': 'Mô tả triệu chứng',
+        }
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'family_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+class DoctorUserForm(CustomUserUpdateForm):
+    department = forms.ChoiceField(
+        choices=models.DEPARTMENT,
+        required=False,
+        label='Khoa',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    description = forms.CharField(
+        required=False,
+        label='Mô tả công việc/Kinh nghiệm',
+        widget=forms.Textarea(attrs={'class': 'form-control'})
+    )
+    def __init__(self, *args, **kwargs):
+        # Lấy Doctor từ kwargs
+        doctor = kwargs.pop('doctor', None)
+        super().__init__(*args, **kwargs)
+        # Nếu có trong db, gán dữ liệu cũ
+        if doctor:
+            self.fields['department'].initial = doctor.department
+            self.fields['description'].initial = doctor.description
+        self.doctor_instance = doctor  # lưu lại để dùng khi save()
+    def save(self, commit=True):
+        user = super().save(commit)
+        doctor = self.doctor_instance
+        if doctor:
+            doctor.department = self.cleaned_data.get('department')
+            doctor.description = self.cleaned_data.get('description')
+            if commit:
+                doctor.save()
+        return user
+class PatientUserForm(CustomUserUpdateForm):
+    family_phone = forms.CharField(
+        max_length=11,
+        required=False,
+        label='Số điện thoại người thân',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    weight = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label='Cân nặng (kg)',
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    height = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label='Chiều cao (cm)',
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    def __init__(self, *args, **kwargs):
+        patient = kwargs.pop('patient', None)
+        super().__init__(*args, **kwargs)
+        if patient:
+            self.fields['family_phone'].initial = patient.family_phone
+            self.fields['weight'].initial = patient.weight
+            self.fields['height'].initial = patient.height
+            self.fields['description'].initial = patient.description
+        self.patient_instance = patient
+    def clean_family_phone(self):
+        family_phone = self.cleaned_data.get('family_phone')
+        if family_phone and (not family_phone.isdigit() or len(family_phone) not in [10, 11]):
+            raise forms.ValidationError("Số điện thoại người thân phải hợp lệ (10 hoặc 11 chữ số).")
+        return family_phone
+
+    def save(self, commit=True):
+        user = super().save(commit)
+        patient = self.patient_instance
+        if patient:
+            patient.family_phone = self.cleaned_data.get('family_phone')
+            patient.weight = self.cleaned_data.get('weight')
+            patient.height = self.cleaned_data.get('height')
+            patient.description = self.cleaned_data.get('description')
+            if commit:
+                patient.save()
+        return user
+        
+# class AppointmentForm(forms.ModelForm):
+#     # Lấy các ngày hẹn trong vòng 6 ngày
+#     available_dates = []
+#     today = date.today()
+#     for i in range(6):
+#         available_dates.append(today + timedelta(days=i))
+        
+#     appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn', widget=forms.RadioSelect)
+#     # Lấy các giờ hẹn trong ngày, mỗi 30 phút
+#     available_times = [
+#         '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+#         '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+#     ]
+#     appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn',  widget=forms.RadioSelect)
+
+#     description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
+
+#     class Meta:
+#         model = models.Appointment
+#         fields = ['appointmentDate', 'appointmentTime', 'description']
+    
+    
+
+
+#for patient related form code cũ
+# class PatientUserForm(forms.ModelForm):
+#     class Meta:
+#         model=User
+#         fields = ['first_name', 'last_name', 'username', 'password']
+#         widgets = {
+#         'password': forms.PasswordInput()
+#         }
+# class PatientForm(forms.ModelForm):
+#     class Meta:
+#         model=models.Patient
+#         fields=['mobile','status', 'profile_pic', 'address']
+
+
+
+
+# class PatientAppointmentForm(forms.ModelForm):
+#     doctorId=forms.ModelChoiceField(queryset=models.Doctor.objects.all().filter(status=True),empty_label="Doctor Name and Department", to_field_name="user_id")
+#     class Meta:
+#         model=models.Appointment
+#         fields=['description','status']
+
+
+# #for contact us page
+# class ContactusForm(forms.Form):
+#     Name = forms.CharField(max_length=30)
+#     Email = forms.EmailField()
+#     Message = forms.CharField(max_length=500,widget=forms.Textarea(attrs={'rows': 3, 'cols': 30}))
+
+
+# class AppointmentForm(forms.ModelForm):
+#     # Lấy các ngày hẹn trong vòng 6 ngày
+#     available_dates = []
+#     today = date.today()
+#     for i in range(6):
+#         available_dates.append(today + timedelta(days=i))
+        
+#     appointmentDate = forms.ChoiceField(choices=[(d, d) for d in available_dates], label='Ngày hẹn', widget=forms.RadioSelect)
+#     # Lấy các giờ hẹn trong ngày, mỗi 30 phút
+#     available_times = [
+#         '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+#         '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+#     ]
+#     appointmentTime = forms.ChoiceField(choices=[(t, t) for t in available_times], label='Giờ hẹn',  widget=forms.RadioSelect)
+
+#     description = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'placeholder': 'Mô tả triệu chứng...'}))
+
+#     class Meta:
+#         model = models.Appointment
+#         fields = ['appointmentDate', 'appointmentTime', 'description']
+
+# your_app_name/forms.py
+
+
+
+class AppointmentBookingForm(forms.ModelForm):
+    # Customize the Doctor field to show readable names
+    # Use ModelChoiceField to get a dropdown of doctors
+
+    # Customize appointmentDate field
+    appointmentDate = forms.DateField(
+        label="Appointment Date",
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date',       # Use HTML5 date input
+                'class': 'form-control',
+                'min': timezone.now().strftime('%Y-%m-%d') # Prevent selecting past dates
+            }
+        )
+    )
+
+    # Customize appointmentTime field
+    appointmentTime = forms.TimeField(
+        label="Appointment Time",
+        widget=forms.TimeInput(
+            attrs={
+                'type': 'time',       # Use HTML5 time input
+                'class': 'form-control',
+                'min': '08:00',      # Example: Clinic opens at 8 AM
+                'max': '17:00',      # Example: Clinic closes at 5 PM
+                'step': '1800'       # Example: Allow 30-minute intervals (1800 seconds)
+            }
+        )
+    )
+    
+    
+
+    
+    
+    method = forms.ChoiceField(
+        choices=APPOINTMENT_METHOD,
+        label="Method of Appointment",
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    # Customize description field (optional, for patient's notes)
+    description = forms.CharField(
+        label="Reason for Visit / Symptoms (Optional)",
+        required=False, # Make it optional for the patient during booking
+        widget=forms.Textarea(
+            attrs={
+                'rows': 4,
+                'class': 'form-control',
+                'placeholder': 'Briefly describe your reason for the appointment or any symptoms you are experiencing.'
+            }
+        )
+    )
+
+    class Meta:
+        model = Service
+        # Fields the PATIENT needs to fill out when booking
+        fields = ['appointmentDate', 'appointmentTime','method','type', 'description']
+        # Note: 'patient' will be set automatically in the view based on the logged-in user.
+        # 'status' will be set to 'pending' automatically.
+
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['method'].widget.attrs.update({'class': 'form-control'})
+        # Add styling to other fields if needed
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({'class': 'form-control'})
+
+
+
+    # --- Custom Validation ---
+    def clean_appointmentDate(self):
+        """Ensure appointment date is not in the past."""
+        date = self.cleaned_data.get('appointmentDate')
+        if date and date < timezone.now().date():
+            raise forms.ValidationError("You cannot book an appointment in the past.")
+        # Optional: Add validation for weekends/holidays if needed
+        # if date and date.weekday() >= 5: # 5 = Saturday, 6 = Sunday
+        #     raise forms.ValidationError("Appointments cannot be booked on weekends.")
+        return date
+
+    def clean_appointmentTime(self):
+        """Ensure appointment time is within allowed hours."""
+        time = self.cleaned_data.get('appointmentTime')
+        if time:
+            # Define allowed time range (adjust as needed)
+            min_time = datetime.time(8, 0)  # 8:00 AM
+            max_time = datetime.time(17, 0) # 5:00 PM (exclusive if checking strictly, maybe 16:30 is last slot?)
+
+            if not (min_time <= time < max_time):
+                 raise forms.ValidationError(f"Appointments can only be booked between {min_time.strftime('%I:%M %p')} and {max_time.strftime('%I:%M %p')}.")
+        return time
+
+    def clean(self):
+        """
+        Check for potential conflicts (e.g., doctor already booked at that time).
+        This is a more complex validation requiring database lookups.
+        """
+        cleaned_data = super().clean()
+        doctor = cleaned_data.get('doctor')
+        appointment_date = cleaned_data.get('appointmentDate')
+        appointment_time = cleaned_data.get('appointmentTime')
+
+        # Only proceed if all relevant fields are valid so far
+        if doctor and appointment_date and appointment_time:
+            # Combine date and time for easier comparison if needed, or check separately
+            # Check if another service exists for this doctor at the exact same date and time
+            existing_appointments = Service.objects.filter(
+                doctor=doctor,
+                appointmentDate=appointment_date,
+                appointmentTime=appointment_time,
+                status__in=['pending', 'accepted'] # Check pending and accepted appointments
+            ).exists() # Use exists() for efficiency
+
+            if existing_appointments:
+                raise forms.ValidationError(
+                    f"Dr. {doctor.user.get_full_name()} is already booked at this date and time. Please choose another slot."
+                )
+
+        return cleaned_data
+    
+class PatientProfileForm(forms.ModelForm):
+    class Meta:
+        model = models.Patient
+        fields = ['family_phone', 'weight', 'height', 'description']
+        labels = {
+            'family_phone': 'Số điện thoại người thân',
+            'weight': 'Cân nặng (kg)',
+            'height': 'Chiều cao (cm)',
+            'description': 'Mô tả triệu chứng',
+        }
+        widgets = {
+            'family_phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'height': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+        
+TEST_CHOICES = [
+    ('blood', 'Máu'),
+    ('urine', 'Nước tiểu'),
+    ('cancer', 'Ung thư'),
+    ('other', 'Khác'),
+]
+
+class UploadTestResultForm(forms.ModelForm):
+    # Đổi tên cho khớp với model để dễ quản lý
+    test_type = forms.ChoiceField(
+        choices=TEST_CHOICES,
+        label="Loại xét nghiệm",
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'test-type'})
+    )
+
+    custom_test_name = forms.CharField(
+        required=False,
+        label="Loại xét nghiệm khác",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nhập loại xét nghiệm...',
+            'id': 'custom-test-input'
+        })
+    )
+
+    class Meta:
+        model = UploadTestResult
+        # Đã loại bỏ 'patient'.
+        # Cập nhật tên trường cho khớp với model và form.
+        fields = ['test_type', 'custom_test_name', 'file', 'test_date', 'description', 'test_place']
+        widgets = {
+            'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'test_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'test_place': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        test_type = cleaned_data.get('test_type')
+        custom_test_name = cleaned_data.get('custom_test_name')
+        
+        # Nếu chọn 'Khác' mà không nhập gì thì báo lỗi
+        if test_type == 'other' and not custom_test_name:
+            self.add_error('custom_test_name', "Vui lòng nhập loại xét nghiệm khác khi đã chọn 'Khác'.")
+            
+        # Nếu không chọn 'Khác' mà lại nhập thì xóa dữ liệu đó đi
+        if test_type != 'other':
+            cleaned_data['custom_test_name'] = ''
+            
+        return cleaned_data
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\meeting_views.py
+=============================================
+
+
+from django.conf import settings
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden, Http404
+from django.shortcuts import get_object_or_404, render # Thêm render nếu bạn có doctor_video_room_view
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from datetime import timedelta, datetime, time
+from django.contrib.auth.decorators import login_required,user_passes_test
+# Import các model từ app hospitalManagement (hoặc app chứa model của bạn)
+from hospitalManagement.models import Appointment, Service, Patient, Doctor, CustomUser 
+# Import từ thư viện OpenTok (Vonage)
+
+from hospitalManagement import models
+
+
+def is_doctor(user):
+    return user.groups.filter(name='DOCTOR').exists()
+
+
+def is_patient(user):
+    return user.groups.filter(name='PATIENT').exists()
+
+def lam_tron_gio_ve_30_phut(thoi_gian_obj):
+    # Bây giờ 'datetime' là lớp datetime.datetime, và 'time' là lớp datetime.time
+    if not isinstance(thoi_gian_obj, (datetime, time)): # << ĐÃ SỬA
+        raise TypeError("Đầu vào phải là đối tượng datetime.datetime hoặc datetime.time")
+
+    phut_hien_tai = thoi_gian_obj.minute
+    
+    phut_moi = 0
+    if phut_hien_tai >= 30:
+        phut_moi = 30
+    
+    return thoi_gian_obj.replace(minute=phut_moi, second=0, microsecond=0)
+
+
+def doctor_video_room_view(request, doctor_user_id):
+    user = request.user
+    if is_patient(user):
+        patient_profile_for_check = Patient.objects.get(user=user)
+        target_doctor_user_for_check = models.CustomUser.objects.get(id=doctor_user_id)
+        target_doctor_profile_for_check = get_object_or_404(Doctor, user=target_doctor_user_for_check)
+        current_date = timezone.now().date()
+        utc_now = timezone.now()
+        current_time = timezone.localtime(utc_now)
+        service_now = Service.objects.filter(
+            patient=patient_profile_for_check,
+            doctor=target_doctor_profile_for_check,
+            appointmentDate=current_date,
+            appointmentTime=lam_tron_gio_ve_30_phut(current_time).time()
+        )
+        if (service_now):
+            return render(request, 'meeting.html', {'user': user, 'room_id': doctor_user_id, 'role': 'patient'})
+        else:
+            print("khong co")
+            return HttpResponseForbidden("Bạn chưa đến giờ hẹn hoặc không có quyền vào phòng này.")
+    
+    print("username: ",user.username)
+    if is_doctor(user):
+        return render(request, 'meeting.html', {'user': user, 'room_id': doctor_user_id, 'role': 'doctor'})
+    else:
+        return HttpResponseForbidden("Bạn không có quyền truy cập vào phòng họp này.")
+
+
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\models.py
+=============================================
+
+from django.conf import settings
+from django.utils import timezone 
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User,Permission,Group
+from django.core.validators import FileExtensionValidator
+from decimal import Decimal
+from django.utils import timezone
+import datetime
+DEPARTMENT= [
+    ('bac_si_tim_mach', 'Bác sĩ Tim mạch'),
+    ('bac_si_da_lieu', 'Bác sĩ Da liễu'),
+    ('bac_si_khoa_noi', 'Bác sĩ Nội Tổng quát'),
+    ('bac_si_khoa_ngoai', 'Bác sĩ Ngoại Tổng quát'),
+    ('bac_si_di_ung_mien_dich', 'Bác sĩ Dị ứng/ Miễn dịch'),
+    ('bac_si_gay_me', 'Bác sĩ Gây mê'),
+    ('bac_si_tai_mui_hong', 'Bác sĩ Tai Mũi Họng'),
+    ('bac_si_nhi_khoa', 'Bác sĩ Nhi khoa'),
+    ('bac_si_phu_san', 'Bác sĩ Phụ sản'),
+    ('bac_si_tieu_duong', 'Bác sĩ Tiểu đường'),
+    ('bac_si_tieu_hoa', 'Bác sĩ Tiêu hóa'),
+    ('bac_si_x_quang', 'Bác sĩ X-quang'),
+    ('bac_si_phau_thuat', 'Bác sĩ Phẫu thuật'),
+    ('bac_si_tam_ly', 'Bác sĩ Tâm lý'),
+    ('bac_si_khoa_hoc', 'Bác sĩ Khoa học'),
+    ('bac_si_khoa_khac', 'Bác sĩ Khoa khác')
+]
+GENDER= [
+    ('nam', 'Nam'),
+    ('nu','Nữ')
+]
+STATUS= [
+    ('accepted','Accepted'),
+    ('rejected','Rejected'),
+    ('pending','Pending'),
+    ('finished','Finished')
+]
+APPOINTMENT_METHOD= [
+    ('online','Tư vấn online'),
+    ('offline','Khám bệnh trực tiếp')
+]
+
+TYPE_OF_SERVICE = [
+    ('appointment', 'Đăng ký khám bệnh'),
+    ('test', 'Xét nghiệm'),
+    ('prescription', 'Đặt thuốc'),    
+]
+# ---------- Custom User ----------
+class CustomUser(AbstractUser):
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        related_name='customuser_set',  # Đổi tên để tránh xung đột với auth.User.groups
+        related_query_name='customuser',
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name='user permissions',
+        blank=True,
+        related_name='customuser_permissions',  # Đổi tên để tránh xung đột
+        help_text='Specific permissions for this user.',
+        related_query_name='customuser',
+    )
+    picture = models.ImageField(
+    upload_to='profile_pic/',
+    default='profile_pic/OIP.jfif',  # Relative to MEDIA_ROOT
+    blank=True,
+    null=True
+    )
+    phone = models.CharField(max_length=20, blank=True, null=True) # số điện thoại
+    gender = models.CharField(max_length=10, blank=True, null=True,choices=GENDER) # giới tính
+    birthday = models.DateField(blank=True, null=True) # ngày sinh
+    multi_factor_enabled = models.BooleanField(default=False) # option để bật chức năng 2 factor authentication
+    ip_address_last_login = models.GenericIPAddressField(blank=True, null=True) # lưu địa chỉ ip đăng nhập gần nhất cho chức năng 2FA
+    status = models.BooleanField(default = True) # tài khoản đã được kích hoạt hay chưa
+    USERNAME_FIELD = 'username' 
+    REQUIRED_FIELDS = ['email']  
+    def __str__(self):
+        return self.get_full_name()
+
+# ---------- Doctor ----------
+class Doctor(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    department = models.CharField(max_length=100, blank=True, null=True,choices=DEPARTMENT) # khoa
+    description = models.TextField(blank=True, null=True) # mô tả
+    def get_department(self):
+        return dict(DEPARTMENT).get(self.department, 'Unknown')
+    def __str__(self):
+        return f"Dr. {self.user.get_full_name()}"
+    @property
+    def get_picture(self):
+        return self.user.picture.url if self.user.picture else None
+    
+    @property
+    def get_department(self):
+        return dict(DEPARTMENT).get(self.department, 'Unknown')
+
+# ---------- Admin ----------
+class Admin(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    def __str__(self):
+        return f"Admin {self.user.get_full_name()}"
+
+# ---------- Patient ----------
+class Patient(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    family_phone = models.CharField(max_length=20, blank=True, null=True) # số điện thoại người thân
+    weight = models.PositiveIntegerField(blank=True, null=True) # cân nặng
+    height = models.PositiveIntegerField(blank=True, null=True) # chiều cao
+    description = models.TextField(blank=True, null=True) # mô tả ngoại hình hay gì đó cũng được
+    def __str__(self):
+        return self.user.get_full_name()
+# ---------- Service ----------
+class Service(models.Model): 
+    patient = models.ForeignKey(Patient, on_delete=models.PROTECT, related_name='service') # không cho phép xóa tk doctor hay patient khi service chưa hoàn tất
+    doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT, related_name='service')
+    appointmentDate = models.DateField() # ngày hẹn
+    appointmentTime = models.TimeField() # thời gian hẹn
+    description = models.TextField(blank=True, null=True) # ghi chú của bác sĩ
+    type = models.CharField(max_length=100, blank=True, null=True, choices=TYPE_OF_SERVICE)
+    status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
+    image = models.ImageField(upload_to='service_images/', blank=True, null=True) # ảnh chụp dịch vụ
+    @property
+    def get_type(self):
+        return dict(TYPE_OF_SERVICE).get(self.type, 'Unknown')
+    
+
+    
+
+
+# ---------- Record ----------
+class Record(models.Model):
+    service= models.OneToOneField(Service, on_delete=models.SET_NULL, null=True, blank=True) # 1 bản record sẽ được tạo sau khi khám xong, nếu service bị xóa thì biến này thành null
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='record') # khóa ngoại liên kết với patient
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='record') # khóa ngoại liên kết với doctor
+    symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
+    description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
+    record_date = models.DateField(blank=True, null=True) # ngày khám 
+    def __str__(self):
+        return f"Record for {self.patient} on {self.record_date}" 
+
+# -------------------- AI_Record --------------------
+class AI_Record (models.Model):
+    RECORD_TYPES = (
+        ('lab_report', 'Xét nghiệm'),
+        ('dermatology', 'Da liễu'),
+        ('xray', 'X-quang'),
+    )
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='ai_record') # khóa ngoại liên kết với patient
+    record_type = models.CharField(max_length=50, choices=RECORD_TYPES, default='lab_report')
+    image = models.ImageField(upload_to='ai_inputs/', blank=True, null=True)
+    
+    # Dùng cho chẩn đoán từ ảnh y học
+    diagnosis = models.CharField(max_length=255, blank=True, null=True)
+    confidence = models.FloatField(blank=True, null=True)
+    
+    # thông tin khác
+    symptom = models.TextField(blank=True, null=True) # triệu chứng ghi nhận được
+    description = models.TextField(blank=True, null=True) # mô tả rõ ràng các loại bệnh chứng khám được
+    
+    created_at = models.DateField(default=timezone.now) # ngày tạo bản ghi
+    
+    def __str__(self):
+        return f"{self.record_type} - {self.patient.name} ({self.record_date})"
+    
+    class Meta:
+        verbose_name = "AI Record"
+        verbose_name_plural = "AI Records"
+
+
+# -------------------- AI Metric lưu chỉ số OCR đc từ ảnh xét nghiệm, thông qua AI phân tích --------------------------------------------- 
+class AI_Metric(models.Model):
+    ai_record = models.ForeignKey(AI_Record, on_delete=models.CASCADE, related_name='metrics')
+    name = models.CharField(max_length=100)  # tên chỉ số
+    value = models.FloatField() # giá trị chỉ số
+    unit = models.CharField(max_length=20, blank=True, null=True) # đơn vị chỉ số
+    reference_range = models.CharField(max_length=100, blank=True, null=True) # khoảng tham chiếu (VD: 4.0-6.0)
+    status = models.CharField(max_length=10, blank=True, null=True)  # tình trạng: cao hay thấp hơn bình thường
+
+    def __str__(self):
+        return f"{self.name}: {self.value} {self.unit} ({self.status})"
+    
+    
+# -------------------- Appointment --------------------
+class Appointment(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='appointment')
+    method = models.CharField(max_length=100, blank=True, null=True, choices=APPOINTMENT_METHOD) # khám trực tiếp hoặc tư vấn online
+    price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # giá tiền
+    status=models.CharField(max_length=10, choices=STATUS, default='pending') # trạng thái đặt hẹn
+    orderCode = models.CharField(max_length=100, blank=True, null=True) # mã đơn hàng
+    def __str__(self):
+        return f"Appointment for {self.service.patient.user.get_full_name()} with {self.service.doctor.user.get_full_name()}"
+
+# -------------------- Test --------------------
+class Test(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    Test_date = models.DateField(default=timezone.now) # ngày xét nghiệm
+
+    def __str__(self):
+        return f"Test #{self.id} - {self.service.name}"
+    
+    
+# -------------------- Test Parameter lưu chỉ số, cái này do người dùng nhập hoặc là bác sĩ nhập tay , khác với AI_Metric  --------------------
+class TestParameter(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='parameters')
+    name = models.CharField(max_length=100)
+    value = models.FloatField()
+    unit = models.CharField(max_length=20, blank=True, null=True)
+    reference_range = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=10, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name}: {self.value} {self.unit} ({self.status})"
+    
+#--------------------- Upload Test Result --------------------
+class UploadTestResult(models.Model):
+    TEST_CHOICES = [
+        ('blood', 'Máu'),
+        ('urine', 'Nước tiểu'),
+        ('cancer', 'Ung thư'),
+        ('other', 'Khác'),
+    ]
+
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE, related_name='upload_test_results')
+    test_type = models.CharField(max_length=20, choices=TEST_CHOICES)
+    custom_test_name = models.CharField(max_length=100, blank=True, null=True)
+    gpt_result = models.TextField(null=True, blank=True)
+    file = models.FileField(upload_to='test_results/', blank=True, null=True)
+    test_date = models.DateField()
+    ocr_text = models.TextField(blank=True, null=True)  # Lưu trữ kết quả OCR từ file
+    description = models.TextField(blank=True, null=True)
+    test_place = models.CharField(max_length=100, blank=True, null=True)
+
+    def get_display_test_name(self):
+        return dict(self.TEST_CHOICES).get(self.test_type) if self.test_type != 'other' else self.custom_test_name
+
+    def __str__(self):
+        return f"KQ XN - {self.get_display_test_name()} - {self.patient.user.get_full_name()} ({self.test_date})"
+    
+
+# -------------------- Medicine --------------------
+class Medicine(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True) # tên thuốc
+    brand = models.CharField(max_length=100, blank=True, null=True) # tên công ty sản xuất
+    description= models.TextField(blank=True, null=True) # chức năng  thuốc
+    times_per_day = models.IntegerField(blank=True, null=True) # uống bao nhiêu lần 1 ngày
+    price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # giá tiền 1 viên thuốc
+
+# -------------------- Prescription --------------------
+class Prescription(models.Model):
+    medicine= models.ForeignKey(Medicine, on_delete=models.SET_NULL, blank=True, null=True)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE,related_name='prescriptions')
+    amount = models.PositiveIntegerField(blank=True, null=True) # số lượng viên thuốc
+    total_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # tổng giá tiền
+    def get_total_price(self):
+        if self.medicine and self.amount:
+            return self.medicine.price * self.amount
+        return 0  # or None if you prefer
+    def save(self, *args, **kwargs):
+        self.total_price = self.get_total_price()
+        super().save(*args, **kwargs)
+
+def __str__(self):
+    return f"{self.medicine} for Service #{self.service.id}"
+
+# -------------------- Bill --------------------
+class Bill(models.Model):
+    service= models.OneToOneField(Service,on_delete=models.SET_NULL, blank=True, null=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    release_date = models.DateField(blank=True, null=True) #thời gian xuất đơn
+    release_time = models.TimeField(blank=True, null=True)
+    pay_date = models.DateField(blank=True, null=True) # thời gian thanh toán
+    pay_time = models.TimeField(blank=True, null=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True) # tổng tiền thanh toán từ TẤT CẢ các dịch vụ con
+    status = models.BooleanField(default=False) # Thanh toán rồi hay chưa
+    method = models.CharField(max_length=50,blank=True, null=True) # Phương thức thanh toán
+    def __str__(self):
+        return f"Bill for {self.patient.user.get_full_name()} on {self.release_date}"
+
+
+
+
+    def __str__(self):
+        return f"Message from {self.sender.get_full_name()} at {self.timestamp}"
+#-------------------- Email OTP ------------------
+class EmailOTP (models.Model):
+    email = models.EmailField(unique=True)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.email} - {self.otp}"
+    
+    def is_expired(self):
+        return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
+
+# class Admin (models.Model):
+#     user = models.OneToOneField (User, on_delete=models.CASCADE)
+# <<<<<<< Updated upstream
+#     username= models.CharField(max_length=100)
+#     full_name = models.CharField(max_length=100, default="")
+# =======
+# >>>>>>> Stashed changes
+#     email = models.EmailField(unique=True)
+#     date_of_birth = models.DateField()
+#     mobile = models.CharField (max_length=11)
+#     def __str__(self):
+#         return self.full_name
+# class Doctor(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     username= models.CharField(max_length=100)
+#     full_name = models.CharField(max_length=100)
+#     email = models.EmailField(unique=True)
+#     date_of_birth = models.DateField()
+#     profile_pic = models.ImageField(upload_to='profile_pic/DoctorProfilePic/', null=True, blank=True)
+#     address = models.CharField(max_length=40)
+#     mobile = models.CharField(max_length=20, null=True)
+#     biological_sex = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')])
+#     department = models.CharField(max_length=50, choices=departments, default='bac_si_tim_mach')  # Đổi default
+#     status = models.BooleanField(default=False)
+#     about = models.TextField(max_length=500, null=True, blank=True)
+#     @property
+#     def get_name(self):
+#         return self.user.last_name + " " +  self.user.first_name 
+#     @property
+#     def get_profile_pic(self):
+#         return self.profile_pic.url if self.profile_pic else None
+#     @property
+#     def get_id(self):
+#         return self.user.id
+
+#     def __str__(self):
+#         return "{} ({})".format(self.user.first_name, self.get_department_display()) 
+
+
+
+
+# class Patient(models.Model):
+#     user=models.OneToOneField(User,on_delete=models.CASCADE)
+#     profile_pic = models.ImageField(upload_to='profile_pic/PatientProfilePic/', null=True, blank=True)
+#     address = models.CharField(max_length=40)
+#     mobile = models.CharField(max_length=20,null=False)
+#     admitDate=models.DateField(auto_now=True)
+#     status=models.BooleanField(default=False)
+#     @property
+#     def get_name(self):
+#         return self.user.last_name + " " +  self.user.first_name 
+#     @property
+#     def get_id(self):
+#         return self.user.id
+
+
+# class Appointment(models.Model):
+#     appointmentID=models.AutoField(primary_key=True)
+#     patientId = models.ForeignKey(Patient, on_delete=models.PROTECT, related_name="appointments")  # ForeignKey to Patient
+#     doctorId = models.ForeignKey(Doctor, on_delete=models.PROTECT, related_name="appointments")  # ForeignKey to Doctor
+#     patientName=models.CharField(max_length=40,null=True)
+#     doctorName=models.CharField(max_length=40,null=True)
+#     appointmentDate=models.DateField(null=True, blank=True)
+#     appointmentTime=models.TimeField(null=True, blank=True)
+#     description=models.TextField(max_length=500)
+#     status=models.BooleanField(default=False)
+#     @property
+#     def get_patient_name(self):
+#         return self.patientId.get_name if self.patientId else None
+#     @property
+#     def get_time(self):
+#         return self.appointmentTime.strftime("%H:%M") if self.appointmentTime else None
+#     def get_date(self):
+#         return self.appointmentDate.strftime("%d/%m/%Y") if self.appointmentDate else None
+    
+# class timeSlot(models.Model):
+#     appointmentID=models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name="timeSlots")
+#     timeSlot=models.TimeField(null=True, blank=True)
+#     status=models.BooleanField(default=False)
+#     @property
+#     def get_time_slot(self):
+#         return self.timeSlot.strftime("%H:%M") if self.timeSlot else None
+
+
+
+# class PatientDischargeDetails(models.Model):
+#     patientId=models.PositiveIntegerField(null=True)
+#     patientName=models.CharField(max_length=40)
+#     assignedDoctorName=models.CharField(max_length=40)
+#     address = models.CharField(max_length=40)
+#     mobile = models.CharField(max_length=20,null=True)
+#     symptoms = models.CharField(max_length=100,null=True)
+
+#     admitDate=models.DateField(null=False)
+#     releaseDate=models.DateField(null=False)
+#     daySpent=models.PositiveIntegerField(null=False)
+
+#     roomCharge=models.PositiveIntegerField(null=False)
+#     medicineCost=models.PositiveIntegerField(null=False)
+#     doctorFee=models.PositiveIntegerField(null=False)
+#     OtherCharge=models.PositiveIntegerField(null=False)
+#     total=models.PositiveIntegerField(null=False)
+
+# class Diseases(models.Model):
+#     diseaseID = models.AutoField(primary_key=True)
+#     diseaseName = models.CharField(max_length=255, unique=True)
+#     symptoms = models.TextField() 
+#     treatment = models.TextField()
+
+# class Diagnoses(models.Model):
+#     diagnosisId = models.AutoField(primary_key=True)
+#     patientId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="diagnoses_as_patient")
+#     doctorId = models.ForeignKey(User, on_delete=models.CASCADE, related_name="diagnoses_as_doctor")
+#     note = models.TextField(blank=True, null=True)
+    
+# class DiagnosisDisease(models.Model):
+#     diseaseID = models.ForeignKey(Diseases, on_delete=models.CASCADE)
+#     diagnosisId = models.ForeignKey(Diagnoses, on_delete=models.CASCADE)
+    
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\payos_views.py
+=============================================
+from django.shortcuts import redirect, render, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse, HttpResponseBadRequest
+from payos import PayOS, ItemData, PaymentData
+import time
+import json
+from .models import AI_Metric, Doctor,Patient,Appointment,Service
+from django.contrib.auth.decorators import login_required
+from hospitalManagement import models
+TEMP_PAYOS_CLIENT_ID = "c387c8ae-5f34-4aea-b098-d0f2851064ea"
+TEMP_PAYOS_API_KEY = "211b8012-101c-4dc9-8f87-1392c037f207"
+TEMP_PAYOS_CHECKSUM_KEY = "91161e3e498f0fc8928a80bca4bbe491933816bb2e330e251decb2fd9a7758f9"
+
+payos_instance = PayOS(
+    client_id=TEMP_PAYOS_CLIENT_ID,
+    api_key=TEMP_PAYOS_API_KEY,
+    checksum_key=TEMP_PAYOS_CHECKSUM_KEY
+)
+MY_DOMAIN = 'http://127.0.0.1:8000'
+TEMP_PAYOS_RETURN_URL = '/' 
+TEMP_PAYOS_CANCEL_URL = '/'
+
+@login_required(login_url='patientlogin')
+def create_payment_view(request, id):
+    try:
+        current_user = request.user
+        des = f"BN {current_user.get_full_name()}"
+        if len(des) > 25:
+            des = f"BN {current_user.first_name}"
+        
+        # Lấy thông tin cuộc hẹn hiện tại
+        my_appointment = models.Appointment.objects.get(id=id)
+        
+        # Kiểm tra xem có cuộc hẹn nào đã thanh toán (status='accepted') 
+        # trùng thời gian với cuộc hẹn này không
+        conflicting_appointments = models.Appointment.objects.filter(
+            service__doctor=my_appointment.service.doctor,
+            service__appointmentDate=my_appointment.service.appointmentDate,
+            service__appointmentTime=my_appointment.service.appointmentTime,
+            status='accepted'
+        ).exclude(id=id)
+
+        if conflicting_appointments.exists():
+            return HttpResponse(
+                "Khung giờ này đã có người đặt và thanh toán. Vui lòng chọn khung giờ khác.", 
+                status=400
+            )
+
+        # Tạo mô tả chi tiết hơn cho thanh toán
+        service_info = f"{my_appointment.service.appointmentDate.strftime('%d/%m/%Y')} {my_appointment.service.appointmentTime.strftime('%H:%M')}"
+        
+        item = ItemData(name="Phí khám bệnh", quantity=1, price=2000)
+        payment_data = PaymentData(
+            orderCode=int(time.time()),
+            amount=2000,
+            description=des,
+            items=[item],
+            cancelUrl=MY_DOMAIN + '/cancel', 
+            returnUrl=MY_DOMAIN + "/success", 
+        )
+        
+        # Cập nhật orderCode cho cuộc hẹn
+        models.Appointment.objects.filter(id=id).update(orderCode=payment_data.orderCode)
+        
+        payment_link_response = payos_instance.createPaymentLink(payment_data) 
+        return redirect(payment_link_response.checkoutUrl)
+    except Exception as e:
+        print(f"Lỗi khi tạo link thanh toán PayOS: {e}")
+        return HttpResponse(f"Có lỗi xảy ra trong quá trình tạo thanh toán: {str(e)}", status=500)
+    
+
+def success_view(request):
+    current_user = request.user
+    return render(request, 'success.html', {'current_user': current_user}) 
+
+def cancel_view(request):
+    current_user = request.user 
+    return render(request, 'cancel.html', {'current_user': current_user})
+
+@csrf_exempt
+def receive_webhook_view(request):
+    if request.method == 'POST':
+        try:
+            webhook_data_received = json.loads(request.body)
+            verified_data = payos_instance.verifyPaymentWebhookData(webhook_data_received)
+            print("--- Webhook NHẬN ĐƯỢC tại /receive-webhook/ (Dữ liệu gốc) ---")
+            print(f"Đối tượng verified_data (dạng str): {str(verified_data)}")
+            if str(verified_data):
+                if str(verified_data.desc) == 'success':
+                    order_code = str(verified_data.orderCode)
+                    print(order_code)
+                    if order_code:
+                        models.Appointment.objects.filter(orderCode=order_code).update(status='accepted')
+                
+            return JsonResponse({'message': 'Webhook received by Django. Raw data logged.'}, status=200)
+
+        except json.JSONDecodeError:
+            print("Webhook Lỗi (/receive-webhook/): Dữ liệu JSON không hợp lệ.")
+            return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
+        except Exception as e:
+            # Bắt các lỗi chung khác nếu có trong quá trình cơ bản này
+            print(f"Lỗi không xác định khi xử lý Webhook tại /receive-webhook/: {str(e)}")
+            import traceback
+            traceback.print_exc() # In traceback đầy đủ ra console server
+            return JsonResponse({'error': f'Could not process raw webhook: {str(e)}'}, status=500) 
+    
+    # Nếu request không phải là POST
+    return JsonResponse({'error': 'Invalid request method. Only POST is allowed for this webhook.'}, status=405)
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\tests.py
+=============================================
+from django.test import TestCase
+
+# Create your tests here.
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\views.py
+=============================================
+import io,os
+import re
+from django.contrib.auth import logout
+from django.shortcuts import render,redirect,get_object_or_404
+from django.db.models import Sum
+from django.contrib.auth.models import Group,User
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseForbidden
+from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required,user_passes_test
+from datetime import datetime,timedelta,date,time
+from django.conf import settings
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
+from hospitalManagement import models
+from django.contrib import messages
+from django.urls import reverse,reverse_lazy
+from hospitalManagement import forms
+from django import forms as django_forms
+from .forms import UploadTestResultForm
+from .forms import AdminSignupForm,DoctorSignupForm,PatientSignupForm,LoginForm,DoctorUserForm,PatientUserForm,CustomUserUpdateForm,AdminDoctorForm,AdminPatientForm,DoctorUserForm,PatientUserForm,AppointmentBookingForm
+from django.template.loader import get_template
+from django.utils import timezone
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.dateparse import parse_date
+from django.views.generic import TemplateView
+import random
+import easyocr
+import openai
+from .utils.HuggingFace_test_result__analysis import analyze_lab_result
+from PIL import Image
+from .models import AI_Metric, Doctor, Patient, Appointment, Service
+from google.cloud import vision
+import threading
+#oauth setup
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.models import SocialToken, SocialApp, SocialAccount
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+import secrets
+import requests
+from django.http import JsonResponse
+from xhtml2pdf import pisa
+#googlecalendar
+from datetime import datetime, timedelta, time
+from django.utils.timezone import get_current_timezone, make_aware
+from googleapiclient.discovery import build
+import math
+# Create your views here.
+
+#-----------for checking user is doctor , patient or admin(by sumit)
+def is_admin(user):
+    return user.groups.filter(name='ADMIN').exists()
+def is_doctor(user):
+    return user.groups.filter(name='DOCTOR').exists()
+def is_patient(user):
+    return user.groups.filter(name='PATIENT').exists()
+
+def home_view(request):
+    return render(request,'index.html')
+def aboutus_view(request):
+    return render(request, 'aboutus.html')
+def contactus_view(request):
+    return render(request, 'contactus.html')
+def index_view(request):
+    doctors_list = Doctor.objects.all() 
+    
+    
+    print(f"Số lượng bác sĩ lấy từ DB: {len(doctors_list)}") 
+
+    context = {
+        'doctors': doctors_list, 
+    }
+    
+   
+    return render(request, 'index_home.html', context)
+
+#for showing signup/login button for admin
+def adminclick_view(request):
+    if request.user.is_authenticated and request.user.is_admin():
+        return redirect('admin-dashboard')
+    return render(request,'adminlogin.html')
+
+#for showing signup/login button for doctor
+def doctorclick_view(request):
+    if request.user.is_authenticated and request.user.is_doctor():
+        return redirect('doctor-dashboard')
+    return render(request,'doctorlogin.html')
+
+
+#for showing signup/login button for patient
+def patientclick_view(request):
+    if request.user.is_authenticated and request.user.is_patient():
+        return redirect('patient-dashboard')
+    return render(request,'patient.html')
+
+#----------Signup Views----------------
+
+#----------Gửi email otp----------------
+def generate_otp():
+    return str(random.randint(100000, 999999))
+def send_otp_to_email (email):
+    otp = generate_otp()
+
+    models.EmailOTP.objects.update_or_create(
+        email=email, 
+        defaults= {'otp': otp, 'created_at': timezone.now()})
+    
+    subject = "Mã xác thực OTP của bạn"
+    from_email = "noreply@gmail.com"
+
+    html_content = render_to_string("otp_email_template.html", {"otp": otp})
+    text_content = strip_tags(html_content)
+    try:
+        email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
+    except Exception as e:
+        print(f"Lỗi gửi email: {e}")
+
+def send_forgetpass_email(email):
+    otp = generate_otp()
+
+    models.EmailOTP.objects.update_or_create(
+        email=email, 
+        defaults={'otp': otp, 'created_at': timezone.now()}
+    )
+
+    subject = "Mã OTP đặt lại mật khẩu của bạn"
+    from_email = "noreply@gmail.com"
+
+    html_content = render_to_string("forgetpass_email_template.html", {"otp": otp})
+    text_content = strip_tags(html_content)
+    try:
+        email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
+    except Exception as e:
+        print(f"Lỗi gửi email: {e}")
+
+
+def admin_signup_view(request):
+    if request.method == "POST":
+        form = forms.AdminSignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            admin_group, _ = Group.objects.get_or_create(name='ADMIN')
+            user.groups.add(admin_group)
+            messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
+            return redirect('adminlogin')
+    else:
+        form = forms.AdminSignupForm()
+        print(form.errors)
+    return render(request, 'adminsignup.html', {'form': form})
+
+
+def doctor_signup_view(request):
+    if request.method == "POST":
+        form = forms.DoctorSignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            doctor_group, _ = Group.objects.get_or_create(name='DOCTOR')
+            user.groups.add(doctor_group)
+            messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
+            return redirect('doctorlogin')
+    else:
+        form = forms.DoctorSignupForm()
+    return render(request, 'doctorsignup.html', {'form': form})
+
+BYPASS_OTP = False  # Toggle this to False in production
+def patient_signup_view(request):
+    if request.method == "POST":
+        # OTP submission
+        if 'otp_submit' in request.POST:
+            if BYPASS_OTP:
+                form_data = request.session.get("pending_form_data")
+                if form_data:
+                    return complete_signup_from_session(form_data, request)
+                messages.error(request, "Không tìm thấy dữ liệu đăng ký.")
+                return redirect('patientsignup')
+
+            email = request.session.get("pending_email")
+            input_otp = request.POST.get("otp")
+            try:
+                record = models.EmailOTP.objects.get(email=email)
+                if record.otp == input_otp and not record.is_expired():
+                    form_data = request.session.get("pending_form_data")
+                    return complete_signup_from_session(form_data, request)
+                else:
+                    messages.error(request, "Mã OTP không đúng hoặc đã hết hạn.")
+            except models.EmailOTP.DoesNotExist:
+                messages.error(request, "Không tìm thấy yêu cầu xác thực OTP.")
+            return render(request, 'verify_otp.html')
+
+        # Form submission
+        form = forms.PatientSignupForm(request.POST)
+        if form.is_valid():
+            form_data = {
+                'email': form.cleaned_data['email'],
+                'username': form.cleaned_data['username'],
+                'first_name': form.cleaned_data['first_name'],
+                'last_name': form.cleaned_data['last_name'],
+                'password': form.cleaned_data['password'],
+                'family_phone': form.cleaned_data['family_phone'],
+                'weight': form.cleaned_data['weight'],
+                'height': form.cleaned_data['height'],
+            }
+
+            if BYPASS_OTP:
+                return complete_signup_from_session(form_data, request)
+
+            request.session["pending_email"] = form_data['email']
+            request.session["pending_form_data"] = form_data
+            threading.Thread(target=send_otp_to_email, args=(form_data['email'],)).start()
+            messages.info(request, "Mã OTP đã được gửi tới email. Vui lòng xác thực.")
+            return render(request, 'verify_otp.html')
+
+    else:
+        form = forms.PatientSignupForm()
+    return render(request, 'patientsignup.html', {'form': form})
+
+def complete_signup_from_session(form_data, request):
+    user = models.CustomUser(
+        email=form_data['email'],
+        username=form_data['username'],
+        first_name=form_data['first_name'],
+        last_name=form_data['last_name'],
+        is_active=True
+    )
+    user.set_password(form_data['password'])
+    user.save()
+
+    patient = models.Patient.objects.create(
+        user=user,
+        family_phone=form_data['family_phone'],
+        weight=form_data['weight'],
+        height=form_data['height']
+    )
+    patient_group, _ = Group.objects.get_or_create(name='PATIENT')
+    user.groups.add(patient_group)
+
+    request.session.pop("pending_email", None)
+    request.session.pop("pending_form_data", None)
+    messages.success(request, "Đăng ký thành công! Vui lòng đăng nhập.")
+    return redirect('patientlogin')
+
+# hàm này kích hoạt khi bấm nút login bằng google
+
+def google_login_redirect(request):
+    role = request.GET.get('role', 'PATIENT')
+    try:
+        google_app = SocialApp.objects.get(provider='google')
+        client_id = google_app.client_id
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
+
+    redirect_uri = settings.SITE_URL + "/accounts/google/login/callback/"
+    state_token = secrets.token_urlsafe(16)
+
+    request.session['oauth_state'] = state_token
+    request.session['oauth_role'] = role
+    request.session.modified = True
+
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={client_id}&"
+        f"redirect_uri={redirect_uri}&"
+        "response_type=code&"
+        "scope=openid%20email%20profile%20https://www.googleapis.com/auth/calendar&"
+        f"state={state_token}&"
+        "access_type=offline&"
+        "prompt=consent"
+    )
+    return redirect(google_auth_url)
+
+# xử lý redirect sau khi đăng nhập google thành công
+
+def google_callback(request):
+    #chống csrf attack
+    stored_state = request.session.get('oauth_state')
+    received_state = request.GET.get('state')
+    if not stored_state or stored_state != received_state:
+        return HttpResponse("Invalid state parameter", status=400)
+    request.session.pop('oauth_state', None)
+    #lấy role từ google_login_redirect
+    role = request.session.get('oauth_role', 'PATIENT')
+    #lấy authorization code
+    code = request.GET.get("code")
+    if not code:
+        return HttpResponse("Authorization failed", status=400)
+
+    try:
+        app = SocialApp.objects.get(provider='google')
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
+
+    #dùng authorization code để lấy access token và refresh token
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": app.client_id,
+        "client_secret": app.secret,
+        "redirect_uri": settings.SITE_URL + "/accounts/google/login/callback/",
+        "grant_type": "authorization_code",
+    }
+    response = requests.post(token_url, data=data)
+    token_data = response.json()
+
+    if "access_token" not in token_data:
+        return HttpResponse("Failed to get access token", status=400)
+
+    access_token = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token")
+    #lấy thông tin cá nhân user
+    user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    user_info_response = requests.get(user_info_url, headers=headers)
+
+    if user_info_response.status_code != 200:
+        return HttpResponse("Failed to retrieve user information", status=400)
+
+    user_info = user_info_response.json()
+    email = user_info.get("email")
+    name = user_info.get("name")
+
+    if not email:
+        return HttpResponse("Failed to retrieve user email", status=400)
+
+    user, created = models.CustomUser.objects.get_or_create(
+        username=email, defaults={"email": email, "first_name": name}
+    )
+    #phân role nếu như là tài khoản mới
+    if created:
+        if role == 'ADMIN':
+            models.Admin.objects.get_or_create(user=user)
+            user.is_staff = True
+            user.is_superuser = True
+        elif role == 'PATIENT':
+            models.Patient.objects.get_or_create(user=user)
+        elif role == 'DOCTOR':
+            models.Doctor.objects.get_or_create(user=user)
+
+        group, _ = Group.objects.get_or_create(name=role)
+        user.groups.add(group)
+        user.is_active = True
+        user.save()
+
+    user.backend = 'django.contrib.auth.backends.ModelBackend'
+    login(request, user)
+    #tạo SocialAccount object để lưu access token và refresh token
+    account, _ = SocialAccount.objects.get_or_create(
+        user=user,
+        provider='google',
+        uid=user_info['id']
+    )
+    SocialToken.objects.update_or_create(
+        app=app,
+        account=account,
+        defaults={
+            'token': access_token,
+            'token_secret': refresh_token or '',
+        }
+    )
+    #chuyển về giao diện chính
+    return redirect('afterlogin')
+
+@login_required
+def google_link_redirect(request):
+    try:
+        google_app = SocialApp.objects.get(provider='google')
+        client_id = google_app.client_id
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
+
+    redirect_uri = settings.SITE_URL + "/accounts/google/link/callback/"
+    state_token = secrets.token_urlsafe(16)
+
+    request.session['oauth_state'] = state_token
+    request.session['link_google'] = True
+    request.session.modified = True
+
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={client_id}&"
+        f"redirect_uri={redirect_uri}&"
+        "response_type=code&"
+        "scope=openid%20email%20profile%20https://www.googleapis.com/auth/calendar&"
+        f"state={state_token}&"
+        "access_type=offline&"
+        "prompt=consent"
+    )
+    return redirect(google_auth_url)
+
+@login_required
+def google_link_callback(request):
+    # Check CSRF-like state
+    stored_state = request.session.get('oauth_state')
+    received_state = request.GET.get('state')
+    if not stored_state or stored_state != received_state:
+        return HttpResponse("Invalid state parameter", status=400)
+    request.session.pop('oauth_state', None)
+    request.session.pop('link_google', None)
+
+    code = request.GET.get("code")
+    if not code:
+        return HttpResponse("Authorization failed", status=400)
+
+    try:
+        app = SocialApp.objects.get(provider='google')
+    except SocialApp.DoesNotExist:
+        return HttpResponse("Google OAuth app not configured", status=500)
+
+    # Get token
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": app.client_id,
+        "client_secret": app.secret,
+        "redirect_uri": settings.SITE_URL + "/accounts/google/link/callback/",
+        "grant_type": "authorization_code",
+    }
+    response = requests.post(token_url, data=data)
+    token_data = response.json()
+
+    if "access_token" not in token_data:
+        return HttpResponse("Failed to get access token", status=400)
+
+    access_token = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token")
+
+    # Get Google profile
+    headers = {"Authorization": f"Bearer {access_token}"}
+    user_info = requests.get("https://www.googleapis.com/oauth2/v2/userinfo", headers=headers).json()
+    google_uid = user_info['id']
+
+    #Check 1: This Google account already linked to another user
+    existing = SocialAccount.objects.filter(provider='google', uid=google_uid)
+    if existing:
+        return HttpResponse("This Google account is already linked", status=409)
+
+    #Check 2: Current user already linked to another Google account
+    already_linked = SocialAccount.objects.filter(provider='google', user=request.user).exclude(uid=google_uid).exists()
+    if already_linked:
+        return HttpResponse("You have already linked a different Google account.", status=409)
+
+    #Create or update
+    account= SocialAccount.objects.create(
+        user=request.user,
+        provider='google',
+        uid=google_uid
+    )
+    SocialToken.objects.update_or_create(
+        app=app,
+        account=account,
+        defaults={'token': access_token, 'token_secret': refresh_token or ''},
+    )
+
+    return redirect('afterlogin')
+
+
+#lấy Google API credentials cho người dùng, để có thể xài google calendar mà ko phải đăng nhập lại
+def get_google_credentials(user):
+    try:
+        #lấy SocialAccount, access token và refresh token object
+        account = SocialAccount.objects.get(user=user, provider='google')
+        token = SocialToken.objects.get(account=account, app__provider='google')
+        app = SocialApp.objects.get(provider='google')
+        #tạo object credentials
+        creds = Credentials(
+            token=token.token,
+            refresh_token=token.token_secret,
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=app.client_id,
+            client_secret=app.secret
+        )
+        #làm mới access token nếu access token hết hạn mà vẫn còn refresh token, sau đó update database
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            token.token = creds.token
+            token.save()
+        return creds
+    #trả về none nếu như thiếu 1 trong 3 object
+    except (SocialAccount.DoesNotExist, SocialToken.DoesNotExist, SocialApp.DoesNotExist):
+        return None
+
+#login view
+def admin_login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)  # Django's built-in login form
+        if form.is_valid():
+            user = form.get_user()
+            if is_admin(user):
+                login(request, user)
+                return redirect("admin-dashboard")
+            else:
+                form.add_error(None, "Access Denied: You are not an Admin.")
+        else:
+            form.add_error(None, "Thông tin đăng nhập không chính xác.")
+
+    else:
+        form = AuthenticationForm()
+    return render(request, "adminlogin.html", {"form": form})
+def doctor_login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if is_doctor(user):
+                login(request, user)
+                return redirect("doctor-dashboard")
+            else:
+                form.add_error(None, "Access Denied: You are not a Doctor.")
+
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "doctorlogin.html", {"form": form})
+
+def patient_login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if is_patient(user):
+                login(request, user)
+                return redirect("patient-dashboard")
+            else:
+                form.add_error(None, "Access Denied: You are not a patient.")
+
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "patientlogin.html", {"form": form})
+
+def request_reset_password_view(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        if not models.CustomUser.objects.filter(email=email).exists():
+            messages.error(request, "Email không tồn tại.")
+        else:
+            threading.Thread(target=send_forgetpass_email, args=(email,)).start()
+            request.session["reset_email"] = email
+            messages.success(request, "OTP đã được gửi đến email.")
+            return redirect("verify-otp")
+    return render(request, "forget_password_email.html")
+
+def verify_otp_view (request):
+    if request.method == "POST":
+        otp = request.POST.get("otp")
+        email = request.session.get("reset_email")
+
+        try:
+            otp_obj = models.EmailOTP.objects.get(email=email, otp=otp)
+            if otp_obj.is_expired():
+                messages.error(request, "OTP đã hết hạn.")
+            else:
+                request.session["otp_verified"] = True
+                request.session["otp_code"] = otp
+                return redirect("reset-password")
+        except models.EmailOTP.DoesNotExist:
+            messages.error(request, "OTP không hợp lệ.")
+    return render(request, "verify_otp.html")
+
+def reset_password_view(request):
+    if not request.session.get("otp_verified"):
+        messages.error(request, "Bạn chưa xác thực OTP.")
+        return redirect("request-reset-password")
+    
+    if request.method == "POST":
+        new_password = request.POST.get("new_password")
+        email = request.session.get("reset_email")
+        otp = request.session.get("otp_code")
+
+        try:
+            otp_obj = models.EmailOTP.objects.get(email=email, otp=otp)
+            if otp_obj.is_expired():
+                messages.error(request, "OTP đã hết hạn.")
+            else:
+                user = models.CustomUser.objects.get(email=email)
+                user.set_password(new_password)
+                user.save()
+                otp_obj.delete()
+                if 'reset_email' in request.session:
+                    del request.session['reset_email']
+                if 'otp_verified' in request.session:
+                    del request.session['otp_verified']
+                if 'otp_code' in request.session:
+                    del request.session['otp_code']
+                messages.success(request, "Đặt lại mật khẩu thành công.")
+                return redirect("patientlogin")
+        except (models.EmailOTP.DoesNotExist, models.CustomUser.DoesNotExist):
+            messages.error(request, "Có lỗi xảy ra.")
+    return render(request, "reset_password.html")
+
+#---------AFTER ENTERING CREDENTIALS WE CHECK WHETHER USERNAME AND PASSWORD IS OF ADMIN,DOCTOR OR PATIENT
+def afterlogin_view(request):
+    if is_admin(request.user):
+        return redirect('admin-dashboard')
+    elif is_doctor(request.user):
+        return redirect('doctor-dashboard')
+    elif is_patient(request.user):
+        return redirect('patient-dashboard')
+    else: return redirect('index_home')
+
+#-logout handle
+def logout_view(request):
+    logout(request)
+    return redirect('index_home')
+
+class ChatPageView(TemplateView):
+    template_name = "chatbot.html"
+
+#---------------------------------------------------------------------------------
+#------------------------ ADMIN RELATED VIEWS START ------------------------------
+#---------------------------------------------------------------------------------
+# trang chủ admin
+@login_required(login_url='adminlogin')
+@user_passes_test(is_admin, login_url='adminlogin')
+def admin_dashboard_view(request):
+    #for both table in admin dashboard
+    doctors=models.Doctor.objects.all().order_by('-id')
+    patients=models.Patient.objects.all().order_by('-id')
+    #for three cards
+    doctorcount = models.Doctor.objects.filter(user__status=True).count()
+    pendingdoctorcount=models.Doctor.objects.all().filter(user__status=False).count()
+
+    patientcount=models.Patient.objects.all().filter(user__status=True).count()
+    pendingpatientcount=models.Patient.objects.all().filter(user__status=False).count()
+
+    appointmentcount=models.Service.objects.all().filter(status='accepted').count()
+    pendingappointmentcount=models.Appointment.objects.all().filter(status='accepted').count()
+    mydict={
+    'doctors':doctors,
+    'patients':patients,
+    'doctorcount':doctorcount,
+    'pendingdoctorcount':pendingdoctorcount,
+    'patientcount':patientcount,
+    'pendingpatientcount':pendingpatientcount,
+    'appointmentcount':appointmentcount,
+    'pendingappointmentcount':pendingappointmentcount,
+    }
+    return render(request,'admin_dashboard.html',context=mydict)
+
+#-------click vào mục doctor----------------------------------------------------
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_doctor_view(request):
+    return render(request,'admin_doctor.html')
+
+#xem thẻ doctor
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_view_doctor_view(request):
+    doctors=models.Doctor.objects.all()
+    return render(request,'admin_view_doctor.html',{'doctors':doctors})
+
+#chức năng xóa doctor
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def delete_doctor_from_hospital_view(request,pk):
+    doctor=models.Doctor.objects.get(id=pk)
+    user=models.User.objects.get(id=doctor.user_id)
+    user.delete()
+    doctor.delete()
+    return redirect('admin-view-doctor')
+
+#chức năng chỉnh sửa doctor
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def update_doctor_view(request, pk):
+    doctor = get_object_or_404(models.Doctor, id=pk)
+    user = doctor.user
+
+    if request.method == 'POST':
+        form = forms.DoctorUserForm(request.POST, request.FILES, instance=user, doctor=doctor)
+        
+        print("--- update_doctor_view POST Request Debug ---")
+        print("request.POST data:", request.POST)
+        print("request.FILES data:", request.FILES)
+        
+        if form.is_valid():
+            print("Form is valid.")
+            if 'picture' in form.cleaned_data:
+                 print("Cleaned data for picture:", form.cleaned_data.get('picture'))
+            try:
+                saved_user = form.save() 
+
+                # Nếu bạn muốn cập nhật user.status:
+                # saved_user.status = True 
+                # saved_user.save()
+
+                print(f"Thông tin bác sĩ cho người dùng '{saved_user.username}' đã được cập nhật.")
+                if saved_user.picture:
+                    print(f"Đường dẫn ảnh trong DB: {saved_user.picture.name}")
+                    print(f"URL ảnh: {saved_user.picture.url}")
+
+                return redirect(reverse('admin-view-doctor'))
+            except Exception as e:
+                print(f"Lỗi trong quá trình form.save() hoặc xử lý: {e}")
+        else:
+            print("Form KHÔNG valid.")
+            print("Form errors:", form.errors.as_json(escape_html=True))
+    else: 
+        form = forms.DoctorUserForm(instance=user, doctor=doctor)
+        print("--- update_doctor_view GET Request (Form initialized for display) ---")
+
+    context = {
+        'form': form,
+        'doctor': doctor
+    }
+    return render(request, 'admin_update_doctor.html', context)
+
+#xem thẻ doctor add
+#chức năng thêm doctor
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_add_doctor_view(request):
+   if request.method == 'POST':
+       form = forms.DoctorSignupForm(request.POST, request.FILES)
+       if form.is_valid():
+            user = form.save()
+            doctor_group, _ = Group.objects.get_or_create(name='DOCTOR')
+            user.groups.add(doctor_group)
+
+            return HttpResponseRedirect('admin-view-doctor') 
+   else:
+            form = forms.DoctorSignupForm()
+   return render(request, 'admin_add_doctor.html', {'form': form})
+
+#xem thẻ doctor approve
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_approve_doctor_view(request):
+    #those whose approval are needed
+    doctors=models.Doctor.objects.all().filter(status=False)
+    return render(request,'admin_approve_doctor.html',{'doctors':doctors})
+
+#chức năng approve doctor
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def approve_doctor_view(request,pk):
+    doctor=models.Doctor.objects.get(id=pk)
+    doctor.status=True
+    doctor.save()
+    return redirect(reverse('admin-approve-doctor'))
+#chức năng reject doctor
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def reject_doctor_view(request,pk):
+    doctor=models.Doctor.objects.get(id=pk)
+    user=models.User.objects.get(id=doctor.user_id)
+    user.delete()
+    doctor.delete()
+    return redirect('admin-approve-doctor')
+
+#xem thẻ specialist doctor
+#xem thong tin các khoa của doctor
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_view_doctor_specialisation_view(request):
+    doctors=models.Doctor.objects.all().filter(status=True)
+    return render(request,'admin_view_doctor_specialisation.html',{'doctors':doctors})
+
+# Hàm hiển thị trang quản lý bệnh nhân cho admin
+@login_required(login_url='login')  # Chỉ cho phép người đã đăng nhập
+@user_passes_test(is_admin)  # Kiểm tra xem người dùng có phải admin không
+def admin_patient_view(request):
+    return render(request, 'admin_patient.html')
+
+
+# Hàm hiển thị danh sách bệnh nhân đã được duyệt
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_view_patient_view(request):
+    patients = models.Patient.objects.all().filter(status=True)
+    return render(request, 'admin_view_patient.html', {'patients': patients})
+
+
+# Hàm xóa bệnh nhân khỏi hệ thống
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def delete_patient_from_hospital_view(request, pk):
+    patient = models.Patient.objects.get(id=pk)
+    user = models.User.objects.get(id=patient.user_id)
+    user.delete()
+    patient.delete()
+    return redirect('admin-view-patient')
+
+
+# Hàm cập nhật thông tin bệnh nhân
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def update_patient_view(request, pk):
+    patient = models.Patient.objects.get(id=pk)
+    user = models.User.objects.get(id=patient.user_id)
+
+    userForm = forms.PatientUserForm(instance=user)
+    patientForm = forms.PatientForm(request.FILES, instance=patient)
+    mydict = {'userForm': userForm, 'patientForm': patientForm}
+
+    if request.method == 'POST':
+        userForm = forms.PatientUserForm(request.POST, instance=user)
+        patientForm = forms.PatientForm(request.POST, request.FILES, instance=patient)
+        if userForm.is_valid() and patientForm.is_valid():
+            user = userForm.save()
+            user.set_password(user.password)
+            user.save()
+            patient = patientForm.save(commit=False)
+            patient.status = True
+            patient.assignedDoctorId = request.POST.get('assignedDoctorId')
+            patient.save()
+            return redirect('admin-view-patient')
+
+    return render(request, 'admin_update_patient.html', context=mydict)
+
+
+# Hàm thêm bệnh nhân mới vào hệ thống
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_add_patient_view(request):
+    userForm = forms.PatientUserForm()
+    patientForm = forms.PatientForm()
+    mydict = {'userForm': userForm, 'patientForm': patientForm}
+
+    if request.method == 'POST':
+        userForm = forms.PatientUserForm(request.POST)
+        patientForm = forms.PatientForm(request.POST, request.FILES)
+        if userForm.is_valid() and patientForm.is_valid():
+            user = userForm.save()
+            user.set_password(user.password)
+            user.save()
+
+            patient = patientForm.save(commit=False)
+            patient.user = user
+            patient.status = True
+            patient.assignedDoctorId = request.POST.get('assignedDoctorId')
+            patient.save()
+
+            my_patient_group = Group.objects.get_or_create(name='PATIENT')
+            my_patient_group[0].user_set.add(user)
+
+        return HttpResponseRedirect('admin-view-patient')
+
+    return render(request, 'admin_add_patient.html', context=mydict)
+
+
+# Hàm hiển thị danh sách bệnh nhân cần phê duyệt
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_approve_patient_view(request):
+    patients = models.Patient.objects.all().filter(status=False)
+    return render(request, 'admin_approve_patient.html', {'patients': patients})
+
+
+# Hàm phê duyệt bệnh nhân
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def approve_patient_view(request, pk):
+    patient = models.Patient.objects.get(id=pk)
+    patient.status = True
+    patient.save()
+    return redirect(reverse('admin-approve-patient'))
+
+
+# Hàm từ chối bệnh nhân và xóa họ khỏi hệ thống
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def reject_patient_view(request, pk):
+    patient = models.Patient.objects.get(id=pk)
+    user = models.User.objects.get(id=patient.user_id)
+    user.delete()
+    patient.delete()
+    return redirect('admin-approve-patient')
+
+
+# Hàm hiển thị danh sách bệnh nhân chuẩn bị xuất viện
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_discharge_patient_view(request):
+    patients = models.Patient.objects.all().filter(status=True)
+    return render(request, 'admin_discharge_patient.html', {'patients': patients})
+
+
+# Hàm xử lý xuất viện bệnh nhân và tạo hóa đơn
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def discharge_patient_view(request, pk):
+    patient = models.Patient.objects.get(id=pk)
+    days = (date.today() - patient.admitDate)
+    assignedDoctor = models.User.objects.all().filter(id=patient.assignedDoctorId)
+    d = days.days
+
+    patientDict = {
+        'patientId': pk,
+        'name': patient.get_name,
+        'mobile': patient.mobile,
+        'address': patient.address,
+        'symptoms': patient.symptoms,
+        'admitDate': patient.admitDate,
+        'todayDate': date.today(),
+        'day': d,
+        'assignedDoctorName': assignedDoctor[0].first_name,
+    }
+
+    if request.method == 'POST':
+        feeDict = {
+            'roomCharge': int(request.POST['roomCharge']) * int(d),
+            'doctorFee': request.POST['doctorFee'],
+            'medicineCost': request.POST['medicineCost'],
+            'OtherCharge': request.POST['OtherCharge'],
+            'total': (int(request.POST['roomCharge']) * int(d)) + int(request.POST['doctorFee']) +
+                     int(request.POST['medicineCost']) + int(request.POST['OtherCharge'])
+        }
+        patientDict.update(feeDict)
+
+        # Lưu thông tin xuất viện vào cơ sở dữ liệu
+        pDD = models.PatientDischargeDetails()
+        pDD.patientId = pk
+        pDD.patientName = patient.get_name
+        pDD.assignedDoctorName = assignedDoctor[0].first_name
+        pDD.address = patient.address
+        pDD.mobile = patient.mobile
+        pDD.symptoms = patient.symptoms
+        pDD.admitDate = patient.admitDate
+        pDD.releaseDate = date.today()
+        pDD.daySpent = int(d)
+        pDD.medicineCost = int(request.POST['medicineCost'])
+        pDD.roomCharge = int(request.POST['roomCharge']) * int(d)
+        pDD.doctorFee = int(request.POST['doctorFee'])
+        pDD.OtherCharge = int(request.POST['OtherCharge'])
+        pDD.total = (int(request.POST['roomCharge']) * int(d)) + int(request.POST['doctorFee']) + \
+                    int(request.POST['medicineCost']) + int(request.POST['OtherCharge'])
+        pDD.save()
+        return render(request, 'patient_final_bill.html', context=patientDict)
+
+    return render(request, 'patient_generate_bill.html', context=patientDict)
+
+
+# Hàm chuyển trang HTML thành file PDF
+def render_to_pdf(template_src, context_dict):
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = io.BytesIO()
+    pdf = pisa.pisaDocument(io.BytesIO(html.encode("ISO-8859-1")), result)
+    if not pdf.err:
+        return HttpResponse(result.getvalue(), content_type='application/pdf')
+    return
+
+
+# Hàm tạo file PDF hóa đơn xuất viện
+def download_pdf_view(request, pk):
+    dischargeDetails = models.PatientDischargeDetails.objects.all().filter(patientId=pk).order_by('-id')[:1]
+    dict = {
+        'patientName': dischargeDetails[0].patientName,
+        'assignedDoctorName': dischargeDetails[0].assignedDoctorName,
+        'address': dischargeDetails[0].address,
+        'mobile': dischargeDetails[0].mobile,
+        'symptoms': dischargeDetails[0].symptoms,
+        'admitDate': dischargeDetails[0].admitDate,
+        'releaseDate': dischargeDetails[0].releaseDate,
+        'daySpent': dischargeDetails[0].daySpent,
+        'medicineCost': dischargeDetails[0].medicineCost,
+        'roomCharge': dischargeDetails[0].roomCharge,
+        'doctorFee': dischargeDetails[0].doctorFee,
+        'OtherCharge': dischargeDetails[0].OtherCharge,
+        'total': dischargeDetails[0].total,
+    }
+    return render_to_pdf('download_bill.html', dict)
+
+
+
+@login_required(login_url='adminlogin')
+@user_passes_test(is_admin)
+def admin_appointment_view(request):
+    return render(request,'admin_appointment.html')
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_view_appointment_view(request):
+    appointments=models.Service.objects.all().filter(status='accepted')
+    return render(request,'admin_view_appointment.html',{'appointments':appointments})
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_approve_appointment_view(request):
+    #those whose approval are needed
+    appointments=models.Appointment.objects.all().filter(status='accepted')
+    return render(request,'admin_approve_appointment.html',{'appointments':appointments})
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def admin_add_appointment_view(request):
+    if request.method == 'POST':
+        # Create service first
+        doctor = models.Doctor.objects.get(id=request.POST.get('doctor'))
+        patient = models.Patient.objects.get(id=request.POST.get('patient'))
+        
+        service = models.Service.objects.create(
+            doctor=doctor,
+            patient=patient,
+            appointmentDate=request.POST.get('appointmentDate'),
+            appointmentTime=request.POST.get('appointmentTime'),
+            status='pending'
+        )
+        
+        # Then create appointment linked to the service
+        appointment = models.Appointment.objects.create(
+            service=service,
+            method=request.POST.get('method', 'offline'),
+            price=request.POST.get('price', 0),
+            status=True
+        )
+        
+        return redirect('admin-view-appointment')
+    
+    # GET request - show form
+    doctors = models.Doctor.objects.all()
+    patients = models.Patient.objects.all()
+    return render(request, 'admin_add_appointment.html', {
+        'doctors': doctors,
+        'patients': patients
+    })
+
+
+
+
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def approve_appointment_view(request,id):
+    service=models.Service.objects.get(id=id)
+    service.status='accepted'
+    service.save()
+    return redirect(reverse('admin-view-appointment'))
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_admin)
+def reject_appointment_view(request,id):
+    service=models.Service.objects.get(id=id)
+    service.status='rejected'
+    service.save()
+    return redirect('admin-view-appointment')
+
+
+
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_patient_view(request):
+    mydict={
+    'doctor':models.Doctor.objects.get(user_id=request.user.id), #for profile picture of doctor in sidebar
+    }
+    return render(request,'doctor_patient.html',context=mydict)
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_view_patient_view(request):
+    doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
+    services = models.Service.objects.filter(doctor=doctor)
+    patients = models.Patient.objects.filter(id__in=[service.patient.id for service in services])
+    # Tính toán số lượng cuộc hẹn của mỗi bệnh nhân với bác sĩ
+    for p in patients:
+        p.num_appointments_with_doctor = services.filter(patient=p, status='accepted').count()
+    return render(request,'doctor_view_patient.html',{'patients': patients})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_view_discharge_patient_view(request):
+    dischargedpatients=models.PatientDischargeDetails.objects.all().distinct().filter(assignedDoctorName=request.user.first_name)
+    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
+    return render(request,'doctor_view_discharge_patient.html',{'dischargedpatients':dischargedpatients,'doctor':doctor})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_appointment_view(request):
+    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
+    return render(request,'doctor_appointment.html',{'doctor':doctor})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_view_appointment_view(request):
+    doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
+    appointments=models.Service.objects.all().filter(status="accepted",doctor=doctor).order_by('appointmentDate', 'appointmentTime')
+    return render(request,'doctor_view_appointment.html',{'appointments': appointments, 'doctor': doctor})
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def doctor_delete_appointment_view(request):
+    doctor = request.user.doctor  # Lấy thông tin bác sĩ từ người dùng đã đăng nhập
+    appointments=models.Appointment.objects.all().filter(status=True,service__doctor=doctor)
+    patient_ids = [a.service.patient.id for a in appointments]
+    patients = models.Patient.objects.filter(id__in=patient_ids)
+    print("Appointments:")
+    for a in appointments:
+        print(f"Appointment ID: {a.appointmentID}, Doctor: {a.doctorName}, Patient: {a.patientName}, Date: {a.appointmentDate}")
+    print("Patients:")
+    for p in patients:
+        print(f"Patient ID: {p.id}, Name: {p.user.first_name} {p.user.last_name}, Mobile: {p.mobile}")
+    appointments = zip(appointments, patients)
+    return render(request,'doctor_delete_appointment.html',{'appointments': appointments, 'doctor': doctor})
+
+
+
+@login_required(login_url='login')
+@user_passes_test(is_doctor)
+def delete_appointment_view(request,pk):
+    appointment=models.Appointment.objects.get(id=pk)
+    appointment.delete()
+    doctor=models.Doctor.objects.get(user_id=request.user.id) #for profile picture of doctor in sidebar
+    appointments=models.Appointment.objects.all().filter(status=True,service__doctor__id=request.user.id)
+    patientid=[]
+    for a in appointments:
+        patientid.append(a.service.patient.id)
+    patients=models.Patient.objects.all().filter(status=True,user_id__in=patientid)
+    appointments=zip(appointments,patients)
+    return render(request,'doctor_delete_appointment.html',{'appointments':appointments,'doctor':doctor})
+
+#---------------------------------------------------------------------------------
+#------------------------ DOCTOR RELATED VIEWS START ------------------------------
+#---------------------------------------------------------------------------------
+@login_required(login_url='doctorlogin')
+@user_passes_test(is_doctor, login_url='doctorlogin')
+def doctor_dashboard_view(request):
+    try:
+        doctor = request.user.doctor
+    except models.Doctor.DoesNotExist:
+        return HttpResponse("Tài khoản này chưa có thông tin bác sĩ!", status=404)
+
+    appointments = models.Service.objects.filter(status='accepted', doctor=doctor).order_by('-id')
+    appointmentcount = appointments.count()
+    
+
+    mydict = {
+        'appointmentcount': appointmentcount,
+        'appointments': appointments,
+        'doctor': doctor,
+        
+    }
+
+    return render(request, 'doctor_dashboard.html', context=mydict)
+#--------doctor
+# @login_required(login_url='doctorlogin')
+# @user_passes_test(is_doctor, login_url='doctorlogin')
+# def doctor_dashboard_view(request):
+
+#     try:
+#         doctor = request.user.doctor
+#     except models.Doctor.DoesNotExist:
+#         return HttpResponse("Tài khoản này chưa có thông tin bác sĩ!", status=404)
+#     appointmentcount = models.Appointment.objects.filter(status=True, doctorId=doctor).count()
+#     appointments = models.Appointment.objects.filter(status=True, doctorId=doctor).order_by('-appointmentID')
+#     patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
+#     patient_ids = [a.service.patient.id for a in appointments if a.service and a.service.patient]
+#     patients = models.Patient.objects.filter(id__in=patient_ids)
+#     patientcount = models.Patient.objects.filter(id__in=patient_ids).count()
+#     appointments_and_patients = zip(appointments, patients)
+    
+#     # Gửi dữ liệu vào template
+#     mydict = {
+#         'appointmentcount': appointmentcount,  # Tổng số cuộc hẹn chưa hoàn thành
+#         'patientdischarged': patientdischarged,  # Số lượng bệnh nhân đã xuất viện
+#         'appointments_and_patients': appointments_and_patients,  # Các cuộc hẹn kèm bệnh nhân
+#         'doctor': doctor,  # Thông tin bác sĩ (bao gồm ảnh đại diện)
+#         'patientcount': patientcount,  # Tổng số bệnh nhân đã khám  
+#     }
+    
+#     return render(request, 'doctor_dashboard.html', context=mydict)
+#---------------------------------------------------------------------------------
+#------------------------ PATIENT RELATED VIEWS START ------------------------------
+#---------------------------------------------------------------------------------
+@login_required(login_url='patientlogin')
+@user_passes_test(is_patient, login_url='patientlogin')
+def patient_dashboard_view(request):
+        doctors = models.Doctor.objects.all() 
+        return render(request, 'patient_dashboard.html', {'doctors': doctors})
+#view của UserManagement
+# def index_view(request):
+#     if request.user.is_authenticated:
+#         return redirect('afterlogin')
+#     doctors = Doctor.objects.all()
+#     return render(request, 'index_home.html', {'doctors': doctors})
+def medicine_list_view(request):
+    user = request.user
+    if is_doctor(user):
+        # Doctor: see all medicines in the system
+        medicines = models.Medicine.objects.all()
+    elif is_patient(user):
+        # Patient: see only medicines from their prescriptions
+        prescriptions = models.Prescription.objects.filter(service__patient__user=user).select_related('medicine')
+        medicines = [p.medicine for p in prescriptions if p.medicine]
+    else:
+        return HttpResponseForbidden("Bạn không có quyền truy cập trang này.")
+
+    return render(request, 'medicine_list.html', {'medicines': medicines})
+def all_doctors_view(request):
+    doctors = models.Doctor.objects.all()  # Lấy tất cả bác sĩ từ database
+    return render(request, 'all_doctors.html', {'doctors': doctors})
+
+def add_calendar_reminders(request):
+    if request.method == 'POST':
+        user = request.user
+        creds = get_google_credentials(user)
+
+        if creds is None:
+            messages.error(request, "Không tìm thấy quyền Google để thêm lời nhắc.")
+            return redirect('patient-dashboard')
+
+        try:
+            service = build('calendar', 'v3', credentials=creds)
+        except Exception:
+            messages.error(request, "Không thể kết nối với Google Calendar.")
+            return redirect('patient-dashboard')
+
+        try:
+            patient = models.Patient.objects.get(user=user)
+            prescriptions = models.Prescription.objects.filter(service__patient=patient)
+
+            if not prescriptions:
+                messages.info(request, "Bạn chưa có đơn thuốc nào.")
+                return redirect('patient-dashboard')
+
+            total_events = 0
+            tz = get_current_timezone() #lấy timezone hiện tại
+            today = datetime.now(tz).date() #lấy ngày hôm nay
+            TIME_SLOTS = [8, 12, 16, 20]# Khung giờ chia thuốc (24h format)
+
+            for prescription in prescriptions: #mỗi loop là 1 object prescription liên kết khóa ngoại với patient 
+                med = prescription.medicine
+                if not med or not med.times_per_day or not prescription.amount:
+                    continue
+
+                total_pills = prescription.amount #tổng số viên thuốc
+                daily_times = med.times_per_day #số lần uống thuốc mỗi ngày
+                days_needed = math.ceil(total_pills / daily_times) #số ngày uống thuốc
+
+                for day_offset in range(days_needed): # chạy từ 0->day_needed-1, loop theo từng ngày
+                    reminder_count = (
+                        daily_times if (day_offset < days_needed - 1) #lấy lần uống thuốc trong ngày để chia theo khung giờ
+                        else total_pills % daily_times or daily_times #ngày cuối cùng lấy số dư của tổng số thuốc / số thuốc mỗi ngày hoặc số thuốc mỗi ngày nếu chia hết)
+                    )
+
+                    for dose_index in range(reminder_count): # chạy từ 0->reminder_count-1, loop theo từng khung giờ
+                        slot_hour = TIME_SLOTS[dose_index % len(TIME_SLOTS)] #xếp từng viên thuốc vào 1 khung giờ, wrap around nếu như dose_index lớn hơn index lớn nhất của time slot
+                        event_date = today + timedelta(days=day_offset) #lấy ngày 
+                        event_datetime = make_aware(datetime.combine(event_date, time(hour=slot_hour)), tz) #tạo object datetime hoàn chỉnh, kèm theo timezone chính xác
+                        #tạo event
+                        event = {
+                            'summary': f'Dùng thuốc: {med.name}',
+                            'description': med.description or '',
+                            'start': {
+                                'dateTime': event_datetime.isoformat(),
+                                'timeZone': 'Asia/Ho_Chi_Minh',
+                            },
+                            'end': {
+                                'dateTime': (event_datetime + timedelta(minutes=30)).isoformat(),
+                                'timeZone': 'Asia/Ho_Chi_Minh',
+                            },
+                        }
+                        #add event vào calendar
+                        service.events().insert(calendarId='primary', body=event).execute()
+                        total_events += 1
+
+            if total_events > 0:
+                messages.success(request, f"Đã tạo {total_events} lời nhắc dùng thuốc.")
+                return redirect('patient-dashboard')
+            else:
+                messages.warning(request, "Không có lời nhắc nào được tạo vì thiếu thông tin đơn thuốc.")
+                return redirect('patient-dashboard')
+
+        except Exception as e:
+            messages.error(request, "Có lỗi xảy ra khi tạo lời nhắc: " + str(e))
+            return redirect('patient-dashboard')
+    return redirect('patient-dashboard')
+
+
+
+# def patient_signup_view(request):
+#     userForm=forms.PatientUserForm()
+#     patientForm=forms.PatientForm()
+#     mydict={'userForm':userForm,'patientForm':patientForm}
+#     if request.method=='POST':
+#         userForm=forms.PatientUserForm(request.POST)
+#         patientForm=forms.PatientForm(request.POST,request.FILES)
+#         if userForm.is_valid() and patientForm.is_valid():
+#             user=userForm.save()
+#             user.set_password(user.password)
+#             user.save()
+#             patient=patientForm.save(commit=False)
+#             patient.user=user
+#             patient=patient.save()
+#             my_patient_group = Group.objects.get_or_create(name='PATIENT')
+#             my_patient_group[0].user_set.add(user)
+#         return redirect('patientlogin')
+#     return render(request,'patientsignup.html',context=mydict)
+
+# def patientlogin_view(request):
+#     if request.method == "POST":
+#         form = AuthenticationForm(request, data=request.POST)  # Django�s built-in login form
+#         if form.is_valid():
+#             user = form.get_user()
+#             if user.groups.filter(name="PATIENT").exists():
+#                 login(request, user)
+#                 return redirect("patient-dashboard")
+#             else:
+#                 form.add_error(None, "Không tìm thấy tài khoản của bạn")
+
+#     else:
+#         form = AuthenticationForm()
+
+#     return render(request, "patientlogin.html", {"form": form})
+
+# def logout_view(request):
+#     logout(request)
+#     return redirect('index_home')
+
+# def is_patient(user):
+#     return user.groups.filter(name='PATIENT').exists()
+
+
+# @login_required(login_url='/IV-Medical/patientsignup')
+# def appointment_view(request, doctor_id):
+#     # Lấy thông tin bác sĩ từ doctor_id
+#     doctor = Doctor.objects.get(id=doctor_id)
+#     patient = request.user.patient
+#     if request.method == "POST":
+#         form = forms.AppointmentForm(request.POST)
+#         if form.is_valid():
+#             appointment = form.save(commit=False)
+#             appointment.doctorId = doctor  # Gán bác sĩ từ URL
+#             appointment.patientId = patient   # Gán bệnh nhân từ người dùng đã đăng nhập
+#             appointment.patientName = patient.get_name  # Lấy tên bệnh nhân
+#             appointment.doctorName = doctor.get_name  # Lấy tên bác sĩ
+#             appointment.status = False  # Chưa xác nhận
+#             appointment.save()
+#             return redirect('index_home')  # Sau khi lưu, chuyển đến trang thành công
+
+#     else:
+#         form = forms.AppointmentForm()
+
+#     return render(request, 'appointment_form.html', {
+#         'form': form,
+#         'doctor': doctor,
+#         'doctor_id': doctor.id
+#     })
+    
+# class GetAllPatientDischargeDetail(generics.ListAPIView):
+#     queryset = PatientDischargeDetails.objects.all() # Lấy tất cả đối tượng Product
+#     serializer_class = PatientDischargeDetailsSerializer
+
+# class GetAllDoctor(generics.ListAPIView):
+#     queryset = Doctor.objects.all()
+#     serializer_class = DoctorSerializer
+#     permission_classes = [AllowAny]
+    
+# class GetAllPatient(generics.ListAPIView):
+#     queryset = Patient.objects.all()
+#     serializer_class = PatientSerializer
+#     permission_classes = [AllowAny]
+    
+    
+# # trả ra json
+# class GetAppointmentByPatientName(generics.ListAPIView):
+#     serializer_class = AppointmentSerializer
+#     permission_classes = [AllowAny]
+
+#     def get_queryset(self):
+#         name = self.kwargs['name']
+#         return Appointment.objects.filter(patientId__user__first_name=name)  
+    
+# # trả ra  html
+@login_required(login_url='patientlogin')
+def get_appointment_by_patient_name(request, user_id):
+    patient = get_object_or_404(models.Patient, user_id=user_id)
+   
+    services = models.Service.objects.filter(patient =patient)
+    appointment = models.Appointment.objects.filter(service__in=services)
+    return render(request, 'patient_view_appointment.html', {'appointment': appointment} )
+
+# @login_required(login_url='patientlogin')
+# def patient_view_profile(request):
+#     patient = request.user.patient
+#     return render(request, 'patient_profile.html', {'patient': patient})
+
+@login_required(login_url='login')
+def patient_profile_view(request):
+    patient = Patient.objects.get(user=request.user)
+    user = request.user
+    context = {
+        'patient': patient,
+        'user': user,
+        'patient_name': f"{user.first_name} {user.last_name}",
+        'patient_profile': {
+            'dob': user.birthday,
+            'gender': user.gender,
+            'phone': user.phone,
+            'email': user.email,
+            'address': patient.address if hasattr(patient, 'address') else None,
+            # Thêm các trường thông tin khác nếu có
+        }
+    }
+    return render(request, 'patient_profile.html', context)
+
+
+@login_required (login_url='patientlogin')
+@user_passes_test(is_patient)
+def book_appointment(request, id): # id ở đây là user_id của Doctor
+    try:
+        patient = request.user.patient
+    except Patient.DoesNotExist:
+        messages.error(request, "Không tìm thấy thông tin bệnh nhân của bạn. Vui lòng cập nhật hồ sơ.")
+        return redirect('some_profile_update_url_name') # THAY BẰNG URL NAME ĐÚNG
+
+    user_doctor = models.CustomUser.objects.get(id=id)
+    selected_doctor_profile = get_object_or_404(Doctor, user=user_doctor)
+    
+    print(f"Đặt lịch với bác sĩ: {selected_doctor_profile.user.get_full_name()}")
+
+    if request.method == 'POST':
+        form = forms.AppointmentBookingForm(request.POST)
+        if form.is_valid():
+            print("Form hợp lệ (is_valid = True)")
+            service = form.save(commit=False)
+            service.patient = patient
+            # Lấy doctor từ cleaned_data (nếu hidden field gửi đi và form của bạn xử lý đúng)
+            # Hoặc an toàn hơn là gán lại từ selected_doctor_profile
+            service.doctor = selected_doctor_profile 
+            service.status = 'pending'
+            service.save()
+            
+            Appointment.objects.create(
+                service=service,
+                method=form.cleaned_data['method'],
+                status='pending'
+            )
+            messages.success(request, f"Cuộc hẹn với BS. {service.doctor.user.get_full_name()} vào ngày {service.appointmentDate.strftime('%d-%m-%Y')} lúc {service.appointmentTime.strftime('%H:%M')} đã được yêu cầu.")
+            return redirect('patient-view-appointments', user_id=request.user.id)  # Sửa id thành user_id
+        else:
+            messages.error(request, "Vui lòng sửa các lỗi được chỉ ra trong form.")
+            print("Form KHÔNG hợp lệ (is_valid = False)")
+            print(f"Lỗi của form: {form.errors.as_json()}")
+            # Khi form không hợp lệ, cần render lại với form lỗi và context
+            # và đảm bảo trường doctor (nếu có trong form) vẫn là hidden và có giá trị đúng
+            if 'doctor' in form.fields:
+                 form.fields['doctor'].initial = selected_doctor_profile # Giá trị ban đầu
+                 form.fields['doctor'].widget = django_forms.HiddenInput() # Đặt làm trường ẩn
+    else: # GET request
+        # Khởi tạo form với giá trị ban đầu cho doctor
+        form = forms.AppointmentBookingForm(initial={'doctor': selected_doctor_profile})
+        # Chuyển widget của trường doctor thành HiddenInput
+        if 'doctor' in form.fields:
+            form.fields['doctor'].widget = django_forms.HiddenInput()
+
+    page_title = f"Đặt lịch khám với bác sĩ {selected_doctor_profile.user.get_full_name()}"
+    service = models.Service.objects.filter(doctor=selected_doctor_profile) 
+    context = {
+        'selected_doctor_profile': selected_doctor_profile, 
+        'form': form,
+        'page_title': page_title,
+        'service': service
+    }
+    return render(request, 'patient_book_appointment.html', context)
+
+def check_service_by_date(request, date):
+    services = Service.objects.filter(appointmentDate=date)
+    data = [{'id': s.id, 'name': s.name} for s in services]
+    return JsonResponse({'services': data})
+
+
+def GetPatient(request,user_id):
+    patient = models.Patient.objects.get(user_id=user_id)
+    if not patient:
+        return HttpResponse("Patient not found", status=404)
+    googlelinked = request.user.socialaccount_set.filter(provider='google').exists()
+    return render(request, 'patient_profile.html', {
+        'patient': patient,
+        'googlelinked': googlelinked
+    })
+def Get_Doctor_Detail(request, doctor_id):
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    return render(request, 'doctor_detail.html', {'doctor': doctor})
+
+@login_required(login_url='patientlogin')
+def cancel_appointment_view(request, appointment_id):
+    try:
+        appointment = models.Appointment.objects.get(id=appointment_id)
+        
+        # Kiểm tra xem người dùng hiện tại có phải là chủ của cuộc hẹn
+        if appointment.service.patient.user != request.user:
+            messages.error(request, "Bạn không có quyền hủy cuộc hẹn này.")
+            return redirect('patient-view-appointments', user_id=request.user.id)
+            
+        # Xóa cuộc hẹn
+        appointment.delete()
+        
+        messages.success(request, "Cuộc hẹn đã được hủy thành công.")
+        return redirect('patient-view-appointments', user_id=request.user.id)
+        
+    except models.Appointment.DoesNotExist:
+        messages.error(request, "Không tìm thấy cuộc hẹn.")
+        return redirect('patient-view-appointments', user_id=request.user.id)
+    
+import logging
+from django.views.decorators.csrf import csrf_exempt
+
+logger = logging.getLogger(__name__)
+
+def extract_text_from_image(image_path):
+    # Placeholder implementation
+    logger.warning("extract_text_from_image function is not implemented.")
+    return ""
+
+def analyze_test_result(text):
+    # Placeholder implementation
+    logger.warning("analyze_test_result function is not implemented.")
+    return []
+
+def call_dermatology_ai_api(image_path):
+    # Placeholder implementation
+    logger.warning("call_dermatology_ai_api function is not implemented.")
+    return {"diagnosis": None, "confidence": None}
+
+# @csrf_exempt
+# def upload_image_view(request):
+#     if request.method == 'POST':
+#         form = UploadForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             try:
+#                 ai_record = form.save(commit=False)
+                
+#                 # Tự động xác định loại ảnh
+#                 auto_type, confidence = detect_record_type_by_cnn(request.FILES['image'])
+#                 ai_record.record_type = auto_type
+#                 ai_record.save()
+
+#                 if ai_record.record_type == 'lab_report':
+#                     text = extract_text_from_image(ai_record.image.path)
+#                     metrics = analyze_test_result(text)
+#                     for m in metrics:
+#                         AI_Metric.objects.create(
+#                             ai_record=ai_record,
+#                             name=m['name'],
+#                             value=m['value'],
+#                             unit=m['unit'],
+#                             status=m['status'],
+#                             reference_range=m['range']
+#                         )
+#                 else:  # dermatology or xray
+#                     result = call_dermatology_ai_api(ai_record.image.path)
+#                     ai_record.diagnosis = result.get('diagnosis')
+#                     ai_record.confidence = result.get('confidence')
+#                     ai_record.save()
+
+#                 return redirect('ai_upload_success')
+#             except Exception as e:
+#                 logger.error(f"Error processing uploaded image: {e}")
+#                 messages.error(request, "There was an error processing the image. Please try again.")
+#         else:
+#             messages.error(request, "Invalid form submission. Please check the input.")
+#     else:
+#         form = UploadForm()
+#     return render(request, 'ai_upload.html', {'form': form})
+
+
+# def predict_view(request):
+#     if request.method == 'POST' and 'image' in request.FILES:
+#         image_file = request.FILES['image']
+#         result = detect_record_type_by_cnn(image_file)
+#         return JsonResponse({'result': result})
+#     return JsonResponse({'error': 'No image uploaded'}, status=400)
+
+def parse_blood_test_results(ocr_text):
+    """
+    Phân tích văn bản OCR thô từ kết quả xét nghiệm huyết học
+    để trích xuất các cặp (chỉ số, giá trị).
+    """
+    # Danh sách các từ khóa xét nghiệm chúng ta quan tâm
+    TEST_KEYWORDS = [
+        'WBC', 'NEU', 'LYM', 'MONO', 'BASO', 'EOS',
+        'RBC', 'HGB', 'HCT', 'MCV', 'MCH', 'MCHC',
+        'RDW', 'PLT', 'MPV'
+    ]
+    
+    results = {}
+    lines = ocr_text.split('\n')
+
+    for i, line in enumerate(lines):
+        for keyword in TEST_KEYWORDS:
+            # Tìm xem dòng có chứa từ khóa không
+            if keyword in line:
+                # Tìm giá trị số. Chúng ta sẽ tìm ở dòng hiện tại và 2 dòng tiếp theo
+                # phòng trường hợp OCR tách số ra dòng khác.
+                value_found = None
+                search_area = lines[i:i+3] # Vùng tìm kiếm giá trị
+                
+                for search_line in search_area:
+                    # Regex để tìm số thập phân hoặc số nguyên
+                    match = re.search(r'\b\d+\.?\d*\b', search_line)
+                    if match:
+                        # Đảm bảo số tìm được không phải là một phần của từ khóa khác
+                        # và chưa được gán cho một kết quả nào
+                        potential_value = match.group(0)
+                        if potential_value not in results.values():
+                           value_found = potential_value
+                           break # Thoát khỏi vòng lặp tìm kiếm khi đã thấy giá trị
+                
+                if value_found:
+                    results[keyword] = value_found
+    
+    return results
+try:
+    reader = easyocr.Reader(['vi', 'en'], gpu=False)
+    print("EasyOCR reader initialized successfully.")
+except Exception as e:
+    reader = None
+    print(f"Error initializing EasyOCR reader: {e}")
+
+@login_required(login_url='patientlogin')
+def upload_test_result(request):
+    if reader is None:
+        messages.error(request, "Lỗi: Dịch vụ OCR chưa sẵn sàng. Vui lòng liên hệ quản trị viên.")
+        return redirect('patient-dashboard')
+
+    if request.method == 'POST':
+        form = UploadTestResultForm(request.POST, request.FILES)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.patient = request.user.patient
+
+            if instance.test_type == 'other':
+                instance.test_type = form.cleaned_data.get('custom_test_name', 'Khác')
+
+            # Lưu instance mà không có file trước để lấy ID (nếu cần)
+            # Hoặc chỉ lưu các trường khác file
+            instance.save()
+
+            # Kiểm tra xem có file nào được upload không
+            if 'file' in request.FILES:
+                try:
+                    uploaded_file = request.FILES['file']
+                    
+                    
+                    
+                    # 1. Tua lại con trỏ về đầu file
+                    uploaded_file.seek(0)
+                    
+                    # 2. Đọc nội dung file
+                    file_bytes = uploaded_file.read()
+
+                    # 3. (Phòng vệ) Kiểm tra xem buffer có thực sự rỗng không
+                    if not file_bytes:
+                        raise ValueError("File được tải lên không có nội dung hoặc không thể đọc được.")
+                        
+                    detailed_result = reader.readtext(file_bytes)
+                    
+                    
+                    text_list = [item[1] for item in detailed_result]
+
+                    
+                    ocr_text = "\n".join(text_list)
+                    
+                    parsed_results = parse_blood_test_results(ocr_text)
+                    
+                    
+                    formatted_text = "Kết quả phân tích tự động:\n"
+                    formatted_text += "----------------------------\n"
+                    for key, value in parsed_results.items():
+                        formatted_text += f"{key:<10}: {value}\n" # Định dạng cột
+                    
+                    
+                    instance.ocr_text = formatted_text # Lưu dạng đã định dạng
+                    gpt_result = analyze_lab_result(formatted_text)
+                    instance.gpt_result = gpt_result
+                    instance.save(update_fields=['ocr_text', 'gpt_result'])
+
+                    messages.success(request, "Kết quả xét nghiệm đã được tải lên  thành công!")
+                    return redirect('patient_view_test_result', id=instance.id)
+
+                except Exception as e:
+                    messages.error(request, f"Lỗi khi xử lý ảnh với EasyOCR: {e}")
+                    # Vẫn chuyển hướng để người dùng không bị kẹt
+                    return redirect('patient_view_test_result', id=instance.id)
+            else:
+                messages.warning(request, "Thông tin đã được lưu nhưng bạn chưa tải lên file kết quả.")
+                return redirect('patient-dashboard')
+        else:
+            messages.error(request, "Có lỗi trong form. Vui lòng kiểm tra lại.")
+    else:
+        form = UploadTestResultForm()
+
+    return render(request, 'upload_test_result.html', {'form': form})
+
+
+@login_required(login_url='patientlogin')
+def view_test_result(request, id):
+    try:
+        test_result = request.user.patient.upload_test_results.get(id=id)
+    except Exception as e:
+        messages.error(request, "Không tìm thấy kết quả xét nghiệm.")
+        return redirect('patient-dashboard')
+
+    # Chúng ta không cần truyền extracted_text nữa vì nó đã được lưu trong test_result.ocr_text
+    return render(request, 'test_result.html', {
+    'test_result': test_result,
+    'extracted_text': test_result.ocr_text,
+    'gpt_result': test_result.gpt_result
+    })
+
+def analyze_view(request):
+    if request.method == 'POST':
+        ocr_text = request.POST.get('ocr_text', '')
+
+        if ocr_text:
+            result = analyze_lab_result(ocr_text)
+            return render(request, 'test_result.html', {
+                'ocr_text': ocr_text,
+                'analysis': result
+            })
+    
+    return render(request, 'upload_form.html')
+
+
+
+
+=============================================
+File: be\hospital_web\hospitalManagement\__init__.py
+=============================================
+
+
+=============================================
+File: be\hospital_web\hospital_web\asgi.py
+=============================================
+"""
+ASGI config for hospital_web project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hospital_web.settings')
+
+application = get_asgi_application()
+
+
+
+=============================================
+File: be\hospital_web\hospital_web\settings.py
+=============================================
+"""
+Django settings for hospital_web project.
+
+Generated by 'django-admin startproject' using Django 5.1.7.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.1/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/5.1/ref/settings/
+"""
+
+from pathlib import Path
+from datetime import timedelta
+from dotenv import load_dotenv
+import os
+import dj_database_url
+
+load_dotenv()
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+TEMPLATE_DIR = os.path.join(BASE_DIR,'hospital') 
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-+%70bj&(=plk%op)2203yngsoseidf#0rg6*ytz@u65bk9f2^+'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = ["*"]
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+# Application definition
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'api',
+    'django.contrib.sites',  # Required for allauth
+    'allauth', # Required for allauth
+    'allauth.account', # Required for allauth
+    'allauth.socialaccount', # Required for allauth
+    'allauth.socialaccount.providers.google',  # Google oauth2
+    'hospitalManagement', 
+    'widget_tweaks',
+    'rest_framework', 
+    'corsheaders',
+    
+]
+AUTH_USER_MODEL = 'hospitalManagement.CustomUser'
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+ROOT_URLCONF = 'hospital_web.urls'
+CSRF_TRUSTED_ORIGINS = [
+    'https://deep-urchin-plainly.ngrok-free.app',
+    # Th�m c�c domain kh�c n?u c?n, v� d? domain production c?a b?n sau n�y
+    # 'https://your-production-domain.com',
+]
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [TEMPLATE_DIR,],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'hospital_web.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'defaultdb',
+        'USER': 'avnadmin',
+        'PASSWORD': 'AVNS_Dd8AN4gnRm2cET54DAH',
+        'HOST': 'test-gm-57fa.f.aivencloud.com',
+        'PORT': '10290',
+        'OPTIONS': {
+            'sslmode': 'require',  # Required for Aiven
+        },
+    }
+}
+
+OPENAI_API_KEY = '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'
+HUGGINGFACE_API_TOKEN = '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'
+
+# Password validation
+# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.1/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = "Asia/Bangkok"
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
+
+STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+MEDIA_ROOT = os.path.join(BASE_DIR, 'hospital', 'media')
+
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = '/afterlogin/'
+LOGOUT_REDIRECT_URL = '/'
+
+ #--------------------------allauth setup & google calendar
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend'
+]
+SITE_ID = 1  # Required by django-allauth
+SITE_URL = 'http://www.lekhoiblog.id.vn'  # Used for building redirect_uri
+
+
+
+# Set a secure session cookie
+SESSION_COOKIE_SECURE = False  # Set to False only in local development
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict' may block OAuth redirects
+SESSION_COOKIE_AGE = 15 * 60
+SECURE_SSL_REDIRECT = False
+CSRF_COOKIE_SECURE = False
+#------------------------------------------------
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWS_CREDENTIALS = True
+# AUTH_USER_MODEL = 'UserManagement.Users'
+
+#OTP
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'giangcam2005@gmail.com'
+EMAIL_HOST_PASSWORD = 'fups hspf fems wlje'
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+
+=============================================
+File: be\hospital_web\hospital_web\urls.py
+=============================================
+from django.contrib import admin
+from django.urls import path,include
+from django.contrib.auth.views import LoginView,LogoutView
+from hospitalManagement import payos_views
+from hospitalManagement import meeting_views
+from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
+from django.conf.urls.static import static
+from api import views
+from api.views import *
+# from api.views import CreateUserView
+
+from hospitalManagement import views
+from hospital_web import settings
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
+    path('stafflogin/',views.home_view,name='index'),
+    path('',views.index_view,name='index_home'),
+    path('adminsignup/', views.admin_signup_view,name='adminsignup'),
+    path('doctorsignup/', views.doctor_signup_view,name='doctorsignup'),
+    path('patientsignup/', views.patient_signup_view,name='patientsignup'),
+    path('chatui/', views.ChatPageView.as_view(), name='chat-ui'),
+
+    path("api/patient/register/", CreatePatientUserView.as_view(), name="register"),
+    path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),
+    path("api-auth/", include("rest_framework.urls")),
+    path('api/doctors/', GetAllDoctor.as_view(), name='doctor-list'),
+    path('api/doctors/<int:doctor_id>/', DoctorDetailView.as_view(), name='doctor-detail'),
+    path('api/book-appointment/<int:doctor_id>/', BookAppointmentAPIView.as_view(), name='api-book-appointment'),
+    path('api/patient/profile/', PatientProfileAPIView.as_view(), name='patient-profile'),
+
+    path('adminlogin/', views.admin_login_view,name='adminlogin'),
+    path('doctorlogin/', views.doctor_login_view,name='doctorlogin'),
+    path('patientlogin/', views.patient_login_view, name='patientlogin'),
+    path('verify-otp/', views.verify_otp_view, name='verify-otp'),
+    path('forgot-password/', views.request_reset_password_view, name='request-reset-password'),
+    path('reset-password/', views.reset_password_view, name='reset-password'),
+
+    
+    path('patient-dashboard', views.patient_dashboard_view, name='patient-dashboard'),
+    path('logout/', views.logout_view, name='logout'),
+    #google login
+    path('google_login_redirect/', views.google_login_redirect, name='google_login_redirect'),
+    path('accounts/google/login/callback/', views.google_callback, name='google_callback'),
+    path('afterlogin/', views.afterlogin_view, name='afterlogin'),
+    path('logout/', views.logout_view, name='logout'),
+    #link google account
+    path('accounts/google/link/', views.google_link_redirect, name='google-link'),
+    path('accounts/google/link/callback/', views.google_link_callback, name='google-link-callback'),
+    path('accounts/', include('allauth.urls')), #google authentication
+
+    path('aboutus/', views.aboutus_view, name='aboutus'),
+    path('contactus/', views.contactus_view, name='aboutus'),
+    # --------------------for admin dasboard:--------------------
+    path('admin-dashboard/', views.admin_dashboard_view,name='admin-dashboard'),
+    #----------------------thanh doctor--------------------------
+    #nút 1
+    path('admin-view-doctor', views.admin_view_doctor_view,name='admin-view-doctor'),
+    path('admin-doctor', views.admin_doctor_view,name='admin-doctor'),
+    path('delete-doctor-from-hospital/<int:pk>', views.delete_doctor_from_hospital_view,name='delete-doctor-from-hospital'),
+    path('update-doctor/<int:pk>', views.update_doctor_view,name='update-doctor'),
+
+    #nút 2
+    path('admin-add-doctor', views.admin_add_doctor_view,name='admin-add-doctor'),
+
+    #nút 3
+    path('admin-approve-doctor', views.admin_approve_doctor_view,name='admin-approve-doctor'),
+    path('approve-doctor/<int:pk>', views.approve_doctor_view,name='approve-doctor'),
+    path('reject-doctor/<int:pk>', views.reject_doctor_view,name='reject-doctor'),
+
+    #nút 4
+    path('admin-view-doctor-specialisation',views.admin_view_doctor_specialisation_view,name='admin-view-doctor-specialisation'),
+
+    #----------------------thanh patient--------------------------
+    #nút 1
+    path('admin-patient', views.admin_patient_view,name='admin-patient'),
+    path('admin-view-patient', views.admin_view_patient_view,name='admin-view-patient'),
+    path('delete-patient-from-hospital/<int:pk>', views.delete_patient_from_hospital_view,name='delete-patient-from-hospital'),
+    path('update-patient/<int:pk>', views.update_patient_view,name='update-patient'),
+    
+    #nút 2
+    path('admin-add-patient', views.admin_add_patient_view,name='admin-add-patient'),
+    #nút 3
+    path('admin-approve-patient', views.admin_approve_patient_view,name='admin-approve-patient'),
+    path('approve-patient/<int:pk>', views.approve_patient_view,name='approve-patient'),
+    path('reject-patient/<int:pk>', views.reject_patient_view,name='reject-patient'),
+    #nút 4
+    path('admin-discharge-patient', views.admin_discharge_patient_view,name='admin-discharge-patient'),
+    path('discharge-patient/<int:pk>', views.discharge_patient_view,name='discharge-patient'),
+    path('download-pdf/<int:pk>', views.download_pdf_view,name='download-pdf'),
+
+
+    path('admin-appointment', views.admin_appointment_view,name='admin-appointment'),
+    path('admin-view-appointment', views.admin_view_appointment_view,name='admin-view-appointment'),
+    path('admin-add-appointment', views.admin_add_appointment_view,name='admin-add-appointment'),
+    path('admin-approve-appointment', views.admin_approve_appointment_view,name='admin-approve-appointment'),
+    path('approve-appointment/<int:pk>', views.approve_appointment_view,name='approve-appointment'),
+    path('reject-appointment/<int:pk>', views.reject_appointment_view,name='reject-appointment'),
+
+
+
+    path('doctor-dashboard', views.doctor_dashboard_view,name='doctor-dashboard'),
+
+    path('doctor-patient', views.doctor_patient_view,name='doctor-patient'),
+    path('doctor-view-patient', views.doctor_view_patient_view,name='doctor-view-patient'),
+    path('doctor-view-discharge-patient',views.doctor_view_discharge_patient_view,name='doctor-view-discharge-patient'),
+
+    path('doctor-appointment', views.doctor_appointment_view,name='doctor-appointment'),
+    path('doctor-view-appointment', views.doctor_view_appointment_view,name='doctor-view-appointment'),
+    path('doctor-delete-appointment',views.doctor_delete_appointment_view,name='doctor-delete-appointment'),
+    path('delete-appointment/<int:pk>', views.delete_appointment_view,name='delete-appointment'),
+
+    path('doctor-dashboard/', views.doctor_dashboard_view,name='doctor-dashboard'),
+
+    path('patient-dashboard/', views.patient_dashboard_view,name='patient-dashboard'),
+    path('book-appointment/<str:id>', views.book_appointment,name='book-appointment'),
+    path('check_service/<str:date>', views.check_service_by_date, name='check_service'),
+    path('patient-view-appointment/<str:user_id>', views.get_appointment_by_patient_name, name='patient-view-appointments'),
+    path('all_doctors/', views.all_doctors_view, name='all_doctors'),
+    path('patient/upload-test-result/', views.upload_test_result, name='upload_test_result'),
+    path('doctor/<int:doctor_id>/', views.Get_Doctor_Detail, name='doctor_detail'),
+    path('patient_view_profile/<str:user_id>', views.GetPatient, name='patient_view_profile'),
+    path('patient_view_test_result/<str:id>', views.view_test_result, name='patient_view_test_result'),
+    path('xac-nhan-cuoc-hen/<str:id>', views.approve_appointment_view, name='approve_appointment_view'),
+    path('huy-cuoc-hen/<str:id>', views.reject_appointment_view, name='reject_appointment_view'),
+    
+    #payos
+    path('tao-thanh-toan-payos/<str:id>', payos_views.create_payment_view, name='payos_create_payment'), 
+    path('cancel-appointment/<str:appointment_id>/', views.cancel_appointment_view, name='cancel_appointment'),
+    path('success', payos_views.success_view, name='payos_success'),
+    path('cancel', payos_views.cancel_view, name='payos_cancel'),
+    path('receive-webhook/', payos_views.receive_webhook_view, name='payos_receive_webhook'),
+    #ngrok http --url=deep-urchin-plainly.ngrok-free.app 80
+    path('doctor-room/<int:doctor_user_id>/', meeting_views.doctor_video_room_view, name='doctor_video_room'),
+    path('medicines/', views.medicine_list_view, name='medicine_list'),# patient và doctor xài chức năng này
+    path('patient-dashboard/add-calendar-reminders/', views.add_calendar_reminders, name='add_calendar_reminders'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+#url của userManagement cũ
+# urlpatterns = [ 
+#     path('doctor/<int:doctor_id>/', views.appointment_view, name='appointment_view'),
+
+#     path('discharge/',views.GetAllPatientDischargeDetail.as_view(), name="All patient discharge"),
+
+#     path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
+
+#     
+#  ]
+
+
+=============================================
+File: be\hospital_web\hospital_web\wsgi.py
+=============================================
+"""
+WSGI config for hospital_web project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hospital_web.settings')
+
+application = get_wsgi_application()
+
+
+
+=============================================
+File: be\hospital_web\hospital_web\__init__.py
+=============================================
+
+
+=============================================
+File: be\hospital_web\manage.py
+=============================================
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+import psycopg2
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hospital_web.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+    conn = psycopg2.connect('postgres://avnadmin:AVNS_Dd8AN4gnRm2cET54DAH@test-gm-57fa.f.aivencloud.com:10290/defaultdb?sslmode=require')
+
+    query_sql = 'SELECT VERSION()'
+
+    cur = conn.cursor()
+    cur.execute(query_sql)
+
+    version = cur.fetchone()[0]
+    print(version)
+if __name__ == '__main__':
+    main()
+
+
+
+=============================================
+File: be\hospital_web\__init__.py
+=============================================
