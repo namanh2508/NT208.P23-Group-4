@@ -228,7 +228,7 @@ class UploadTestResult(models.Model):
     patient = models.ForeignKey('Patient', on_delete=models.CASCADE, related_name='upload_test_results')
     test_type = models.CharField(max_length=20, choices=TEST_CHOICES)
     custom_test_name = models.CharField(max_length=100, blank=True, null=True)
-
+    gpt_result = models.TextField(null=True, blank=True)
     file = models.FileField(upload_to='test_results/', blank=True, null=True)
     test_date = models.DateField()
     ocr_text = models.TextField(blank=True, null=True)  # Lưu trữ kết quả OCR từ file
