@@ -86,6 +86,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'hospital_web.urls'
 CSRF_TRUSTED_ORIGINS = [
     'https://deep-urchin-plainly.ngrok-free.app',
+    'https://lekhoiblog.id.vn',
     # Thêm các domain khác nếu cần, ví dụ domain production của bạn sau này
     # 'https://your-production-domain.com',
 ]
@@ -185,7 +186,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'
 ]
 SITE_ID = 1  # Required by django-allauth
-SITE_URL = 'http://www.lekhoiblog.id.vn'  # Used for building redirect_uri
+SITE_URL = 'https://lekhoiblog.id.vn'  # Used for building redirect_uri
 
 
 

@@ -177,7 +177,7 @@
                   <div class="col-md-6">
                     <p class="mb-3"><span style="font-weight: 800; font-size: medium;">Hình thức khám bệnh:</span> {% if appointment.method == 'online' %}Trực tuyến{% else %}Trực tiếp{% endif %}</p>
                     <p class="mb-3"><span style="font-weight: 800; font-size: medium;">Tình trạng:</span>
-                      {% if appointment.service.status == 'pending' %}
+                      {% if appointment.status == 'pending' %}
                         Chờ thanh toán
                       {% elif appointment.status == 'accepted' %}
                       {% if appointment.service.status == 'accepted' %} 
@@ -194,7 +194,7 @@
                   </div>
                 </div>
                 <div class="mt-3 d-md-flex justify-content-md-end align-items-center gap-2">
-                  {% if appointment.service.status == 'pending' %}
+                  {% if appointment.status == 'pending' %}
                     
                     <a href="{% url 'payos_create_payment' appointment.id %}" class="btn btn-primary btn-pay-online mb-md-0 mb-2" role="button">Thanh toán</a>
                     <button 
