@@ -2,8 +2,8 @@
 import google.generativeai as genai
 
 # Configure Gemini SDK once at import
-genai.configure(api_key="AIzaSyCyJiVy8beS2XiDEBz7vosPP5Sh65yp5zU")
-model = genai.GenerativeModel(model_name="gemini-2.0-flash-lite")
+genai.configure(api_key="AIzaSyD4YlNesn55LBQsNcmP2DBSrlDsUnaoJXQ")
+model = genai.GenerativeModel(model_name="gemini-1.5-pro")
 
 def process_medicine_description_with_gemini(usage: str, description: str) -> dict:
     """

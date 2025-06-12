@@ -12,7 +12,7 @@ class Command(BaseCommand):
         gemini_calls = 0
         offset = 0
         limit = 100
-        gemini_quota=30;
+        gemini_quota=15;
         self.stdout.write("Fetching valid medicine entries from OpenFDA...")
         try:
             while True:
