@@ -28,6 +28,8 @@ from django.utils.dateparse import parse_date
 from django.views.generic import TemplateView
 import random
 import easyocr
+import openai
+from .utils.HuggingFace_test_result__analysis import analyze_lab_result
 from PIL import Image
 from .models import AI_Metric, Doctor, Patient, Appointment, Service
 from google.cloud import vision
@@ -1670,12 +1672,6 @@ def upload_test_result(request):
                     if not file_bytes:
                         raise ValueError("File được tải lên không có nội dung hoặc không thể đọc được.")
                         
-                    
-
-                    
-
-                   
-                    
                     detailed_result = reader.readtext(file_bytes)
                     
                     
@@ -1694,8 +1690,9 @@ def upload_test_result(request):
                     
                     
                     instance.ocr_text = formatted_text # Lưu dạng đã định dạng
-                    
-                    instance.save(update_fields=['ocr_text'])
+                    gpt_result = analyze_lab_result(formatted_text)
+                    instance.gpt_result = gpt_result
+                    instance.save(update_fields=['ocr_text', 'gpt_result'])
 
                     messages.success(request, "Kết quả xét nghiệm đã được tải lên và xử lý bằng EasyOCR thành công!")
                     return redirect('patient_view_test_result', id=instance.id)
@@ -1725,8 +1722,21 @@ def view_test_result(request, id):
 
     # Chúng ta không cần truyền extracted_text nữa vì nó đã được lưu trong test_result.ocr_text
     return render(request, 'test_result.html', {
-        'test_result': test_result,
-        'extracted_text': test_result.ocr_text # Lấy text trực tiếp từ model
+    'test_result': test_result,
+    'extracted_text': test_result.ocr_text,
+    'gpt_result': test_result.gpt_result
     })
 
+def analyze_view(request):
+    if request.method == 'POST':
+        ocr_text = request.POST.get('ocr_text', '')
+
+        if ocr_text:
+            result = analyze_lab_result(ocr_text)
+            return render(request, 'test_result.html', {
+                'ocr_text': ocr_text,
+                'analysis': result
+            })
+    
+    return render(request, 'upload_form.html')
 

@@ -126,8 +126,8 @@ DATABASES = {
     }
 }
 
-
-
+OPENAI_API_KEY = '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'
+HUGGINGFACE_API_TOKEN = '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'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

@@ -175,6 +175,12 @@
                     <pre class="bg-light p-3">{{ extracted_text }}</pre>
                 </div>
             {% endif %}
+            <h3>Chẩn đoán từ AI ( tham khảo ):</h3>
+            {% if gpt_result %}
+                <pre>{{ gpt_result }}</pre>
+            {% else %}
+                <p>Chưa có phân tích GPT.</p>
+            {% endif %}
         </div>
     </div>
     {% endif %}
