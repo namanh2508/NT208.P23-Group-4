@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Cảnh báo đăng nhập mới</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4;">
+    <div style="max-width: 600px; margin: auto; background-color: white; padding: 20px; border-radius: 8px;">
+        <h2 style="color: #c0392b;">Cảnh báo bảo mật tài khoản IV-Medical</h2>
+        <p>Xin chào {{ user.get_full_name }},</p>
+        <p>Hệ thống của chúng tôi vừa ghi nhận một lượt đăng nhập mới vào tài khoản của bạn từ một vị trí dường như khác với lần đăng nhập trước.</p>
+        
+        <div style="background-color: #f9f9f9; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0;">
+            <p><strong>Thông tin đăng nhập mới:</strong></p>
+            <ul>
+                <li><strong>Vị trí ước tính:</strong> {{ ip_city }}, {{ ip_country }}</li>
+                <li><strong>Khoảng cách so với lần đăng nhập trước:</strong> Khoảng {{ distance }} km</li>
+            </ul>
+        </div>
+
+        <p><strong>Nếu đây là bạn</strong>, bạn không cần làm gì cả. Chúng tôi gửi email này để đảm bảo bạn luôn được cập nhật về hoạt động của tài khoản.</p>
+        
+        <p><strong>Nếu đây không phải là bạn</strong>, chúng tôi khuyên bạn nên <a href="{% url 'request-reset-password' %}" style="color: #c0392b; font-weight: bold;">đổi mật khẩu ngay lập tức</a> để bảo vệ tài khoản của mình.</p>
+
+        <hr>
+        <p style="font-size: 0.9em; color: #7f8c8d;">Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.<br>IV-Medical</p>
+    </div>
+</body>
+</html>

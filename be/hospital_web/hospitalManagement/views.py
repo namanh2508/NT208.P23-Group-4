@@ -49,6 +49,10 @@ from datetime import datetime, timedelta, time
 from django.utils.timezone import get_current_timezone, make_aware
 from googleapiclient.discovery import build
 import math
+#ipaddress
+import requests
+from geopy.distance import geodesic
+from .utils import ip_helper
 
 
 #-----------for checking user is doctor , patient or admin(by sumit)
@@ -512,6 +516,73 @@ def doctor_login_view(request):
 
     return render(request, "doctorlogin.html", {"form": form})
 
+#---------Lấy địa chỉ IP để bảo mật
+def get_geoip_data(ip_address):
+    try:
+        response = requests.get(f'http://ip-api.com/json/{ip_address}?fields=status,lat,lon,city,country')
+        response.raise_for_status() # Ném lỗi nếu request thất bại
+        data = response.json()
+        if data.get('status') == 'success':
+            return {
+                'lat': data.get('lat'),
+                'lon': data.get('lon'),
+                'city': data.get('city'),
+                'country': data.get('country')
+            }
+    except requests.exceptions.RequestException as e:
+        print(f"Lỗi khi gọi API GeoIP: {e}")
+    return None
+
+def send_unusual_login_alert(user, new_ip_data, distance_km):
+    subject = 'Cảnh báo bảo mật: Đăng nhập mới từ vị trí lạ'
+    
+    context = {
+        'user': user,
+        'ip_city': new_ip_data.get('city', 'Không xác định'),
+        'ip_country': new_ip_data.get('country', 'Không xác định'),
+        'distance': round(distance_km)
+    }
+    
+    html_content = render_to_string('unusual_login_alert_template.html', context)
+    text_content = strip_tags(html_content)
+    
+    try:
+        email_msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [user.email])
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
+    except Exception as e:
+        print(f"Lỗi gửi email cảnh báo đăng nhập: {e}")
+
+
+def handle_new_login_ip(request, user):
+    current_ip = ip_helper.get_client_ip(request)
+    last_ip = user.ip_address_last_login
+
+    # Cập nhật ngay IP mới vào hồ sơ người dùng
+    user.ip_address_last_login = current_ip
+    user.save(update_fields=['ip_address_last_login'])
+
+    if not last_ip:
+        return
+
+    if current_ip == last_ip:
+        return
+        
+    def check_and_alert():
+        current_geoip = get_geoip_data(current_ip)
+        last_geoip = get_geoip_data(last_ip)
+
+        if current_geoip and last_geoip:
+            current_coords = (current_geoip['lat'], current_geoip['lon'])
+            last_coords = (last_geoip['lat'], last_geoip['lon'])
+
+            distance = geodesic(current_coords, last_coords).km
+            
+            if distance > 100:
+                send_unusual_login_alert(user, current_geoip, distance)
+
+    threading.Thread(target=check_and_alert, daemon=True).start()
+
 def patient_login_view(request):
     form = AuthenticationForm(request)
     if request.method == "POST":
@@ -536,6 +607,7 @@ def patient_login_view(request):
                     email_otp.delete()
                     del request.session['2fa_user_username']
                     login(request, user)
+                    handle_new_login_ip(request, user)
                     return redirect("afterlogin")
             except (models.CustomUser.DoesNotExist, models.EmailOTP.DoesNotExist):
                 messages.error(request, "Mã OTP không hợp lệ.")
@@ -593,6 +665,7 @@ def verify_2fa_login_view(request):
                 # Đăng nhập thành công!
                 email_otp.delete()
                 del request.session['2fa_user_username']
+                handle_new_login_ip(request, user)
                 login(request, user)
                 messages.success(request, f"Chào mừng trở lại, {user.get_full_name()}!")
                 return redirect("afterlogin")
@@ -664,6 +737,8 @@ def reset_password_view(request):
         except (models.EmailOTP.DoesNotExist, models.CustomUser.DoesNotExist):
             messages.error(request, "Có lỗi xảy ra.")
     return render(request, "reset_password.html")
+
+
 
 #---------AFTER ENTERING CREDENTIALS WE CHECK WHETHER USERNAME AND PASSWORD IS OF ADMIN,DOCTOR OR PATIENT
 def afterlogin_view(request):

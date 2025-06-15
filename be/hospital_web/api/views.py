@@ -16,7 +16,7 @@ from django.views.generic import TemplateView
 from hospitalManagement.models import CustomUser,Doctor
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveAPIView
-from .serializers import OTPVerifySerializer, PasswordSerializer, Login2FAVerifySerializer, CustomTokenObtainPairSerializer
+from .serializers import OTPVerifySerializer, PasswordSerializer, Login2FAVerifySerializer
 from hospitalManagement.views import generate_otp
 from django.core.mail import send_mail
 from rest_framework.permissions import IsAuthenticated, AllowAny
