@@ -207,8 +207,8 @@ instance/
 .ipynb_checkpoints
 
 # Ignore all migration files in hospitalManagement and api apps
-hospital_web/hospitalManagement/migrations/
-hospital_web/api/migrations/
+# hospital_web/hospitalManagement/migrations/
+# hospital_web/api/migrations/
 
 # Keep __init__.py to avoid import issues
 !hospital_web/hospitalManagement/migrations/__init__.py
