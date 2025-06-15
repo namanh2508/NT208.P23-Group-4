@@ -116,7 +116,7 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'defaultdb',
+        'NAME': 'test',
         'USER': 'avnadmin',
         'PASSWORD': 'AVNS_Dd8AN4gnRm2cET54DAH',
         'HOST': 'test-gm-57fa.f.aivencloud.com',
@@ -186,7 +186,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'
 ]
 SITE_ID = 1  # Required by django-allauth
-SITE_URL = 'https://127.0.0.1:8000'  # Used for building redirect_uri
+SITE_URL = 'http://127.0.0.1:8000'  # Used for building redirect_uri
 
 
 

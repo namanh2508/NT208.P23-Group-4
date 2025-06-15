@@ -43,6 +43,7 @@ urlpatterns = [
     path('doctorlogin/', views.doctor_login_view,name='doctorlogin'),
     path('patientlogin/', views.patient_login_view, name='patientlogin'),
     path('verify-otp/', views.verify_otp_view, name='verify-otp'),
+    path('verify-2fa/', views.verify_2fa_login_view, name='verify_2fa_login'),
     path('forgot-password/', views.request_reset_password_view, name='request-reset-password'),
     path('reset-password/', views.reset_password_view, name='reset-password'),
 

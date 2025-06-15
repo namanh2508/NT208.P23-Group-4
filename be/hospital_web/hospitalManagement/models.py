@@ -298,18 +298,18 @@ class EmailOTP (models.Model):
     def is_expired(self):
         return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
     
-#-------------------- 2FA ------------------    
-class TwoFactorAuthOTP(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    otp = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
+# #-------------------- 2FA ------------------    
+# class TwoFactorAuthOTP(models.Model):
+#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+#     otp = models.CharField(max_length=6)
+#     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"2FA OTP for {self.user.username}"
+#     def __str__(self):
+#         return f"2FA OTP for {self.user.username}"
 
-    def is_expired(self):
-        # Hết hạn sau 5 phút
-        return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
+#     def is_expired(self):
+#         # Hết hạn sau 5 phút
+#         return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
 
 # class Admin (models.Model):
 #     user = models.OneToOneField (User, on_delete=models.CASCADE)

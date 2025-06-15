@@ -70,11 +70,7 @@
         }
         /* ----- Hết CSS Profile ----- */
 
-        /* ----- CSS cho Navbar (Nếu không có trong file include) ----- */
-        /* Bạn có thể đặt CSS của navbar vào đây nếu patient_navbar.html chỉ chứa HTML */
         .navbar-logo-img { height: 40px; width: auto; margin-right: 8px; }
-        /* ... các style navbar khác ... */
-        /* ----- Hết CSS Navbar ----- */
 
         /* ----- Nút gạt 2FA ----- */
         .form-switch .form-check-input {
@@ -289,15 +285,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="password-section" class="mb-3 d-none">
-                        <label for="password-input" class="form-label">Để tắt 2FA, vui lòng nhập mật khẩu của bạn:</label>
-                        <input type="password" class="form-control" id="password-input" placeholder="Mật khẩu">
+                    <div id="modal-alert" class="alert d-none" role="alert"></div>
+
+                <!-- Ô nhập mật khẩu -->
+                <div class="mb-3">
+                    <label for="password-input" class="form-label">Để tiếp tục, vui lòng nhập mật khẩu của bạn:</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                        <input type="password" class="form-control" id="password-input" placeholder="Mật khẩu tài khoản" required>
                     </div>
-                    <div id="otp-section" class="mb-3 d-none">
-                        <label for="otp-input" class="form-label">Một mã OTP đã được gửi đến email. Vui lòng nhập để xác nhận:</label>
-                        <input type="text" class="form-control" id="otp-input" placeholder="123456">
-                    </div>
-                    <div id="modal-alert" class="alert alert-danger d-none" role="alert"></div>
+                </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -315,122 +312,106 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const toggleSwitch = document.getElementById('2fa-toggle-switch');
-            const verificationModalEl = document.getElementById('2fa-verification-modal');
-            const verificationModal = new bootstrap.Modal(verificationModalEl);
-            
-            const otpSection = document.getElementById('otp-section');
-            const passwordSection = document.getElementById('password-section');
-            const confirmBtn = document.getElementById('confirm-2fa-button');
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleSwitch = document.getElementById('2fa-toggle-switch');
+        const verificationModalEl = document.getElementById('2fa-verification-modal');
+        const verificationModal = new bootstrap.Modal(verificationModalEl);
+        
+        // Chỉ cần ô nhập mật khẩu
+        const passwordInput = document.getElementById('password-input');
+        const confirmBtn = document.getElementById('confirm-2fa-button');
+        const modalTitle = document.getElementById('2faModalLabel');
 
-            const alertBox = document.getElementById('2fa-alert');
-            const modalAlertBox = document.getElementById('modal-alert');
-            
-            let isEnabling = false; // Biến để biết đang bật hay tắt 2FA
+        const alertBox = document.getElementById('2fa-alert');
+        const modalAlertBox = document.getElementById('modal-alert');
+        
+        // Hàm lấy CSRF token
+        function getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
 
-            // Hàm lấy CSRF token
-            function getCsrfToken() {
-                return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // Hàm fetch API với xác thực session
+        async function fetchApi(url, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401 || response.status === 403) {
+                window.location.href = '/patientlogin/';
             }
+            return response;
+        }
+        
+        function showAlert(message, type, isModal = false) {
+            const box = isModal ? modalAlertBox : alertBox;
+            box.textContent = message;
+            box.className = `alert alert-${type}`;
+        }
 
-            // Hàm fetch API với xác thực
-            async function fetchApi(url, options = {}) {
-                const headers = {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken(),
-                    // 'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                };
-                const response = await fetch(url, { ...options, headers });
-                if (response.status === 401 || response.status === 403) {
-                    window.location.href = '/patientlogin/';
-                }
-    return response;
-                return response;
-            }
-            
-            function showAlert(message, type, isModal = false) {
-                const box = isModal ? modalAlertBox : alertBox;
-                box.textContent = message;
-                box.className = `alert alert-${type}`;
-            }
-            async function getInitial2FAStatus() {
-                try {
-                    const response = await fetchApi('/api/2fa/status/');
-                    if (response.ok) {
-                        const data = await response.json();
-                        toggleSwitch.checked = data.is_two_factor_enabled;
-                    } else {
-                        showAlert('Không thể lấy trạng thái 2FA.', 'danger');
-                    }
-                } catch (error) {
-                    showAlert('Lỗi mạng khi lấy trạng thái 2FA.', 'danger');
-                }
-            }
-            
-            getInitial2FAStatus();
-
-            toggleSwitch.addEventListener('change', async function() {
-                isEnabling = this.checked;
-                
-                this.checked = !isEnabling; 
-
-                // Reset modal
-                otpSection.classList.add('d-none');
-                passwordSection.classList.add('d-none');
-                modalAlertBox.classList.add('d-none');
-
-                if (isEnabling) { // ĐANG BẬT 2FA
-                    try {
-                        const response = await fetchApi('/api/2fa/enable/send-otp/', { method: 'POST' });
-                        if (response.ok) {
-                            otpSection.classList.remove('d-none');
-                            verificationModal.show();
-                        } else {
-                            const data = await response.json();
-                            showAlert(data.error || 'Không thể gửi OTP.', 'danger');
-                        }
-                    } catch (error) {
-                        showAlert('Lỗi mạng khi yêu cầu OTP.', 'danger');
-                    }
-                } else { // ĐANG TẮT 2FA
-                    passwordSection.classList.remove('d-none');
-                    verificationModal.show();
-                }
-            });
-
-            confirmBtn.addEventListener('click', async function() {
-                modalAlertBox.classList.add('d-none');
-                let url = '';
-                let payload = {};
-
-                if (isEnabling) {
-                    url = '/api/2fa/enable/verify/';
-                    payload = { otp: document.getElementById('otp-input').value };
-                } else {
-                    url = '/api/2fa/disable/';
-                    payload = { password: document.getElementById('password-input').value };
-                }
-                
-                try {
-                    const response = await fetchApi(url, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
-                    });
+        async function getInitial2FAStatus() {
+            try {
+                const response = await fetchApi('/api/2fa/status/');
+                if (response.ok) {
                     const data = await response.json();
-
-                    if (response.ok) {
-                        showAlert(data.message, 'success');
-                        toggleSwitch.checked = isEnabling;
-                        verificationModal.hide();
-                    } else {
-                        showAlert(data.error || 'Có lỗi xảy ra.', 'danger', true);
-                    }
-                } catch(error) {
-                    showAlert('Lỗi mạng khi xác nhận.', 'danger', true);
+                    toggleSwitch.checked = data.multi_factor_enabled;
+                } else {
+                    showAlert('Không thể lấy trạng thái 2FA.', 'danger');
                 }
-            });
+            } catch (error) {
+                showAlert('Lỗi mạng khi lấy trạng thái 2FA.', 'danger');
+            }
+        }
+        
+        getInitial2FAStatus();
+
+        toggleSwitch.addEventListener('change', function() {
+            this.checked = !this.checked; 
+            
+            // Reset modal
+            alertBox.className = 'alert d-none'; 
+            modalAlertBox.className = 'alert d-none';
+            passwordInput.value = '';
+
+            if (this.checked) {
+                modalTitle.textContent = 'Xác nhận tắt 2FA';
+            } else { 
+                modalTitle.textContent = 'Xác nhận bật 2FA';
+            }
+            verificationModal.show();
         });
-    </script>
+
+        confirmBtn.addEventListener('click', async function() {
+            modalAlertBox.className = 'alert d-none'; 
+            const password = passwordInput.value;
+
+            if (!password) {
+                showAlert('Vui lòng nhập mật khẩu.', 'danger', true);
+                return;
+            }
+
+            try {
+                const response = await fetchApi('/api/2fa/toggle/', {
+                    method: 'POST',
+                    body: JSON.stringify({ password: password })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => { alertBox.className = 'alert d-none'; }, 4000);
+                    
+                    toggleSwitch.checked = data.is_enabled;
+                    
+                    verificationModal.hide();
+                } else {
+                    showAlert(data.error || 'Có lỗi xảy ra.', 'danger', true);
+                }
+            } catch(error) {
+                showAlert('Lỗi mạng khi xác nhận.', 'danger', true);
+            }
+        });
+    });
+</script>
 </body>
 </html>

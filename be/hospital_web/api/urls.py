@@ -26,13 +26,14 @@ urlpatterns = [
 
 #    # path('token/refresh/', views.TokenRefreshView.as_view(), name='token_refresh_api'),
 #    path('token/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-#    # path('token/verify-2fa/', views.VerifyLoginOTPView.as_view(), name='token_verify_2fa'),
+# #    # path('token/verify-2fa/', views.VerifyLoginOTPView.as_view(), name='token_verify_2fa'),
 #    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh_api'),
 
 
-#     path('2fa/status/', views.UserStatusView.as_view(), name='2fa-status'),
-#     path('2fa/enable/send-otp/', views.SendEnableOTPView.as_view(), name='2fa-send-otp'),
-#     path('2fa/enable/verify/', views.VerifyAndEnable2FAView.as_view(), name='2fa-verify-otp'),
-#     path('2fa/disable/', views.Disable2FAView.as_view(), name='2fa-disable'),
+    path('2fa/status/', views.UserStatusView.as_view(), name='2fa-status'),
+    path('2fa/toggle/', views.Toggle2FAView.as_view(), name='2fa-toggle'),
+    # path('2fa/enable/send-otp/', views.SendEnableOTPView.as_view(), name='2fa-send-otp'),
+    # path('2fa/enable/verify/', views.VerifyAndEnable2FAView.as_view(), name='2fa-verify-otp'),
+    # path('2fa/disable/', views.Disable2FAView.as_view(), name='2fa-disable'),
 
 ]

@@ -102,18 +102,41 @@ def patientclick_view(request):
 #----------Gửi email otp----------------
 def generate_otp():
     return str(random.randint(100000, 999999))
-def send_otp_to_email (email):
-    otp = generate_otp()
+# def send_otp_to_email (email):
+#     otp = generate_otp()
 
-    models.EmailOTP.objects.update_or_create(
-        email=email, 
-        defaults= {'otp': otp, 'created_at': timezone.now()})
+#     models.EmailOTP.objects.update_or_create(
+#         email=email, 
+#         defaults= {'otp': otp, 'created_at': timezone.now()})
     
-    subject = "Mã xác thực OTP của bạn"
+#     subject = "Mã xác thực OTP của bạn"
+#     from_email = settings.EMAIL_HOST_USER
+
+#     html_content = render_to_string("otp_email_template.html", {"otp": otp})
+#     text_content = strip_tags(html_content)
+#     try:
+#         email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+#         email_msg.attach_alternative(html_content, "text/html")
+#         email_msg.send()
+#     except Exception as e:
+#         print(f"Lỗi gửi email: {e}")
+def send_otp_to_email(email, otp_code=None, subject="Mã xác thực OTP của bạn", template_name="otp_email_template.html"):
+    # Nếu không có otp được truyền vào, tự tạo một cái
+    if otp_code is None:
+        otp_code = generate_otp()
+
+    # Cập nhật hoặc tạo OTP trong DB
+    models.EmailOTP.objects.update_or_create(
+        email=email,
+        defaults={'otp': otp_code, 'created_at': timezone.now()}
+    )
+    
     from_email = settings.EMAIL_HOST_USER
 
-    html_content = render_to_string("otp_email_template.html", {"otp": otp})
+    # Render template được truyền vào
+    html_content = render_to_string(template_name, {"otp": otp_code})
     text_content = strip_tags(html_content)
+    
     try:
         email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
         email_msg.attach_alternative(html_content, "text/html")
@@ -121,25 +144,30 @@ def send_otp_to_email (email):
     except Exception as e:
         print(f"Lỗi gửi email: {e}")
 
+# def send_forgetpass_email(email):
+#     otp = generate_otp()
+
+#     models.EmailOTP.objects.update_or_create(
+#         email=email, 
+#         defaults={'otp': otp, 'created_at': timezone.now()}
+#     )
+
+#     subject = "Mã OTP đặt lại mật khẩu của bạn"
+#     from_email = settings.EMAIL_HOST_USER
+
+#     html_content = render_to_string("forgetpass_email_template.html", {"otp": otp})
+#     text_content = strip_tags(html_content)
+#     try:
+#         email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+#         email_msg.attach_alternative(html_content, "text/html")
+#         email_msg.send()
+#     except Exception as e:
+#         print(f"Lỗi gửi email: {e}")
 def send_forgetpass_email(email):
     otp = generate_otp()
-
-    models.EmailOTP.objects.update_or_create(
-        email=email, 
-        defaults={'otp': otp, 'created_at': timezone.now()}
-    )
-
     subject = "Mã OTP đặt lại mật khẩu của bạn"
-    from_email = settings.EMAIL_HOST_USER
-
-    html_content = render_to_string("forgetpass_email_template.html", {"otp": otp})
-    text_content = strip_tags(html_content)
-    try:
-        email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
-        email_msg.attach_alternative(html_content, "text/html")
-        email_msg.send()
-    except Exception as e:
-        print(f"Lỗi gửi email: {e}")
+    template = "forgetpass_email_template.html"
+    send_otp_to_email(email, otp, subject, template)
 
 
 def admin_signup_view(request):
@@ -214,7 +242,9 @@ def patient_signup_view(request):
 
             request.session["pending_email"] = form_data['email']
             request.session["pending_form_data"] = form_data
-            threading.Thread(target=send_otp_to_email, args=(form_data['email'],)).start()
+            # threading.Thread(target=send_otp_to_email, args=(form_data['email'],)).start()
+            otp = generate_otp()
+            threading.Thread(target=send_otp_to_email, args=(form_data['email'], otp)).start()
             messages.info(request, "Mã OTP đã được gửi tới email. Vui lòng xác thực.")
             return render(request, 'verify_otp.html')
 
@@ -520,20 +550,100 @@ def doctor_login_view(request):
     return render(request, "doctorlogin.html", {"form": form})
 
 def patient_login_view(request):
+    form = AuthenticationForm(request)
     if request.method == "POST":
+        # form = AuthenticationForm(request, data=request.POST)
+        if 'otp_submit' in request.POST:
+            username = request.session.get('2fa_user_username')
+            otp_code = request.POST.get('otp')
+            if not username:
+                messages.error(request, "Phiên xác thực đã hết hạn, vui lòng đăng nhập lại.")
+                return redirect('patientlogin')
+            try:
+                user = models.CustomUser.objects.get(username=username)
+                email_otp = models.EmailOTP.objects.filter(email=user.email, otp=otp_code).order_by('-created_at').first()
+
+                if not email_otp:
+                    raise models.EmailOTP.DoesNotExist
+                
+                if email_otp.is_expired():
+                    messages.error(request, "Mã OTP đã hết hạn.")
+                else:
+                    # Đăng nhập thành công!
+                    email_otp.delete()
+                    del request.session['2fa_user_username']
+                    login(request, user)
+                    return redirect("afterlogin")
+            except (models.CustomUser.DoesNotExist, models.EmailOTP.DoesNotExist):
+                messages.error(request, "Mã OTP không hợp lệ.")
+                
+            return render(request, "patientlogin.html", {'form': form, 'require_2fa': True, 'username': username})
+    
         form = AuthenticationForm(request, data=request.POST)
+
         if form.is_valid():
             user = form.get_user()
             if is_patient(user):
-                login(request, user)
-                return redirect("patient-dashboard")
+                if user.multi_factor_enabled:
+                    otp_code = generate_otp()
+                    subject = 'Yêu cầu đăng nhập cần xác thực - IV-Medical'
+                    template = 'otp_2FA_email_template.html'
+                    # send_otp_to_email(user.email)
+                    # send_otp_to_email(user.email, otp_code, subject, template)
+                    threading.Thread(target=send_otp_to_email, args=(user.email, otp_code, subject, template), daemon=True).start()
+                    request.session['2fa_user_username'] = user.username
+                    messages.info(request, "Tài khoản của bạn được bảo vệ. Vui lòng nhập mã OTP đã được gửi đến email.")
+                    return redirect('verify_2fa_login') 
+                    # return render(request, "patientlogin.html", {'form': form, 'require_2fa': True, 'username': user.username})
+                else:
+                    login(request, user)
+                    return redirect("patient-dashboard")
             else:
-                form.add_error(None, "Access Denied: You are not a patient.")
+                form.add_error(None, "Truy cập bị từ chối: Bạn không phải là bệnh nhân.")
 
     else:
         form = AuthenticationForm()
 
     return render(request, "patientlogin.html", {"form": form})
+
+def verify_2fa_login_view(request):
+    username = request.session.get('2fa_user_username')
+    
+    # Nếu không có username trong session (người dùng vào thẳng URL), đá về trang login
+    if not username:
+        messages.error(request, "Vui lòng đăng nhập trước khi xác thực.")
+        return redirect('patientlogin')
+
+    if request.method == 'POST':
+        otp_code = request.POST.get('otp')
+        try:
+            user = models.CustomUser.objects.get(username=username)
+            # Truy vấn OTP bằng email của user
+            email_otp = models.EmailOTP.objects.filter(email=user.email, otp=otp_code).order_by('-created_at').first()
+
+            if not email_otp:
+                raise models.EmailOTP.DoesNotExist
+
+            if email_otp.is_expired():
+                messages.error(request, "Mã OTP đã hết hạn. Vui lòng đăng nhập lại để nhận mã mới.")
+                # Xóa username khỏi session để bắt đầu lại
+                del request.session['2fa_user_username']
+                return redirect('patientlogin')
+            else:
+                # Đăng nhập thành công!
+                email_otp.delete()
+                del request.session['2fa_user_username']
+                login(request, user)
+                messages.success(request, f"Chào mừng trở lại, {user.get_full_name()}!")
+                return redirect("afterlogin")
+
+        except (models.CustomUser.DoesNotExist, models.EmailOTP.DoesNotExist):
+            messages.error(request, "Mã OTP không hợp lệ. Vui lòng thử lại.")
+            # Render lại trang để người dùng nhập lại
+            return render(request, "verify_2fa.html")
+
+    # Nếu là request GET, chỉ hiển thị trang
+    return render(request, "verify_2fa.html")
 
 def request_reset_password_view(request):
     if request.method == "POST":
