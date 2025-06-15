@@ -66,7 +66,7 @@ class CustomUser(AbstractUser):
     )
     picture = models.ImageField(
     upload_to='profile_pic/',
-    default='profile_pic/OIP.jfif',  # Relative to MEDIA_ROOT
+    default='profile_pic/default.webp',  # Relative to MEDIA_ROOT
     blank=True,
     null=True
     )
