@@ -306,7 +306,12 @@ class EmailOTP (models.Model):
 
 #     def __str__(self):
 #         return f"2FA OTP for {self.user.username}"
+#     def __str__(self):
+#         return f"2FA OTP for {self.user.username}"
 
+#     def is_expired(self):
+#         # Hết hạn sau 5 phút
+#         return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
 #     def is_expired(self):
 #         # Hết hạn sau 5 phút
 #         return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
