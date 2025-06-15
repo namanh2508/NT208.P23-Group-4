@@ -22,7 +22,7 @@ from django.core.mail import send_mail
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from hospitalManagement.models import CustomUser, EmailOTP, TwoFactorAuthOTP
+from hospitalManagement.models import CustomUser, EmailOTP
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.authentication import SessionAuthentication

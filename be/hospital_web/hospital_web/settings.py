@@ -116,7 +116,7 @@ WSGI_APPLICATION = 'hospital_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'defaultdb',
+        'NAME': 'test',
         'USER': 'avnadmin',
         'PASSWORD': 'AVNS_Dd8AN4gnRm2cET54DAH',
         'HOST': 'test-gm-57fa.f.aivencloud.com',

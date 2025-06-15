@@ -4,7 +4,6 @@ from rest_framework import serializers
 from hospitalManagement.models import Appointment,Doctor,Patient,CustomUser,Admin
 from datetime import datetime
 from hospitalManagement.models import Service, Appointment, Test
-from hospitalManagement.models import TwoFactorAuthOTP
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import AuthenticationFailed
 # from hospitalManagement.models import PatientDischargeDetails
