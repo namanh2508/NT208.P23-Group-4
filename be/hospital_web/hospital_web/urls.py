@@ -7,6 +7,15 @@ from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from django.conf.urls.static import static
 from api import views
 from api.views import *
+# from api.views import (
+#     CreatePatientUserView,
+#     CustomTokenObtainPairView,
+#     GetAllDoctor,
+#     DoctorDetailView,
+#     BookAppointmentAPIView,
+#     PatientProfileAPIView
+# )
+from rest_framework_simplejwt.views import TokenRefreshView
 # from api.views import CreateUserView
 
 from hospitalManagement import views

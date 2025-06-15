@@ -4,6 +4,9 @@ from rest_framework import serializers
 from hospitalManagement.models import Appointment,Doctor,Patient,CustomUser,Admin
 from datetime import datetime
 from hospitalManagement.models import Service, Appointment, Test
+from hospitalManagement.models import TwoFactorAuthOTP
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import AuthenticationFailed
 # from hospitalManagement.models import PatientDischargeDetails
 
 
@@ -328,3 +331,53 @@ class PatientProfileSerializer(serializers.ModelSerializer):
             'phone', 'gender', 'birthday', 'picture',
             'family_phone', 'weight', 'height', 'description'
         ]
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        user = self.user
+        
+        if user.is_two_factor_enabled:
+            otp = self.context['request'].data.get('otp')
+
+            if not otp:
+                raise AuthenticationFailed(
+                    {"message": "Mã OTP là bắt buộc.", "2fa_required": True}, 
+                    code='2fa_required'
+                )
+            
+            try:
+                two_factor_otp = TwoFactorAuthOTP.objects.get(user=user, otp=otp)
+                
+                if two_factor_otp.is_expired():
+                    raise AuthenticationFailed(
+                        {"message": "Mã OTP đã hết hạn."},
+                        code='2fa_expired'
+                    )
+                
+                two_factor_otp.delete()
+
+            except TwoFactorAuthOTP.DoesNotExist:
+                raise AuthenticationFailed(
+                    {"message": "Mã OTP không hợp lệ."},
+                    code='2fa_invalid'
+                )
+        
+        return data
+    
+class OTPVerifySerializer(serializers.Serializer):
+    otp = serializers.CharField(required=True, max_length=6, min_length=6)
+
+class PasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(required=True, style={'input_type': 'password'})
+
+class Login2FAVerifySerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    otp = serializers.CharField(required=True, max_length=6, min_length=6)

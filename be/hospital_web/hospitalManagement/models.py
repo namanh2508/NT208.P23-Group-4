@@ -288,7 +288,7 @@ class Bill(models.Model):
         return f"Message from {self.sender.get_full_name()} at {self.timestamp}"
 #-------------------- Email OTP ------------------
 class EmailOTP (models.Model):
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=False, blank=True, null=True)
     otp = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -296,6 +296,19 @@ class EmailOTP (models.Model):
         return f"{self.email} - {self.otp}"
     
     def is_expired(self):
+        return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
+    
+#-------------------- 2FA ------------------    
+class TwoFactorAuthOTP(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"2FA OTP for {self.user.username}"
+
+    def is_expired(self):
+        # Hết hạn sau 5 phút
         return timezone.now() > self.created_at + datetime.timedelta(minutes=5)
 
 # class Admin (models.Model):

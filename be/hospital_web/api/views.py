@@ -16,79 +16,18 @@ from django.views.generic import TemplateView
 from hospitalManagement.models import CustomUser,Doctor
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveAPIView
-# from django.contrib.auth.models import User
-# from rest_framework import generics
-# from .serializers import UserSerializer, NoteSerializer,PatientDischargeDetailsSerializer,DoctorSerializer,PatientSerializer,DoctorDetailSerializer
-# from .serializers import AppointmentSerializer
-# from rest_framework.permissions import IsAuthenticated, AllowAny
-# from .models import Note
-# from hospitalManagement.models import Appointment,Doctor,Patient
-# from hospitalManagement.models import PatientDischargeDetails
-
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.response import Response
+from .serializers import OTPVerifySerializer, PasswordSerializer, Login2FAVerifySerializer, CustomTokenObtainPairSerializer
+from hospitalManagement.views import generate_otp
+from django.core.mail import send_mail
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from hospitalManagement.models import CustomUser, EmailOTP, TwoFactorAuthOTP
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.authentication import SessionAuthentication
 
 
-# class NoteListCreate(generics.ListCreateAPIView):
-#     serializer_class = NoteSerializer
-#     permission_classes = [AllowAny]
-
-#     def get_queryset(self):
-#         user = self.request.user
-#         return Note.objects.filter(author=user)
-
-#     def perform_create(self, serializer):
-#         if serializer.is_valid():
-#             serializer.save(author=self.request.user)
-#         else:
-#             print(serializer.errors)
-
-
-# class NoteDelete(generics.DestroyAPIView):
-#     serializer_class = NoteSerializer
-#     permission_classes = [AllowAny]
-
-#     def get_queryset(self):
-#         user = self.request.user
-#         return Note.objects.filter(author=user)
-
-
-# class CreateUserView(generics.CreateAPIView):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-#     permission_classes = [AllowAny]
-
-# class GetAllPatientDischargeDetail(generics.ListAPIView):
-#     queryset = PatientDischargeDetails.objects.all() # Lấy tất cả đối tượng Product
-#     serializer_class = PatientDischargeDetailsSerializer
-
-# class GetAllDoctor(generics.ListAPIView):
-#     queryset = Doctor.objects.all()
-#     serializer_class = DoctorSerializer
-#     permission_classes = [AllowAny]
-    
-# class GetAllPatient(generics.ListAPIView):
-#     queryset = Patient.objects.all()
-#     serializer_class = PatientSerializer
-#     permission_classes = [AllowAny]
-    
-# class GetAppointmentByPatientName(generics.ListAPIView):
-#     serializer_class = AppointmentSerializer
-#     permission_classes = [AllowAny]
-
-#     def get_queryset(self):
-#         name = self.kwargs['name']
-#         return Appointment.objects.filter(patientId__user__first_name=name)# Lọc theo tên bệnh nhân trong User model
-
-
-# class GetDoctorByName(generics.ListAPIView):
-#     serializer_class = DoctorDetailSerializer
-#     permission_classes = [AllowAny]
-
-#     def get_queryset(self):
-#         name = self.kwargs['name']
-#         return Doctor.objects.filter(user__first_name=name)  # Lọc theo tên bác sĩ trong User model
 def patient_appointments_view(request,patientID):
     patient = get_object_or_404(models.Patient, pk=patientID)
     if not (request.user.is_staff or request.user == patient.user):
@@ -171,3 +110,87 @@ class PatientProfileAPIView(RetrieveAPIView):
 
     def get_object(self):
         return Patient.objects.get(user=self.request.user)
+    
+
+def send_otp_email_for_2FA(user_email, otp):
+    subject = 'Mã Xác Thực Hai Yếu Tố (2FA) Của Bạn'
+    message = f'Mã xác thực của bạn là: {otp}. Mã này sẽ hết hạn sau 5 phút.'
+    from_email = settings.DEFAULT_FROM_EMAIL or 'noreply@yourdomain.com'
+    try:
+        send_mail(subject, message, from_email, [user_email])
+    except Exception as e:
+        print(f"Lỗi khi gửi email: {e}")
+        raise
+
+#--- VIEWS 2FA ---
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Kế thừa view login mặc định nhưng sử dụng serializer tùy chỉnh của chúng ta.
+    Tự động xử lý cả trường hợp có và không có 2FA.
+    """
+    serializer_class = CustomTokenObtainPairSerializer
+
+class UserStatusView(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        return Response({'multi_factor_enabled': request.user.multi_factor_enabled})
+
+class SendEnableOTPView(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        user = request.user
+        if user.multi_factor_enabled:
+            return Response({"error": "2FA đã được bật từ trước."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        TwoFactorAuthOTP.objects.filter(user=user).delete()
+        otp_code = generate_otp()
+        TwoFactorAuthOTP.objects.create(user=user, otp=otp_code)
+        try:
+            send_otp_email_for_2FA(user.email, otp_code)
+            return Response({"message": "Một mã OTP đã được gửi đến email của bạn."}, status=status.HTTP_200_OK)
+        except:
+            return Response({"error": "Không thể gửi email."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VerifyAndEnable2FAView(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        user = request.user
+        serializer = OTPVerifySerializer(data=request.data)
+        if not serializer.is_valid(): return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        otp_code = serializer.validated_data['otp']
+        try:
+            two_factor_otp = TwoFactorAuthOTP.objects.get(user=user, otp=otp_code)
+        except TwoFactorAuthOTP.DoesNotExist:
+            return Response({"error": "Mã OTP không hợp lệ."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if two_factor_otp.is_expired():
+            two_factor_otp.delete()
+            return Response({"error": "Mã OTP đã hết hạn."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.multi_factor_enabled = True
+        user.save()
+        two_factor_otp.delete()
+        return Response({"message": "Xác thực hai yếu tố đã được bật thành công!"}, status=status.HTTP_200_OK)
+
+class Disable2FAView(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        user = request.user
+        serializer = PasswordSerializer(data=request.data)
+        if not serializer.is_valid(): return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        password = serializer.validated_data['password']
+        if not user.check_password(password):
+            return Response({"error": "Mật khẩu không chính xác."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.multi_factor_enabled = False
+        user.save()
+        TwoFactorAuthOTP.objects.filter(user=user).delete() # Dọn dẹp OTP của 2FA
+        return Response({"message": "Xác thực hai yếu tố đã được tắt."}, status=status.HTTP_200_OK)
+
