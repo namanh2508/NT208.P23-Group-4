@@ -7,16 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from django.conf.urls.static import static
 from api import views
 from api.views import *
-# from api.views import (
-#     CreatePatientUserView,
-#     CustomTokenObtainPairView,
-#     GetAllDoctor,
-#     DoctorDetailView,
-#     BookAppointmentAPIView,
-#     PatientProfileAPIView
-# )
 from rest_framework_simplejwt.views import TokenRefreshView
-# from api.views import CreateUserView
 
 from hospitalManagement import views
 from hospital_web import settings
@@ -146,15 +137,3 @@ urlpatterns = [
     path('medicines/', views.medicine_list_view, name='medicine_list'),# patient và doctor xài chức năng này
     path('patient-dashboard/add-calendar-reminders/', views.add_calendar_reminders, name='add_calendar_reminders'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-#url của userManagement cũ
-# urlpatterns = [ 
-#     path('doctor/<int:doctor_id>/', views.appointment_view, name='appointment_view'),
-
-#     path('discharge/',views.GetAllPatientDischargeDetail.as_view(), name="All patient discharge"),
-
-#     path('patient/',views.GetAllPatient.as_view(), name="All-patient"),
-
-#     
-#  ]

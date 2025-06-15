@@ -6,78 +6,6 @@ from datetime import datetime
 from hospitalManagement.models import Service, Appointment, Test
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import AuthenticationFailed
-# from hospitalManagement.models import PatientDischargeDetails
-
-
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ["id", "username", "password"]
-#         extra_kwargs = {"password": {"write_only": True}}
-
-#     def create(self, validated_data):
-#         print(validated_data)
-#         user = User.objects.create_user(**validated_data)
-#         return user
-
-# class DoctorSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Doctor
-#         fields='__all__'
-#         depth = 1 
-# class DoctorDetailSerializer(serializers.ModelSerializer):
-#     first_name = serializers.SerializerMethodField()
-#     last_name = serializers.SerializerMethodField()
-#     class Meta:
-#         model = Doctor
-#         fields=['first_name','last_name','mobile','department','profile_pic']
-#         depth = 1
-#     def get_first_name(self, obj):
-#         return obj.user.first_name
-
-#     def get_last_name(self, obj):
-#         return obj.user.last_name
-    
-    
-# class PatientSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Patient
-#         fields='__all__'
-#         depth = 1
-
-# class NoteSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Note
-#         fields = ["id", "title", "content", "created_at", "author"]
-#         extra_kwargs = {"author": {"read_only": True}}
-# class AppointmentSerializer(serializers.ModelSerializer):
-#     doctorMobile = serializers.SerializerMethodField() 
-#     doctorDepartment = serializers.SerializerMethodField()
-#     doctorPicture = serializers.SerializerMethodField()
-#     class Meta:
-#         model= Appointment
-#         fields=["appointmentID","patientName","doctorName","doctorMobile","doctorDepartment", "doctorPicture","appointmentDate"]
-    
-#     def get_doctorMobile(self,obj):
-#         # Truy cập đối tượng Doctor thông qua doctorId
-#          return obj.doctorId.mobile if obj.doctorId else None
-    
-#     def get_doctorDepartment(self,obj):
-#         # Truy cập đối tượng Doctor thông qua doctorId
-#          return obj.doctorId.department if obj.doctorId else None
-     
-#     def get_doctorPicture(self,obj):
-#         # Truy cập đối tượng Doctor thông qua doctorId
-#         return obj.doctorId.profile_pic.url if obj.doctorId.profile_pic else None
-     
-     
-     
-# class PatientDischargeDetailsSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = PatientDischargeDetails
-#         fields = '__all__'
-
-
 
 
 # -------------------------------------------API mới------------------------------------------------------
@@ -331,45 +259,7 @@ class PatientProfileSerializer(serializers.ModelSerializer):
             'family_phone', 'weight', 'height', 'description'
         ]
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        return token
 
-    def validate(self, attrs):
-        data = super().validate(attrs)
-
-        user = self.user
-        
-        if user.is_two_factor_enabled:
-            otp = self.context['request'].data.get('otp')
-
-            if not otp:
-                raise AuthenticationFailed(
-                    {"message": "Mã OTP là bắt buộc.", "2fa_required": True}, 
-                    code='2fa_required'
-                )
-            
-            try:
-                two_factor_otp = TwoFactorAuthOTP.objects.get(user=user, otp=otp)
-                
-                if two_factor_otp.is_expired():
-                    raise AuthenticationFailed(
-                        {"message": "Mã OTP đã hết hạn."},
-                        code='2fa_expired'
-                    )
-                
-                two_factor_otp.delete()
-
-            except TwoFactorAuthOTP.DoesNotExist:
-                raise AuthenticationFailed(
-                    {"message": "Mã OTP không hợp lệ."},
-                    code='2fa_invalid'
-                )
-        
-        return data
     
 class OTPVerifySerializer(serializers.Serializer):
     otp = serializers.CharField(required=True, max_length=6, min_length=6)

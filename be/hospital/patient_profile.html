@@ -31,7 +31,6 @@
              flex: 1 0 auto; /* Cho phép wrapper co giãn và không bị thu nhỏ */
              display: flex;
              flex-direction: column;
-             /* Không cần height: 100% ở đây nữa */
         }
 
         main {
@@ -317,7 +316,6 @@
         const verificationModalEl = document.getElementById('2fa-verification-modal');
         const verificationModal = new bootstrap.Modal(verificationModalEl);
         
-        // Chỉ cần ô nhập mật khẩu
         const passwordInput = document.getElementById('password-input');
         const confirmBtn = document.getElementById('confirm-2fa-button');
         const modalTitle = document.getElementById('2faModalLabel');

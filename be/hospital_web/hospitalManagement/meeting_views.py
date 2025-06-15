@@ -2,12 +2,11 @@
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden, Http404
-from django.shortcuts import get_object_or_404, render # Thêm render nếu bạn có doctor_video_room_view
+from django.shortcuts import get_object_or_404, render 
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta, datetime, time
 from django.contrib.auth.decorators import login_required,user_passes_test
-# Import các model từ app hospitalManagement (hoặc app chứa model của bạn)
 from hospitalManagement.models import Appointment, Service, Patient, Doctor, CustomUser 
 # Import từ thư viện OpenTok (Vonage)
 
@@ -23,7 +22,7 @@ def is_patient(user):
 
 def lam_tron_gio_ve_30_phut(thoi_gian_obj):
     # Bây giờ 'datetime' là lớp datetime.datetime, và 'time' là lớp datetime.time
-    if not isinstance(thoi_gian_obj, (datetime, time)): # << ĐÃ SỬA
+    if not isinstance(thoi_gian_obj, (datetime, time)):
         raise TypeError("Đầu vào phải là đối tượng datetime.datetime hoặc datetime.time")
 
     phut_hien_tai = thoi_gian_obj.minute

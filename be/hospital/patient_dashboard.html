@@ -15,7 +15,7 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            font-family: Arial, sans-serif; /* Có thể chọn font khác */
+            font-family: Arial, sans-serif;
             scroll-behavior: smooth; /* Cuộn trang mượt hơn */
         }
 
@@ -29,7 +29,7 @@
             flex: 1; /* Đảm bảo main chiếm không gian còn lại */
         }
 
-        .footer { /* Class này có thể cần trong footer.html */
+        .footer {
             background-color: #f8f9fa;
             padding: 10px 0;
             text-align: center;
@@ -38,7 +38,6 @@
         }
 
         /* --- CSS cho Navbar (từ patient_navbar.html nếu có và CSS cũ) --- */
-        /* Giả định .navbar, .navbar-nav, .nav-link được định nghĩa trong Bootstrap hoặc file include */
         .navbar-nav .nav-link {
             color: white;
             margin-right: 20px;
@@ -101,7 +100,7 @@
         }
 
         .sidebar-nav .nav-link {
-             color: #212529 !important; /* Màu chữ đen (quan trọng để ghi đè style inline cũ) */
+             color: #212529 !important;
              padding: 8px 12px; /* Tăng padding */
              font-size: 0.95em; /* Tăng nhẹ kích thước chữ */
              display: block; /* Đảm bảo chiếm cả dòng */
@@ -132,14 +131,12 @@
 
         /* --- CSS cho Hero Banner --- */
         .hero-banner {
-             /* Style inline đã khá đủ, có thể giữ nguyên hoặc chuyển vào đây */
         }
         /* --- Kết thúc CSS Hero Banner --- */
 
 
         /* --- CSS cho Decorative Gallery 1 --- */
         .decorative-gallery-1 {
-             /* Style inline đã khá đủ */
         }
          .decorative-gallery-1 img:hover {
             transform: scale(1.03) translateY(-5px);
@@ -229,7 +226,6 @@
           margin-bottom: 15px; /* Giảm khoảng cách */
           overflow: hidden;
           text-overflow: ellipsis;
-          /* Kỹ thuật giới hạn dòng hiệu quả hơn trong một số trường hợp */
            display: -webkit-box;
            -webkit-line-clamp: 3; /* Giới hạn 3 dòng */
            -webkit-box-orient: vertical;
@@ -362,7 +358,6 @@
                 const cardsPerView = 3; // Số card hiển thị mỗi lần
 
                 if (totalCards > cardsPerView) { // Chỉ chạy carousel nếu có nhiều card hơn số lượng hiển thị
-                    // Tính toán các giá trị cần thiết một cách an toàn hơn
                     let cardMarginRight = 30; // Giá trị dự phòng
                     let cardWidth = 290;      // Giá trị dự phòng
                     if (cards[0]) { // Kiểm tra xem có card nào không

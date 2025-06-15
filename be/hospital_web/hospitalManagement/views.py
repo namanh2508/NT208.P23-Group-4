@@ -49,7 +49,7 @@ from datetime import datetime, timedelta, time
 from django.utils.timezone import get_current_timezone, make_aware
 from googleapiclient.discovery import build
 import math
-# Create your views here.
+
 
 #-----------for checking user is doctor , patient or admin(by sumit)
 def is_admin(user):
@@ -102,26 +102,9 @@ def patientclick_view(request):
 #----------Gửi email otp----------------
 def generate_otp():
     return str(random.randint(100000, 999999))
-# def send_otp_to_email (email):
-#     otp = generate_otp()
 
-#     models.EmailOTP.objects.update_or_create(
-#         email=email, 
-#         defaults= {'otp': otp, 'created_at': timezone.now()})
-    
-#     subject = "Mã xác thực OTP của bạn"
-#     from_email = settings.EMAIL_HOST_USER
-
-#     html_content = render_to_string("otp_email_template.html", {"otp": otp})
-#     text_content = strip_tags(html_content)
-#     try:
-#         email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
-#         email_msg.attach_alternative(html_content, "text/html")
-#         email_msg.send()
-#     except Exception as e:
-#         print(f"Lỗi gửi email: {e}")
 def send_otp_to_email(email, otp_code=None, subject="Mã xác thực OTP của bạn", template_name="otp_email_template.html"):
-    # Nếu không có otp được truyền vào, tự tạo một cái
+
     if otp_code is None:
         otp_code = generate_otp()
 
@@ -144,25 +127,6 @@ def send_otp_to_email(email, otp_code=None, subject="Mã xác thực OTP của b
     except Exception as e:
         print(f"Lỗi gửi email: {e}")
 
-# def send_forgetpass_email(email):
-#     otp = generate_otp()
-
-#     models.EmailOTP.objects.update_or_create(
-#         email=email, 
-#         defaults={'otp': otp, 'created_at': timezone.now()}
-#     )
-
-#     subject = "Mã OTP đặt lại mật khẩu của bạn"
-#     from_email = settings.EMAIL_HOST_USER
-
-#     html_content = render_to_string("forgetpass_email_template.html", {"otp": otp})
-#     text_content = strip_tags(html_content)
-#     try:
-#         email_msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
-#         email_msg.attach_alternative(html_content, "text/html")
-#         email_msg.send()
-#     except Exception as e:
-#         print(f"Lỗi gửi email: {e}")
 def send_forgetpass_email(email):
     otp = generate_otp()
     subject = "Mã OTP đặt lại mật khẩu của bạn"
@@ -242,7 +206,6 @@ def patient_signup_view(request):
 
             request.session["pending_email"] = form_data['email']
             request.session["pending_form_data"] = form_data
-            # threading.Thread(target=send_otp_to_email, args=(form_data['email'],)).start()
             otp = generate_otp()
             threading.Thread(target=send_otp_to_email, args=(form_data['email'], otp)).start()
             messages.info(request, "Mã OTP đã được gửi tới email. Vui lòng xác thực.")
@@ -588,13 +551,10 @@ def patient_login_view(request):
                     otp_code = generate_otp()
                     subject = 'Yêu cầu đăng nhập cần xác thực - IV-Medical'
                     template = 'otp_2FA_email_template.html'
-                    # send_otp_to_email(user.email)
-                    # send_otp_to_email(user.email, otp_code, subject, template)
                     threading.Thread(target=send_otp_to_email, args=(user.email, otp_code, subject, template), daemon=True).start()
                     request.session['2fa_user_username'] = user.username
                     messages.info(request, "Tài khoản của bạn được bảo vệ. Vui lòng nhập mã OTP đã được gửi đến email.")
                     return redirect('verify_2fa_login') 
-                    # return render(request, "patientlogin.html", {'form': form, 'require_2fa': True, 'username': user.username})
                 else:
                     login(request, user)
                     return redirect("patient-dashboard")
@@ -797,10 +757,6 @@ def update_doctor_view(request, pk):
                  print("Cleaned data for picture:", form.cleaned_data.get('picture'))
             try:
                 saved_user = form.save() 
-
-                # Nếu bạn muốn cập nhật user.status:
-                # saved_user.status = True 
-                # saved_user.save()
 
                 print(f"Thông tin bác sĩ cho người dùng '{saved_user.username}' đã được cập nhật.")
                 if saved_user.picture:
@@ -1270,33 +1226,7 @@ def doctor_dashboard_view(request):
     }
 
     return render(request, 'doctor_dashboard.html', context=mydict)
-#--------doctor
-# @login_required(login_url='doctorlogin')
-# @user_passes_test(is_doctor, login_url='doctorlogin')
-# def doctor_dashboard_view(request):
 
-#     try:
-#         doctor = request.user.doctor
-#     except models.Doctor.DoesNotExist:
-#         return HttpResponse("Tài khoản này chưa có thông tin bác sĩ!", status=404)
-#     appointmentcount = models.Appointment.objects.filter(status=True, doctorId=doctor).count()
-#     appointments = models.Appointment.objects.filter(status=True, doctorId=doctor).order_by('-appointmentID')
-#     patientdischarged = models.PatientDischargeDetails.objects.filter(assignedDoctorName=request.user.first_name).distinct().count()
-#     patient_ids = [a.service.patient.id for a in appointments if a.service and a.service.patient]
-#     patients = models.Patient.objects.filter(id__in=patient_ids)
-#     patientcount = models.Patient.objects.filter(id__in=patient_ids).count()
-#     appointments_and_patients = zip(appointments, patients)
-    
-#     # Gửi dữ liệu vào template
-#     mydict = {
-#         'appointmentcount': appointmentcount,  # Tổng số cuộc hẹn chưa hoàn thành
-#         'patientdischarged': patientdischarged,  # Số lượng bệnh nhân đã xuất viện
-#         'appointments_and_patients': appointments_and_patients,  # Các cuộc hẹn kèm bệnh nhân
-#         'doctor': doctor,  # Thông tin bác sĩ (bao gồm ảnh đại diện)
-#         'patientcount': patientcount,  # Tổng số bệnh nhân đã khám  
-#     }
-    
-#     return render(request, 'doctor_dashboard.html', context=mydict)
 #---------------------------------------------------------------------------------
 #------------------------ PATIENT RELATED VIEWS START ------------------------------
 #---------------------------------------------------------------------------------
@@ -1305,12 +1235,7 @@ def doctor_dashboard_view(request):
 def patient_dashboard_view(request):
         doctors = models.Doctor.objects.all() 
         return render(request, 'patient_dashboard.html', {'doctors': doctors})
-#view của UserManagement
-# def index_view(request):
-#     if request.user.is_authenticated:
-#         return redirect('afterlogin')
-#     doctors = Doctor.objects.all()
-#     return render(request, 'index_home.html', {'doctors': doctors})
+
 def medicine_list_view(request):
     user = request.user
     if is_doctor(user):
@@ -1405,100 +1330,6 @@ def add_calendar_reminders(request):
     return redirect('patient-dashboard')
 
 
-
-# def patient_signup_view(request):
-#     userForm=forms.PatientUserForm()
-#     patientForm=forms.PatientForm()
-#     mydict={'userForm':userForm,'patientForm':patientForm}
-#     if request.method=='POST':
-#         userForm=forms.PatientUserForm(request.POST)
-#         patientForm=forms.PatientForm(request.POST,request.FILES)
-#         if userForm.is_valid() and patientForm.is_valid():
-#             user=userForm.save()
-#             user.set_password(user.password)
-#             user.save()
-#             patient=patientForm.save(commit=False)
-#             patient.user=user
-#             patient=patient.save()
-#             my_patient_group = Group.objects.get_or_create(name='PATIENT')
-#             my_patient_group[0].user_set.add(user)
-#         return redirect('patientlogin')
-#     return render(request,'patientsignup.html',context=mydict)
-
-# def patientlogin_view(request):
-#     if request.method == "POST":
-#         form = AuthenticationForm(request, data=request.POST)  # Django�s built-in login form
-#         if form.is_valid():
-#             user = form.get_user()
-#             if user.groups.filter(name="PATIENT").exists():
-#                 login(request, user)
-#                 return redirect("patient-dashboard")
-#             else:
-#                 form.add_error(None, "Không tìm thấy tài khoản của bạn")
-
-#     else:
-#         form = AuthenticationForm()
-
-#     return render(request, "patientlogin.html", {"form": form})
-
-# def logout_view(request):
-#     logout(request)
-#     return redirect('index_home')
-
-# def is_patient(user):
-#     return user.groups.filter(name='PATIENT').exists()
-
-
-# @login_required(login_url='/IV-Medical/patientsignup')
-# def appointment_view(request, doctor_id):
-#     # Lấy thông tin bác sĩ từ doctor_id
-#     doctor = Doctor.objects.get(id=doctor_id)
-#     patient = request.user.patient
-#     if request.method == "POST":
-#         form = forms.AppointmentForm(request.POST)
-#         if form.is_valid():
-#             appointment = form.save(commit=False)
-#             appointment.doctorId = doctor  # Gán bác sĩ từ URL
-#             appointment.patientId = patient   # Gán bệnh nhân từ người dùng đã đăng nhập
-#             appointment.patientName = patient.get_name  # Lấy tên bệnh nhân
-#             appointment.doctorName = doctor.get_name  # Lấy tên bác sĩ
-#             appointment.status = False  # Chưa xác nhận
-#             appointment.save()
-#             return redirect('index_home')  # Sau khi lưu, chuyển đến trang thành công
-
-#     else:
-#         form = forms.AppointmentForm()
-
-#     return render(request, 'appointment_form.html', {
-#         'form': form,
-#         'doctor': doctor,
-#         'doctor_id': doctor.id
-#     })
-    
-# class GetAllPatientDischargeDetail(generics.ListAPIView):
-#     queryset = PatientDischargeDetails.objects.all() # Lấy tất cả đối tượng Product
-#     serializer_class = PatientDischargeDetailsSerializer
-
-# class GetAllDoctor(generics.ListAPIView):
-#     queryset = Doctor.objects.all()
-#     serializer_class = DoctorSerializer
-#     permission_classes = [AllowAny]
-    
-# class GetAllPatient(generics.ListAPIView):
-#     queryset = Patient.objects.all()
-#     serializer_class = PatientSerializer
-#     permission_classes = [AllowAny]
-    
-    
-# # trả ra json
-# class GetAppointmentByPatientName(generics.ListAPIView):
-#     serializer_class = AppointmentSerializer
-#     permission_classes = [AllowAny]
-
-#     def get_queryset(self):
-#         name = self.kwargs['name']
-#         return Appointment.objects.filter(patientId__user__first_name=name)  
-    
 # # trả ra  html
 @login_required(login_url='patientlogin')
 def get_appointment_by_patient_name(request, user_id):
@@ -1651,54 +1482,6 @@ def call_dermatology_ai_api(image_path):
     logger.warning("call_dermatology_ai_api function is not implemented.")
     return {"diagnosis": None, "confidence": None}
 
-# @csrf_exempt
-# def upload_image_view(request):
-#     if request.method == 'POST':
-#         form = UploadForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             try:
-#                 ai_record = form.save(commit=False)
-                
-#                 # Tự động xác định loại ảnh
-#                 auto_type, confidence = detect_record_type_by_cnn(request.FILES['image'])
-#                 ai_record.record_type = auto_type
-#                 ai_record.save()
-
-#                 if ai_record.record_type == 'lab_report':
-#                     text = extract_text_from_image(ai_record.image.path)
-#                     metrics = analyze_test_result(text)
-#                     for m in metrics:
-#                         AI_Metric.objects.create(
-#                             ai_record=ai_record,
-#                             name=m['name'],
-#                             value=m['value'],
-#                             unit=m['unit'],
-#                             status=m['status'],
-#                             reference_range=m['range']
-#                         )
-#                 else:  # dermatology or xray
-#                     result = call_dermatology_ai_api(ai_record.image.path)
-#                     ai_record.diagnosis = result.get('diagnosis')
-#                     ai_record.confidence = result.get('confidence')
-#                     ai_record.save()
-
-#                 return redirect('ai_upload_success')
-#             except Exception as e:
-#                 logger.error(f"Error processing uploaded image: {e}")
-#                 messages.error(request, "There was an error processing the image. Please try again.")
-#         else:
-#             messages.error(request, "Invalid form submission. Please check the input.")
-#     else:
-#         form = UploadForm()
-#     return render(request, 'ai_upload.html', {'form': form})
-
-
-# def predict_view(request):
-#     if request.method == 'POST' and 'image' in request.FILES:
-#         image_file = request.FILES['image']
-#         result = detect_record_type_by_cnn(image_file)
-#         return JsonResponse({'result': result})
-#     return JsonResponse({'error': 'No image uploaded'}, status=400)
 
 def parse_blood_test_results(ocr_text):
     """
@@ -1778,7 +1561,7 @@ def upload_test_result(request):
                     # 2. Đọc nội dung file
                     file_bytes = uploaded_file.read()
 
-                    # 3. (Phòng vệ) Kiểm tra xem buffer có thực sự rỗng không
+                    # 3. Kiểm tra xem buffer có thực sự rỗng không
                     if not file_bytes:
                         raise ValueError("File được tải lên không có nội dung hoặc không thể đọc được.")
                         

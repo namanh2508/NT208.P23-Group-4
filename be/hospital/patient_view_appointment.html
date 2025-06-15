@@ -87,7 +87,7 @@
       font-size: 16px;
       border-radius: 5px;
       transition: all 0.3s ease;
-      /* margin-top: 10px; */ /* Đã comment lại để tránh xung đột trên màn hình lớn, sẽ được xử lý trong media query */
+      /* margin-top: 10px; */
     }
 
     .btn-cancel-appointment:hover {
@@ -116,8 +116,7 @@
       .doctor-img-container {
         margin-bottom: 1rem; /* Thêm khoảng cách dưới ảnh trên màn hình nhỏ */
       }
-      /* Nếu div chứa nút vẫn có class 'text-end' hoặc bạn muốn căn giữa các nút khi chúng là inline-block */
-      .text-end { /* Hoặc class cụ thể của div chứa nút trên màn hình nhỏ nếu khác */
+      .text-end {
         text-align: center !important;
       }
       .btn-pay-online, .btn-cancel-appointment {
@@ -125,25 +124,18 @@
         margin-bottom: 0.5rem !important; /* Khoảng cách dưới cho mỗi nút */
       }
       .btn-cancel-appointment {
-        margin-top: 0.5rem; /* Khoảng cách trên cho nút thứ hai, hoặc 0 nếu margin-bottom của nút trên đã đủ */
+        margin-top: 0.5rem;
       }
     }
 
     @media (min-width: 768px) { /* Áp dụng cho màn hình trung bình trở lên */
       .btn-pay-online, .btn-cancel-appointment {
         width: auto; /* Để nút tự điều chỉnh kích thước theo nội dung */
-        /* display: inline-block; Không cần thiết nếu div cha là flex container,
-                                 nhưng có thể giữ lại để tương thích nếu div cha không phải flex */
       }
       .btn-cancel-appointment {
         margin-top: 0; /* Reset margin-top trên màn hình lớn để các nút thẳng hàng */
       }
-      /* Đảm bảo margin-bottom của nút đầu tiên cũng được reset nếu nó có mb-2.
-         Class mb-md-0 trên HTML của nút đầu tiên đã giải quyết việc này. */
     }
-
-    /* Helper class cho flexbox gap, nếu bạn dùng Bootstrap 5 thì nó đã có sẵn */
-    /* Nếu bạn không dùng Bootstrap 5 hoặc muốn định nghĩa riêng: */
     .gap-2 {
       gap: 0.5rem; /* Khoảng cách giữa các flex items */
     }
