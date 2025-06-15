@@ -56,6 +56,43 @@
                 color: #0b5ed7;
             }
 
+        /* === Inline Critical CSS for Hero Banner === */
+        .hero-banner {
+            position: relative;
+            text-align: center;
+            color: white;
+            background: linear-gradient(rgba(26, 115, 232, 0.6), rgba(10, 57, 115, 0.7));
+            padding: 120px 20px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+            .hero-banner img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                z-index: -1;
+            }
+
+            .hero-banner h1 {
+                font-size: 3.5em;
+                margin-bottom: 15px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            }
+
+            .hero-banner p {
+                font-size: 1.4em;
+                max-width: 700px;
+                margin-bottom: 0;
+                text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+            }
+
         /* --- CSS CHO CAROUSEL BÁC SĨ --- */
         .carousel-container {
             width: 100%;
@@ -150,6 +187,7 @@
         }
     </style>
 </head>
+
 
 
 <body>
