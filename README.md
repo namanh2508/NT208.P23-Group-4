@@ -41,6 +41,12 @@ IV-Medical là một hệ thống quản lý bệnh viện toàn diện được
 - Tích hợp **PayOS** thanh toán online
 - Webhook xử lý trạng thái thanh toán tự động
 
+## Tính năng cộng điểm 
+- Deploy trên internet với Nginx và VPS ( https://lekhoiblog.id.vn/ )
+- Có tích hợp AI để chuẩn đoán bệnh ( Ollama và phi3 ), vì các API khác đã test hết token nên nhóm em chọn sử dụng AI local
+- Multi Factor Authentication
+  
+
 ## 🛠️ Công nghệ sử dụng
 
 ### Backend
@@ -307,4 +313,5 @@ https://docs.google.com/spreadsheets/d/1WHjiuY4fgUMsBKskFfWrQ4nhuX5jWF9kYpFMSTdW
 
 ---
 
-⭐ **Star** repository này nếu bạn thấy hữu ích!
+## DEMO 
+https://drive.google.com/file/d/1y9eq1DcTxGU6JhleQ5AAoijlTJGgFyBH/view?usp=sharing
