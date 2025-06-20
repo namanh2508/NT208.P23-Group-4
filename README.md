@@ -1,5 +1,16 @@
 # IV-Medical - Hệ thống Quản lý Bệnh viện
 
+## Thành viên
+
+| MSSV      | Họ và tên                 |
+|-----------|---------------------------|
+| 23520075  | Phùng Văn Nam Anh         |
+| 23520770  | Lê Văn Khôi               |
+| 23520407  | Lê Nguyễn Phương Giang    |
+| 23521176  | Bùi Thiên Phú             |
+| 23520484  | Nguyễn Huỳnh Minh Hiếu    |
+
+
 ## Giới thiệu
 
 IV-Medical là một hệ thống quản lý bệnh viện toàn diện được xây dựng bằng Django và React. Hệ thống cung cấp các tính năng quản lý bệnh nhân, bác sĩ, lịch hẹn khám bệnh, và tích hợp AI để hỗ trợ chẩn đoán y tế.
